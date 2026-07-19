@@ -92,6 +92,7 @@ export function useThemeToggle({
   const { setTheme, resolvedTheme } = useTheme();
   const reduce = useReducedMotion() ?? false;
   const [mounted, setMounted] = useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
   useEffect(() => {
     if (document.getElementById(VT_STYLE_ID)) return;

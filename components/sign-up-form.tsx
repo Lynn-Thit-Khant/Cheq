@@ -1,8 +1,9 @@
 'use client'
 
-import { GalleryVerticalEnd } from "lucide-react"
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Controller, useForm } from "react-hook-form"
+import * as z from "zod"
 
 import { cn } from "@/lib/utils"
 import { signup } from '@/app/auth/actions'
@@ -10,44 +11,55 @@ import { Button } from "@/components/ui/button"
 import {
   Field,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
-  FieldSeparator,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { PasswordStrengthInput } from "@/components/password-strength-input"
 import Link from 'next/link'
 
+const formSchema = z.object({
+  email: z.string().min(1, "Email is required.").email("Please enter a valid email address."),
+  password: z.string().min(8, "Password must be at least 8 characters."),
+  repeatPassword: z.string().min(1, "Please repeat your password."),
+}).refine((data) => data.password === data.repeatPassword, {
+  message: "Passwords do not match.",
+  path: ["repeatPassword"],
+})
+
 export function SignUpForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [repeatPassword, setRepeatPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
 
-  const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formData = new FormData(e.currentTarget)
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      repeatPassword: "",
+    },
+  })
+
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsLoading(true)
     setError(null)
 
-    if (password !== repeatPassword) {
-      setError('Passwords do not match')
-      setIsLoading(false)
-      return
-    }
+    const formData = new FormData()
+    formData.append('email', data.email)
+    formData.append('password', data.password)
+    formData.append('repeat-password', data.repeatPassword) // keeping the original action's expected name if it matters, though actions usually look at password
 
     try {
       const result = await signup(formData)
       if (result?.error) {
         setError(result.error)
       }
-    } catch (error: any) {
-      if (error?.message?.includes('NEXT_REDIRECT')) {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
         throw error
       }
       setError(error instanceof Error ? error.message : 'An error occurred')
@@ -58,54 +70,73 @@ export function SignUpForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <form onSubmit={handleSignUp}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
-            <Link
-              href="/"
-              className="flex flex-col items-center gap-2 font-medium"
-            >
-              <span className="sr-only">Acme Inc.</span>
-            </Link>
-            <h1 className="text-xl font-bold">Create an account</h1>
+            <h1 className="text-2xl font-bold">Create an account</h1>
             <FieldDescription>
               Already have an account? <Link href="/auth/login">Sign in</Link>
             </FieldDescription>
           </div>
-          <Field>
-            <FieldLabel htmlFor="email">Email</FieldLabel>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="m@example.com"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </Field>
-          <Field>
-            <FieldLabel htmlFor="password">Password</FieldLabel>
-            <PasswordStrengthInput
-              id="password"
-              name="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              showStrengthIndicator={true}
-            />
-          </Field>
-          <Field>
-            <FieldLabel htmlFor="repeat-password">Repeat Password</FieldLabel>
-            <PasswordStrengthInput
-              id="repeat-password"
-              name="repeat-password"
-              required
-              value={repeatPassword}
-              onChange={(e) => setRepeatPassword(e.target.value)}
-              showStrengthIndicator={false}
-            />
-          </Field>
+          
+          <Controller
+            name="email"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <Input
+                  {...field}
+                  id="email"
+                  type="email"
+                  placeholder="m@example.com"
+                  aria-invalid={fieldState.invalid}
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+          
+          <Controller
+            name="password"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="password">Password</FieldLabel>
+                <PasswordStrengthInput
+                  {...field}
+                  id="password"
+                  showStrengthIndicator={true}
+                  aria-invalid={fieldState.invalid}
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+
+          <Controller
+            name="repeatPassword"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="repeat-password">Repeat Password</FieldLabel>
+                <PasswordStrengthInput
+                  {...field}
+                  id="repeat-password"
+                  showStrengthIndicator={false}
+                  aria-invalid={fieldState.invalid}
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+
           {error && (
             <p className="text-sm text-red-500">
               {typeof error === 'string' && error !== '{}' 

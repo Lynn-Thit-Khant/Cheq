@@ -1,7 +1,8 @@
 'use client'
 
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/client'
 
 /**
@@ -21,6 +22,7 @@ export function UrlSyncGuard({ serverIsLoggedIn }: { serverIsLoggedIn: boolean }
 
   // Sync client state with server state (e.g., after Server Action login/logout)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsAuthenticated(serverIsLoggedIn)
   }, [serverIsLoggedIn])
 
