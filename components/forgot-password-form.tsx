@@ -4,7 +4,7 @@ import { GalleryVerticalEnd } from "lucide-react"
 import { useState } from 'react'
 
 import { cn } from "@/lib/utils"
-import { createClient } from '@/lib/client'
+import { forgotPassword } from '@/app/auth/actions'
 import { Button } from "@/components/ui/button"
 import {
   Field,
@@ -26,16 +26,20 @@ export function ForgotPasswordForm({
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/update-password`,
-      })
-      if (error) throw error
-      setSuccess(true)
+      const formData = new FormData()
+      formData.set('email', email)
+
+      const result = await forgotPassword(formData)
+
+      if (result && 'error' in result && result.error) {
+        setError(result.error)
+      } else {
+        setSuccess(true)
+      }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
@@ -48,11 +52,6 @@ export function ForgotPasswordForm({
       {success ? (
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
-            <Link href="/" className="flex flex-col items-center gap-2 font-medium">
-              <div className="flex size-8 items-center justify-center rounded-md">
-                <GalleryVerticalEnd className="size-6" />
-              </div>
-            </Link>
             <h1 className="text-xl font-bold">Check Your Email</h1>
             <FieldDescription>Password reset instructions sent.</FieldDescription>
           </div>
@@ -65,9 +64,7 @@ export function ForgotPasswordForm({
           <FieldGroup>
             <div className="flex flex-col items-center gap-2 text-center">
               <Link href="/" className="flex flex-col items-center gap-2 font-medium">
-                <div className="flex size-8 items-center justify-center rounded-md">
-                  <GalleryVerticalEnd className="size-6" />
-                </div>
+                <span className="sr-only">Acme Inc.</span>
               </Link>
               <h1 className="text-xl font-bold">Reset Password</h1>
               <FieldDescription>

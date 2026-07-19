@@ -35,7 +35,11 @@ export function UpdatePasswordForm({
     try {
       const { error } = await supabase.auth.updateUser({ password })
       if (error) throw error
-      router.push('/home')
+      
+      // Sign the user out so they have to log in with their new password
+      await supabase.auth.signOut()
+      router.push('/auth/login')
+      router.refresh()
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
@@ -49,9 +53,6 @@ export function UpdatePasswordForm({
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
             <Link href="/" className="flex flex-col items-center gap-2 font-medium">
-              <div className="flex size-8 items-center justify-center rounded-md">
-                <GalleryVerticalEnd className="size-6" />
-              </div>
             </Link>
             <h1 className="text-xl font-bold">Update Password</h1>
             <FieldDescription>Please enter your new password below.</FieldDescription>

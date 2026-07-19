@@ -20,6 +20,7 @@ const criteria: PasswordCriteria[] = [
 
 interface PasswordStrengthInputProps {
   id: string
+  name?: string
   value: string
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   placeholder?: string
@@ -29,6 +30,7 @@ interface PasswordStrengthInputProps {
 
 export function PasswordStrengthInput({
   id,
+  name,
   value,
   onChange,
   placeholder,
@@ -50,6 +52,7 @@ export function PasswordStrengthInput({
       <div className="relative">
         <Input
           id={id}
+          name={name}
           type={showPassword ? 'text' : 'password'}
           placeholder={placeholder}
           required={required}

@@ -1,6 +1,13 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+/**
+ * Routes under /auth that authenticated users should still be able to access.
+ * These are transient flows (email confirm, password reset) that require an
+ * active session but live under the /auth path prefix.
+ */
+const AUTH_PASSTHROUGH_ROUTES = ['/auth/confirm', '/auth/error', '/auth/update-password']
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -30,23 +37,41 @@ export async function updateSession(request: NextRequest) {
   )
 
   // Do not run code between createServerClient and
-  // supabase.auth.getClaims(). A simple mistake could make it very hard to debug
+  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
   // issues with users being randomly logged out.
 
-  // IMPORTANT: If you remove getClaims() and you use server-side rendering
+  // IMPORTANT: If you remove getUser() and you use server-side rendering
   // with the Supabase client, your users may be randomly logged out.
-  const { data } = await supabase.auth.getClaims()
-  const user = data?.claims
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const pathname = request.nextUrl.pathname
 
   if (
     !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth')
+    !pathname.startsWith('/login') &&
+    !pathname.startsWith('/auth')
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
-    return NextResponse.redirect(url)
+    const response = NextResponse.redirect(url)
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate')
+    return response
+  }
+
+  // If user is already logged in, they shouldn't be on the login/signup page.
+  // Redirect them to home — but let them through to passthrough routes like
+  // /auth/confirm, /auth/error, /auth/update-password.
+  if (
+    user &&
+    pathname.startsWith('/auth') &&
+    !AUTH_PASSTHROUGH_ROUTES.some(route => pathname.startsWith(route))
+  ) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/home'
+    const response = NextResponse.redirect(url)
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate')
+    return response
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is.

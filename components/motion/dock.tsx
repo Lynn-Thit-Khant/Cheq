@@ -1,8 +1,8 @@
 "use client";
 // beui.dev/components/motion/dock
 
-import { motion, useReducedMotion } from "motion/react";
-import { createContext, useContext, useId, useMemo, type ReactNode } from "react";
+import { motion, useReducedMotion, LayoutGroup } from "motion/react";
+import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { SPRING_LAYOUT } from "@/lib/ease";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +21,8 @@ export interface DockProps {
 }
 
 export function Dock({ children, size = 44, className }: DockProps) {
-  const pillLayoutId = useId();
+  // Use a stable ID instead of useId() to prevent layoutId jumping during Next.js navigation
+  const pillLayoutId = "dock-active-pill";
   const ctx = useMemo<DockContextValue>(
     () => ({ size, pillLayoutId }),
     [size, pillLayoutId],
@@ -29,14 +30,16 @@ export function Dock({ children, size = 44, className }: DockProps) {
 
   return (
     <DockContext.Provider value={ctx}>
-      <div
-        className={cn(
-          "inline-flex h-auto items-end gap-1.5 rounded-full border border-border bg-card/80 px-2 py-1 shadow-2xl backdrop-blur-xl",
-          className,
-        )}
-      >
-        {children}
-      </div>
+      <LayoutGroup id="dock">
+        <div
+          className={cn(
+            "inline-flex h-auto items-end gap-1.5 rounded-full border border-border bg-card/80 px-2 py-1 shadow-2xl backdrop-blur-xl",
+            className,
+          )}
+        >
+          {children}
+        </div>
+      </LayoutGroup>
     </DockContext.Provider>
   );
 }
