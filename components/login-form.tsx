@@ -65,11 +65,11 @@ export function LoginForm({
   }
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className={cn("flex flex-col gap-6 px-4 sm:px-0", className)} {...props}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-2xl font-bold">Welcome back</h1>
+            <h1 className="text-3xl font-bold">Welcome back</h1>
             <FieldDescription>
               Don&apos;t have an account? <Link href="/auth/sign-up">Sign up</Link>
             </FieldDescription>
@@ -121,7 +121,7 @@ export function LoginForm({
 
           {error && <p className="text-sm text-red-500">{error}</p>}
           <Field>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading} className="w-full">
               {isLoading ? 'Logging in...' : 'Login'}
             </Button>
           </Field>

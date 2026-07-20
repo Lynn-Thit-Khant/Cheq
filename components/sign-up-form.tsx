@@ -69,11 +69,11 @@ export function SignUpForm({
   }
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className={cn("flex flex-col gap-6 px-4 sm:px-0", className)} {...props}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-2xl font-bold">Create an account</h1>
+            <h1 className="text-3xl font-bold">Create an account</h1>
             <FieldDescription>
               Already have an account? <Link href="/auth/login">Sign in</Link>
             </FieldDescription>
@@ -145,7 +145,7 @@ export function SignUpForm({
             </p>
           )}
           <Field>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading} className="w-full">
               {isLoading ? 'Creating account...' : 'Create Account'}
             </Button>
           </Field>

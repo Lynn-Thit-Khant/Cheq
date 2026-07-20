@@ -61,11 +61,11 @@ export function ForgotPasswordForm({
   }
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className={cn("flex flex-col gap-6 px-4 sm:px-0", className)} {...props}>
       {success ? (
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-2xl font-bold">Check Your Email</h1>
+            <h1 className="text-3xl font-bold">Check Your Email</h1>
             <FieldDescription>Password reset instructions sent.</FieldDescription>
           </div>
           <p className="text-sm text-center text-muted-foreground mt-4">
@@ -76,7 +76,7 @@ export function ForgotPasswordForm({
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup>
             <div className="flex flex-col items-center gap-2 text-center">
-              <h1 className="text-2xl font-bold">Reset Password</h1>
+              <h1 className="text-3xl font-bold">Reset Password</h1>
               <FieldDescription>
                 Remember your password? <Link href="/auth/login">Sign in</Link>
               </FieldDescription>

@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react'
 import { Eye, EyeOff, Check } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
+import { AnimatePresence, motion } from "motion/react"
 
 interface PasswordCriteria {
   label: string
@@ -76,32 +77,39 @@ export const PasswordStrengthInput = React.forwardRef<HTMLInputElement, Password
         </div>
 
         {/* Show the checklist when focused or when there's input */}
-        {showStrengthIndicator && (isFocused || stringValue.length > 0) && (
-          <ul className="flex flex-col gap-1.5 text-sm">
-            {results.map((r) => (
-              <li key={r.label} className="flex items-center gap-2">
-                <span
-                  className={cn(
-                    'flex size-4 shrink-0 items-center justify-center rounded-full border transition-colors',
-                    r.met
-                      ? 'border-primary bg-primary text-primary-foreground'
-                      : 'border-muted-foreground/40'
-                  )}
-                >
-                  {r.met && <Check className="size-2.5" strokeWidth={3} />}
-                </span>
-                <span
-                  className={cn(
-                    'transition-colors',
-                    r.met ? 'text-foreground' : 'text-muted-foreground'
-                  )}
-                >
-                  {r.label}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
+        <AnimatePresence>
+          {showStrengthIndicator && (isFocused || stringValue.length > 0) && (
+            <motion.ul
+              initial={{ opacity: 0, y: -10, height: 0, overflow: 'hidden' }}
+              animate={{ opacity: 1, y: 0, height: "auto" }}
+              exit={{ opacity: 0, y: -10, height: 0 }}
+              className="flex flex-col gap-1.5 text-sm"
+            >
+              {results.map((r) => (
+                <li key={r.label} className="flex items-center gap-2">
+                  <span
+                    className={cn(
+                      'flex size-4 shrink-0 items-center justify-center rounded-full border transition-colors',
+                      r.met
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-muted-foreground/40'
+                    )}
+                  >
+                    {r.met && <Check className="size-2.5" strokeWidth={3} />}
+                  </span>
+                  <span
+                    className={cn(
+                      'transition-colors',
+                      r.met ? 'text-foreground' : 'text-muted-foreground'
+                    )}
+                  >
+                    {r.label}
+                  </span>
+                </li>
+              ))}
+            </motion.ul>
+          )}
+        </AnimatePresence>
 
         {/* Hidden native input to communicate validity to the form */}
         {showStrengthIndicator && (
