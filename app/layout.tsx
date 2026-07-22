@@ -23,6 +23,7 @@ export const metadata: Metadata = {
 
 import { UrlSyncGuard } from "@/components/url-sync-guard";
 import { createClient } from "@/lib/server";
+import { Analytics } from "@vercel/analytics/next";
 
 export default async function RootLayout({
   children,
@@ -49,6 +50,7 @@ export default async function RootLayout({
           <UrlSyncGuard serverIsLoggedIn={isLoggedIn} />
           {children}
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
