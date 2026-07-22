@@ -42,7 +42,11 @@ export async function updateSession(request: NextRequest) {
 
   // IMPORTANT: If you remove getUser() and you use server-side rendering
   // with the Supabase client, your users may be randomly logged out.
-  const { data: { user } } = await supabase.auth.getUser()
+  // We are using getSession() instead of getUser() here for performance.
+  // getUser() makes a database network request, which is incredibly slow in Edge Middleware.
+  // getSession() just parses the secure cookie, making routing instantaneous.
+  const { data: { session } } = await supabase.auth.getSession()
+  const user = session?.user
 
   const pathname = request.nextUrl.pathname
 
