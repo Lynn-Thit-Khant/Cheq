@@ -46,7 +46,7 @@ export function BottomNav() {
                 className="group"
               >
                 <tab.icon className="size-5" />
-                <span className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 pointer-events-none rounded-full border border-border bg-card/80 backdrop-blur-xl px-3 py-1 text-sm font-medium text-foreground shadow-2xl whitespace-nowrap">
+                <span className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 pointer-events-none rounded-full border border-border bg-card/80 backdrop-blur-xl px-3 py-1 text-sm font-medium text-foreground shadow-md whitespace-nowrap">
                   {tab.name}
                 </span>
               </DockItem>

@@ -33,7 +33,7 @@ export function Dock({ children, size = 44, className }: DockProps) {
       <LayoutGroup id="dock">
         <div
           className={cn(
-            "inline-flex h-auto items-end gap-1.5 rounded-full border border-border bg-card/80 px-2 py-1 shadow-2xl backdrop-blur-xl",
+            "inline-flex h-auto items-end gap-1.5 rounded-full border border-border bg-card/80 px-2 py-1 shadow-md backdrop-blur-xl",
             className,
           )}
         >
