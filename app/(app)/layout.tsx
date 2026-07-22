@@ -19,7 +19,7 @@ export default async function AppLayout({
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col pb-24 bg-zinc-50 dark:bg-black">
+    <div className="relative min-h-screen flex flex-col pb-24 bg-background text-foreground">
       {children}
       <BottomNav />
     </div>
