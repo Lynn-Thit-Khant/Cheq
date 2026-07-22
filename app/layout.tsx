@@ -43,8 +43,8 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
-          forcedTheme="dark"
+          defaultTheme="system"
+          enableSystem
           disableTransitionOnChange
         >
           <UrlSyncGuard serverIsLoggedIn={isLoggedIn} />
