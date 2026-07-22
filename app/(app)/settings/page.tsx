@@ -1,10 +1,20 @@
 "use client"
 
-import { useThemeToggle } from "@/components/motion/theme-toggle"
+import { useTheme } from "next-themes"
+import { useEffect, useState } from "react"
 import { Switch } from "@/components/motion/switch"
 
 export default function SettingsPage() {
-  const { isDark, mounted, toggle } = useThemeToggle({ variant: "circle-blur", start: "top-right" })
+  const { setTheme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+  
+  useEffect(() => setMounted(true), [])
+  
+  const isDark = mounted && resolvedTheme === "dark"
+
+  const toggle = () => {
+    setTheme(isDark ? "light" : "dark")
+  }
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center min-h-screen p-4 gap-6">
@@ -16,7 +26,7 @@ export default function SettingsPage() {
           <span className="text-sm text-muted-foreground">Toggle dark appearance</span>
         </div>
         <Switch
-          checked={mounted ? isDark : false}
+          checked={isDark}
           onCheckedChange={toggle}
           aria-label="Toggle dark mode"
         />
