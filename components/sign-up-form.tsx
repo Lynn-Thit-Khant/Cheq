@@ -16,12 +16,12 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { PasswordStrengthInput } from "@/components/password-strength-input"
+import { PasswordStrengthInput, validatePassword } from "@/components/password-strength-input"
 import Link from 'next/link'
 
 const formSchema = z.object({
   email: z.string().min(1, "Email is required.").email("Please enter a valid email address."),
-  password: z.string().min(8, "Password must be at least 8 characters."),
+  password: z.string().min(8, "Password must be at least 8 characters.").refine(validatePassword, "Please ensure all password requirements are met."),
   repeatPassword: z.string().min(1, "Please repeat your password."),
 }).refine((data) => data.password === data.repeatPassword, {
   message: "Passwords do not match.",
@@ -32,7 +32,6 @@ export function SignUpForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -46,23 +45,38 @@ export function SignUpForm({
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsLoading(true)
-    setError(null)
 
     const formData = new FormData()
     formData.append('email', data.email)
     formData.append('password', data.password)
-    formData.append('repeat-password', data.repeatPassword) // keeping the original action's expected name if it matters, though actions usually look at password
+    formData.append('repeat-password', data.repeatPassword)
 
     try {
       const result = await signup(formData)
       if (result?.error) {
-        setError(result.error)
+        let errorMessage = typeof result.error === 'string' && result.error !== '{}' 
+          ? result.error 
+          : 'Something went wrong. If you just configured custom SMTP, check your credentials.'
+          
+        if (errorMessage.startsWith('Password should contain')) {
+          errorMessage = 'Please ensure all password requirements are met.'
+        }
+          
+        form.setError('password', { type: 'manual', message: errorMessage })
+        form.setError('repeatPassword', { type: 'manual', message: errorMessage })
       }
     } catch (error: unknown) {
       if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
         throw error
       }
-      setError(error instanceof Error ? error.message : 'An error occurred')
+      let errorMessage = error instanceof Error ? error.message : 'An error occurred'
+      
+      if (errorMessage.startsWith('Password should contain')) {
+        errorMessage = 'Please ensure all password requirements are met.'
+      }
+
+      form.setError('password', { type: 'manual', message: errorMessage })
+      form.setError('repeatPassword', { type: 'manual', message: errorMessage })
     } finally {
       setIsLoading(false)
     }
@@ -137,13 +151,6 @@ export function SignUpForm({
             )}
           />
 
-          {error && (
-            <p className="text-sm text-red-500">
-              {typeof error === 'string' && error !== '{}' 
-                ? error 
-                : 'Something went wrong. If you just configured custom SMTP, check your credentials.'}
-            </p>
-          )}
           <Field>
             <Button type="submit" disabled={isLoading} className="w-full">
               {isLoading ? 'Creating account...' : 'Create Account'}

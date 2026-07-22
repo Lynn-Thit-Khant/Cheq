@@ -29,7 +29,6 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -42,7 +41,6 @@ export function LoginForm({
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsLoading(true)
-    setError(null)
     
     // Create FormData manually since we are overriding default form submission
     const formData = new FormData()
@@ -52,13 +50,15 @@ export function LoginForm({
     try {
       const result = await login(formData)
       if (result?.error) {
-        setError(result.error)
+        form.setError('email', { type: 'manual', message: result.error })
+        form.setError('password', { type: 'manual', message: result.error })
       }
     } catch (error: unknown) {
       if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
         throw error
       }
-      setError(error instanceof Error ? error.message : 'An error occurred')
+      form.setError('password', { type: 'manual', message: error instanceof Error ? error.message : 'An error occurred' })
+      form.setError('email', { type: 'manual', message: error instanceof Error ? error.message : 'An error occurred' })
     } finally {
       setIsLoading(false)
     }
@@ -119,7 +119,6 @@ export function LoginForm({
             )}
           />
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
           <Field>
             <Button type="submit" disabled={isLoading} className="w-full">
               {isLoading ? 'Logging in...' : 'Login'}

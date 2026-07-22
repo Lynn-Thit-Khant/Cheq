@@ -18,11 +18,11 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 
-import { PasswordStrengthInput } from "@/components/password-strength-input"
+import { PasswordStrengthInput, validatePassword } from "@/components/password-strength-input"
 
 
 const formSchema = z.object({
-  password: z.string().min(8, "Password must be at least 8 characters."),
+  password: z.string().min(8, "Password must be at least 8 characters.").refine(validatePassword, "Please ensure all password requirements are met."),
   repeatPassword: z.string().min(1, "Please repeat your new password."),
 }).refine((data) => data.password === data.repeatPassword, {
   message: "Passwords do not match.",
@@ -33,12 +33,12 @@ export function UpdatePasswordForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    shouldFocusError: false,
     defaultValues: {
       password: "",
       repeatPassword: "",
@@ -48,18 +48,29 @@ export function UpdatePasswordForm({
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     const supabase = createClient()
     setIsLoading(true)
-    setError(null)
-
     try {
       const { error } = await supabase.auth.updateUser({ password: data.password })
-      if (error) throw error
+      if (error) {
+        let errorMessage = error.message
+        if (errorMessage.startsWith('Password should contain')) {
+          errorMessage = 'Please ensure all password requirements are met.'
+        }
+        form.setError('password', { type: 'manual', message: errorMessage })
+        form.setError('repeatPassword', { type: 'manual', message: errorMessage })
+        return
+      }
       
       // Sign the user out so they have to log in with their new password
       await supabase.auth.signOut()
       router.push('/auth/login')
       router.refresh()
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'An error occurred')
+      let errorMessage = error instanceof Error ? error.message : 'An error occurred'
+      if (errorMessage.startsWith('Password should contain')) {
+        errorMessage = 'Please ensure all password requirements are met.'
+      }
+      form.setError('password', { type: 'manual', message: errorMessage })
+      form.setError('repeatPassword', { type: 'manual', message: errorMessage })
     } finally {
       setIsLoading(false)
     }
@@ -114,7 +125,6 @@ export function UpdatePasswordForm({
             )}
           />
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
           <Field>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? 'Saving...' : 'Save new password'}

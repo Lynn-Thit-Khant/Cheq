@@ -27,7 +27,6 @@ export function ForgotPasswordForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -40,7 +39,6 @@ export function ForgotPasswordForm({
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsLoading(true)
-    setError(null)
 
     try {
       const formData = new FormData()
@@ -49,12 +47,12 @@ export function ForgotPasswordForm({
       const result = await forgotPassword(formData)
 
       if (result && 'error' in result && result.error) {
-        setError(result.error)
+        form.setError('email', { type: 'manual', message: result.error })
       } else {
         setSuccess(true)
       }
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'An error occurred')
+      form.setError('email', { type: 'manual', message: error instanceof Error ? error.message : 'An error occurred' })
     } finally {
       setIsLoading(false)
     }
@@ -65,12 +63,9 @@ export function ForgotPasswordForm({
       {success ? (
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-3xl font-bold">Check Your Email</h1>
-            <FieldDescription>Password reset instructions sent.</FieldDescription>
+            <h1 className="text-3xl font-bold">Check your email</h1>
+            <FieldDescription>We&apos;ve sent you a secure link to reset your password.</FieldDescription>
           </div>
-          <p className="text-sm text-center text-muted-foreground mt-4">
-            If you registered using your email and password, you will receive a password reset email.
-          </p>
         </FieldGroup>
       ) : (
         <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -102,7 +97,6 @@ export function ForgotPasswordForm({
               )}
             />
 
-            {error && <p className="text-sm text-red-500">{error}</p>}
             <Field>
               <Button type="submit" disabled={isLoading} className="w-full">
                 {isLoading ? 'Sending...' : 'Reset password'}

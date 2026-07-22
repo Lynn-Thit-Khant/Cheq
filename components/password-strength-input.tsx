@@ -11,7 +11,7 @@ interface PasswordCriteria {
   test: (password: string) => boolean
 }
 
-const criteria: PasswordCriteria[] = [
+export const passwordCriteria: PasswordCriteria[] = [
   { label: 'Uppercase letter', test: (p) => /[A-Z]/.test(p) },
   { label: 'Lowercase letter', test: (p) => /[a-z]/.test(p) },
   { label: 'Number', test: (p) => /[0-9]/.test(p) },
@@ -32,7 +32,7 @@ export const PasswordStrengthInput = React.forwardRef<HTMLInputElement, Password
     const stringValue = String(value)
 
     const results = useMemo(
-      () => criteria.map((c) => ({ ...c, met: c.test(stringValue) })),
+      () => passwordCriteria.map((c) => ({ ...c, met: c.test(stringValue) })),
       [stringValue]
     )
 
@@ -127,5 +127,9 @@ export const PasswordStrengthInput = React.forwardRef<HTMLInputElement, Password
 PasswordStrengthInput.displayName = 'PasswordStrengthInput'
 
 export function usePasswordStrength(password: string) {
-  return useMemo(() => criteria.every((c) => c.test(password)), [password])
+  return useMemo(() => passwordCriteria.every((c) => c.test(password)), [password])
+}
+
+export function validatePassword(password: string) {
+  return passwordCriteria.every((c) => c.test(password))
 }

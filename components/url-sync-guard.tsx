@@ -14,7 +14,7 @@ import { createClient } from '@/lib/client'
  * Uses reactive Supabase auth state instead of a stale server-rendered prop.
  */
 
-const AUTH_PASSTHROUGH_ROUTES = ['/auth/confirm', '/auth/error', '/auth/update-password']
+const AUTH_PASSTHROUGH_ROUTES = ['/auth/confirm', '/auth/error', '/auth/update-password', '/auth/forgot-password']
 
 export function UrlSyncGuard({ serverIsLoggedIn }: { serverIsLoggedIn: boolean }) {
   const router = useRouter()
