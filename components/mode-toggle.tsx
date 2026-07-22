@@ -2,12 +2,14 @@
 
 import * as React from "react"
 import { Moon, Sun } from "lucide-react"
-import { useThemeToggle } from "@/components/motion/theme-toggle"
+import { useTheme } from "next-themes"
 
 import { Button } from "@/components/ui/button"
 
 export function ModeToggle() {
-  const { toggle } = useThemeToggle({ variant: "circle-blur", start: "top-right" })
+  const { setTheme, resolvedTheme } = useTheme()
+
+  const toggle = () => setTheme(resolvedTheme === "light" ? "dark" : "light")
 
   return (
     <Button
