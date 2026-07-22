@@ -26,7 +26,7 @@ export default async function ErrorPage({ searchParams }: { searchParams: Promis
       <FieldGroup>
         <div className="flex flex-col items-center gap-3 text-center">
 
-          <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+          <h1 className="text-3xl font-bold">{title}</h1>
           <FieldDescription className="text-base text-center">
             {description}
           </FieldDescription>

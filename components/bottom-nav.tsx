@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { Dock, DockItem } from "@/components/motion/dock"
 import { Home, Wallet, User, Settings } from "lucide-react"
@@ -15,17 +16,32 @@ export function BottomNav() {
     { name: "Settings", href: "/settings", icon: Settings },
   ]
 
+  // Local state drives the pill animation instantly on click,
+  // decoupled from the slower route change.
+  const [activeHref, setActiveHref] = useState(pathname)
+
+  // Sync back when the URL changes externally (browser back/forward)
+  useEffect(() => {
+    setActiveHref(pathname)
+  }, [pathname])
+
+  const handleTabClick = (href: string) => {
+    if (href === activeHref) return
+    setActiveHref(href)     // pill glides immediately
+    router.push(href)       // page navigates in the background
+  }
+
   return (
     <div className="fixed bottom-6 inset-x-0 flex justify-center z-50 pointer-events-none">
       <div className="pointer-events-auto">
         <Dock size={48}>
           {tabs.map((tab) => {
-            const isActive = pathname === tab.href
+            const isActive = activeHref === tab.href
             return (
               <DockItem
                 key={tab.name}
                 active={isActive}
-                onClick={() => router.push(tab.href)}
+                onClick={() => handleTabClick(tab.href)}
                 aria-label={tab.name}
                 className="group"
               >

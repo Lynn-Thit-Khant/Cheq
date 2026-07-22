@@ -1,6 +1,6 @@
-import { GalleryVerticalEnd } from "lucide-react"
 import Link from 'next/link'
 import { FieldGroup, FieldDescription } from "@/components/ui/field"
+import { buttonVariants } from "@/components/ui/button"
 
 export default function SignUpSuccessPage() {
   return (
@@ -14,8 +14,14 @@ export default function SignUpSuccessPage() {
             </FieldDescription>
           </div>
 
+          <div className="flex flex-col gap-3 mt-2">
+            <Link href="/auth/login" className={buttonVariants({ variant: 'outline', className: 'w-full' })}>
+              Back to Sign in
+            </Link>
+          </div>
         </FieldGroup>
       </div>
     </div>
   )
 }
+

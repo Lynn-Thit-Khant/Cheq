@@ -52,8 +52,9 @@ export function UrlSyncGuard({ serverIsLoggedIn }: { serverIsLoggedIn: boolean }
         path.startsWith('/auth') &&
         !AUTH_PASSTHROUGH_ROUTES.some(route => path.startsWith(route))
       ) {
-        // Back-button landed on an auth page — push back to current app route
-        window.history.pushState(null, '', '/home')
+        // Back-button landed on an auth page — replace with the last known app route
+        window.history.replaceState(null, '', '/home')
+        window.history.go(0)
       }
     }
 
