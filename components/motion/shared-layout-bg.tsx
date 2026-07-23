@@ -47,7 +47,11 @@ export function SharedLayoutBg({
 
   return (
     <motion.div
-      onMouseLeave={() => setActiveId(null)}
+      onPointerLeave={(e) => {
+        if (e.pointerType !== "touch") {
+          setActiveId(null)
+        }
+      }}
       className={cn("flex w-full flex-col", className)}
     >
       {Children.toArray(children)
@@ -60,7 +64,11 @@ export function SharedLayoutBg({
             <div
               key={childKey}
               className="relative w-full"
-              onMouseEnter={() => setActiveId(childKey)}
+              onPointerEnter={(e) => {
+                if (e.pointerType !== "touch") {
+                  setActiveId(childKey)
+                }
+              }}
             >
               <AnimatePresence>
                 {activeId === childKey ? (
