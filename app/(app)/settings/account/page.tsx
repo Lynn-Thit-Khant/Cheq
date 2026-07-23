@@ -232,7 +232,7 @@ export default function AccountPage() {
                       setNameOpen(false)
                       setNameModalOpen(true)
                     }}
-                    className="w-full justify-start font-medium text-foreground h-14"
+                    className="w-full justify-start font-medium text-foreground h-11"
                   >
                     <Pencil className="h-4 w-4" strokeWidth={1.5} />
                     Edit Name
@@ -258,7 +258,7 @@ export default function AccountPage() {
                       setEmailSuccess(false)
                       setEmailModalOpen(true)
                     }}
-                    className="w-full justify-start font-medium text-foreground rounded-[16px] h-14"
+                    className="w-full justify-start font-medium text-foreground rounded-[16px] h-11"
                   >
                     <Pencil className="h-4 w-4" strokeWidth={1.5} />
                     Edit Email
@@ -277,7 +277,7 @@ export default function AccountPage() {
                         setCopyState("copy")
                       }, 2000)
                     }}
-                    className="w-full justify-start font-medium text-foreground rounded-[16px] h-14"
+                    className="w-full justify-start font-medium text-foreground rounded-[16px] h-11"
                   />
                 </div>
               </MorphPopoverContent>
@@ -305,7 +305,7 @@ export default function AccountPage() {
                       setPasswordSuccess(false)
                       setPasswordModalOpen(true)
                     }}
-                    className="w-full justify-start font-medium text-foreground rounded-[18px] h-14"
+                    className="w-full justify-start font-medium text-foreground rounded-[18px] h-11"
                   >
                     <Lock className="h-4 w-4" strokeWidth={1.5} />
                     Edit Password
@@ -316,7 +316,7 @@ export default function AccountPage() {
                     onClick={() => {
                       router.push('/auth/forgot-password')
                     }}
-                    className="w-full justify-start font-medium text-foreground rounded-[18px] h-14"
+                    className="w-full justify-start font-medium text-foreground rounded-[18px] h-11"
                   >
                     <KeyRound className="h-4 w-4" strokeWidth={1.5} />
                     Forgot password
@@ -351,7 +351,7 @@ export default function AccountPage() {
                         setMfaRemoveModalOpen(true)
                       }
                     }}
-                    className="w-full justify-start font-medium text-foreground h-14"
+                    className="w-full justify-start font-medium text-foreground h-11"
                   >
                     <Pencil className="h-4 w-4" strokeWidth={1.5} />
                     {mfaEnabled ? "Remove MFA" : "Setup MFA"}
