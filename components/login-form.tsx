@@ -8,7 +8,7 @@ import * as z from "zod"
 
 import { cn } from "@/lib/utils"
 import { login } from '@/app/auth/actions'
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/motion/button/base"
 import {
   Field,
   FieldDescription,
@@ -120,7 +120,7 @@ export function LoginForm({
           />
 
           <Field>
-            <Button type="submit" disabled={isLoading} className="w-full">
+            <Button size="lg" type="submit" disabled={isLoading} className="w-full">
               {isLoading ? 'Logging in...' : 'Login'}
             </Button>
           </Field>

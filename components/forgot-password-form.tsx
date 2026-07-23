@@ -2,13 +2,14 @@
 
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Controller, useForm } from "react-hook-form"
 import * as z from "zod"
 
 import { cn } from "@/lib/utils"
 import { forgotPassword } from '@/app/auth/actions'
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/motion/button/base"
 import {
   Field,
   FieldDescription,
@@ -29,6 +30,7 @@ export function ForgotPasswordForm({
 }: React.ComponentProps<"div">) {
   const [success, setSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -66,6 +68,11 @@ export function ForgotPasswordForm({
             <h1 className="text-3xl font-bold">Check your email</h1>
             <FieldDescription>We&apos;ve sent you a secure link to reset your password.</FieldDescription>
           </div>
+          <div className="flex flex-col gap-3 mt-4">
+            <Button size="lg" className="w-full" onClick={() => router.push('/auth/login')}>
+              Back to Sign in
+            </Button>
+          </div>
         </FieldGroup>
       ) : (
         <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -98,7 +105,7 @@ export function ForgotPasswordForm({
             />
 
             <Field>
-              <Button type="submit" disabled={isLoading} className="w-full">
+              <Button size="lg" type="submit" disabled={isLoading} className="w-full">
                 {isLoading ? 'Sending...' : 'Reset password'}
               </Button>
             </Field>

@@ -1,10 +1,13 @@
-import Link from 'next/link'
+'use client'
 
-import { buttonVariants } from '@/components/ui/button'
+import { use } from 'react'
+import { useRouter } from 'next/navigation'
 import { FieldGroup, FieldDescription } from '@/components/ui/field'
+import { Button } from '@/components/motion/button/base'
 
-export default async function ErrorPage({ searchParams }: { searchParams: Promise<{ error: string }> }) {
-  const params = await searchParams
+export default function ErrorPage({ searchParams }: { searchParams: Promise<{ error: string }> }) {
+  const router = useRouter()
+  const params = use(searchParams)
   
   let title = "Something went wrong"
   let description = "We couldn't verify your link. Please try requesting a new one."
@@ -33,12 +36,12 @@ export default async function ErrorPage({ searchParams }: { searchParams: Promis
         </div>
 
         <div className="flex flex-col gap-3 mt-4">
-          <Link href="/auth/forgot-password" className={buttonVariants({ className: 'w-full' })}>
+          <Button size="lg" className="w-full" onClick={() => router.push('/auth/forgot-password')}>
             Request a new link
-          </Link>
-          <Link href="/auth/login" className={buttonVariants({ variant: 'outline', className: 'w-full' })}>
+          </Button>
+          <Button size="lg" variant="outline" className="w-full" onClick={() => router.push('/auth/login')}>
             Back to Sign in
-          </Link>
+          </Button>
         </div>
       </FieldGroup>
     </div>

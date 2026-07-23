@@ -20,7 +20,7 @@ export default function PrivacyPage() {
             </button>
 
             <button className="flex min-h-[54px] w-full items-center justify-between px-4 py-2 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[24px]">
-              <span className="text-[15px] font-medium text-foreground">Multi factor authenticator (MFA)</span>
+              <span className="text-[15px] font-medium text-foreground">Multi-factor authentication (MFA)</span>
               <ChevronRight className="size-4 text-muted-foreground transition-colors shrink-0" />
             </button>
 

@@ -6,21 +6,14 @@ import { User, ShieldCheck, LayoutTemplate, SlidersHorizontal, Sparkles, Plug, M
 import { Switch } from "@/components/motion/switch"
 import { LogoutButton } from "@/components/logout-button"
 import Link from "next/link"
-import { createClient } from "@/lib/client"
+import { useUser } from "@/components/user-provider"
 export default function SettingsPage() {
   const { setTheme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
-  const [userEmail, setUserEmail] = useState<string>("")
-  const [userName, setUserName] = useState<string>("")
-  
-  useEffect(() => {
-    setMounted(true)
-    const supabase = createClient()
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUserEmail(user?.email || "")
-      setUserName(user?.user_metadata?.full_name || user?.user_metadata?.name || "")
-    })
-  }, [])
+  useEffect(() => setMounted(true), [])
+  const { user } = useUser()
+  const userEmail = user?.email || ""
+  const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || ""
   
   const isDark = mounted && resolvedTheme === "dark"
 

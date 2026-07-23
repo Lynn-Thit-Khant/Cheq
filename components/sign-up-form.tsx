@@ -7,7 +7,7 @@ import * as z from "zod"
 
 import { cn } from "@/lib/utils"
 import { signup } from '@/app/auth/actions'
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/motion/button/base"
 import {
   Field,
   FieldDescription,
@@ -175,7 +175,7 @@ export function SignUpForm({
           />
 
           <Field>
-            <Button type="submit" disabled={isLoading} className="w-full">
+            <Button size="lg" type="submit" disabled={isLoading} className="w-full">
               {isLoading ? 'Creating account...' : 'Create Account'}
             </Button>
           </Field>

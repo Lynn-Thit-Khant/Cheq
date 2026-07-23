@@ -146,7 +146,7 @@ const VARIANT_CLASS: Record<ActionSwapButtonVariant, string> = {
   primary: "bg-primary text-primary-foreground hover:bg-primary/90",
   secondary: "border border-border bg-card text-foreground hover:border-border",
   outline: "border border-border bg-transparent text-foreground hover:bg-primary/5",
-  ghost: "text-muted-foreground hover:bg-primary/5 hover:text-foreground",
+  ghost: "text-muted-foreground hover:text-foreground hover:bg-black/5 dark:hover:bg-white/10 active:bg-black/10 dark:active:bg-white/20",
 };
 
 const SIZE_CLASS: Record<ActionSwapButtonSize, string> = {
@@ -170,7 +170,7 @@ export function ActionSwapText({
     const nextWidth = measureRef.current?.offsetWidth;
     if (!nextWidth) return;
     setWidth((currentWidth) => (currentWidth === nextWidth ? currentWidth : nextWidth));
-  }, []);
+  });
 
   // Cascade needs a plain string to split into letters; non-string content
   // and reduced motion fall back to the closest single-element animation.

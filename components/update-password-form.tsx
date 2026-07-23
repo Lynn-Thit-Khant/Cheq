@@ -9,7 +9,7 @@ import * as z from "zod"
 
 import { cn } from "@/lib/utils"
 import { createClient } from '@/lib/client'
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/motion/button/base"
 import {
   Field,
   FieldDescription,
@@ -126,7 +126,7 @@ export function UpdatePasswordForm({
           />
 
           <Field>
-            <Button type="submit" disabled={isLoading} className="w-full">
+            <Button size="lg" type="submit" disabled={isLoading} className="w-full">
               {isLoading ? 'Saving...' : 'Save new password'}
             </Button>
           </Field>

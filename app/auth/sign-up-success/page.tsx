@@ -1,8 +1,11 @@
-import Link from 'next/link'
+'use client'
+
+import { useRouter } from 'next/navigation'
 import { FieldGroup, FieldDescription } from "@/components/ui/field"
-import { buttonVariants } from "@/components/ui/button"
+import { Button } from "@/components/motion/button/base"
 
 export default function SignUpSuccessPage() {
+  const router = useRouter()
   return (
     <div className="w-full max-w-sm">
       <div className="flex flex-col gap-6">
@@ -15,9 +18,9 @@ export default function SignUpSuccessPage() {
           </div>
 
           <div className="flex flex-col gap-3 mt-2">
-            <Link href="/auth/login" className={buttonVariants({ variant: 'outline', className: 'w-full' })}>
+            <Button size="lg" className="w-full" onClick={() => router.push('/auth/login')}>
               Back to Sign in
-            </Link>
+            </Button>
           </div>
         </FieldGroup>
       </div>

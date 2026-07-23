@@ -1,6 +1,7 @@
 import { BottomNav } from "@/components/bottom-nav"
 import { createClient } from '@/lib/server'
 import { redirect } from 'next/navigation'
+import { UserProvider } from '@/components/user-provider'
 
 export default async function AppLayout({
   children,
@@ -19,9 +20,11 @@ export default async function AppLayout({
   }
 
   return (
-    <div className="relative min-h-screen flex flex-col pb-24 bg-background text-foreground">
-      {children}
-      <BottomNav />
-    </div>
+    <UserProvider user={user}>
+      <div className="relative min-h-screen flex flex-col pb-24 bg-background text-foreground">
+        {children}
+        <BottomNav />
+      </div>
+    </UserProvider>
   )
 }
