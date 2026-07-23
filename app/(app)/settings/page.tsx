@@ -30,9 +30,9 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center p-4 pb-24 gap-6 w-full max-w-md mx-auto">
+    <div className="flex flex-1 flex-col items-center justify-start p-4 gap-6 w-full max-w-md mx-auto mt-6">
       <div className="flex flex-col items-center justify-center gap-1 w-full mb-2 mt-4 text-center">
-        <div className="h-[84px] w-[84px] rounded-full bg-primary text-primary-foreground flex items-center justify-center text-4xl font-bold mb-3 shadow-sm">
+        <div className="h-[84px] w-[84px] rounded-full bg-primary text-primary-foreground flex items-center justify-center text-4xl font-bold mb-3">
           {userName ? userName.charAt(0).toUpperCase() : (userEmail ? userEmail.charAt(0).toUpperCase() : "U")}
         </div>
         <span className="text-[22px] font-bold text-foreground tracking-tight">
@@ -45,8 +45,8 @@ export default function SettingsPage() {
 
       <div className="flex flex-col gap-6 w-full">
         {/* Account Cluster */}
-        <div className="bg-card/80 backdrop-blur-xl shadow-sm rounded-[28px] overflow-hidden border border-border/40">
-          <SharedLayoutBg pillClassName="bg-black/5 dark:bg-white/10 rounded-[24px]">
+        <div className="bg-card/80 backdrop-blur-xl rounded-[28px] overflow-hidden border border-border/40">
+          <SharedLayoutBg pillClassName="bg-black/5 dark:bg-white/5 rounded-[24px]">
             <Link href="/settings/profile" className="flex min-h-[54px] w-full items-center justify-between px-5 py-2 group">
               <div className="flex items-center gap-4">
                 <div className="grid h-7 w-7 place-items-center text-muted-foreground"><User className="size-5" /></div>
@@ -66,8 +66,8 @@ export default function SettingsPage() {
         </div>
 
         {/* Configuration Cluster */}
-        <div className="bg-card/80 backdrop-blur-xl shadow-sm rounded-[28px] overflow-hidden border border-border/40">
-          <SharedLayoutBg pillClassName="bg-black/5 dark:bg-white/10 rounded-[24px]">
+        <div className="bg-card/80 backdrop-blur-xl rounded-[28px] overflow-hidden border border-border/40">
+          <SharedLayoutBg pillClassName="bg-black/5 dark:bg-white/5 rounded-[24px]">
             <Link href="/settings/templates" className="flex min-h-[54px] w-full items-center justify-between px-5 py-2 group">
               <div className="flex items-center gap-4">
                 <div className="grid h-7 w-7 place-items-center text-muted-foreground"><LayoutTemplate className="size-5" /></div>
