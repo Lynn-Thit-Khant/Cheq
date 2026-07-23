@@ -69,6 +69,21 @@ export function SharedLayoutBg({
                   setActiveId(childKey)
                 }
               }}
+              onPointerDown={(e) => {
+                if (e.pointerType === "touch") {
+                  setActiveId(childKey)
+                }
+              }}
+              onPointerUp={(e) => {
+                if (e.pointerType === "touch") {
+                  setActiveId(null)
+                }
+              }}
+              onPointerCancel={(e) => {
+                if (e.pointerType === "touch") {
+                  setActiveId(null)
+                }
+              }}
             >
               <AnimatePresence>
                 {activeId === childKey ? (
