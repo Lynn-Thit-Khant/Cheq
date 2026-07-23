@@ -20,6 +20,7 @@ import { PasswordStrengthInput, validatePassword } from "@/components/password-s
 import Link from 'next/link'
 
 const formSchema = z.object({
+  name: z.string().min(1, "Name is required."),
   email: z.string().min(1, "Email is required.").email("Please enter a valid email address."),
   password: z.string().min(8, "Password must be at least 8 characters.").refine(validatePassword, "Please ensure all password requirements are met."),
   repeatPassword: z.string().min(1, "Please repeat your password."),
@@ -37,6 +38,7 @@ export function SignUpForm({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      name: "",
       email: "",
       password: "",
       repeatPassword: "",
@@ -47,6 +49,7 @@ export function SignUpForm({
     setIsLoading(true)
 
     const formData = new FormData()
+    formData.append('name', data.name)
     formData.append('email', data.email)
     formData.append('password', data.password)
     formData.append('repeat-password', data.repeatPassword)
@@ -93,6 +96,26 @@ export function SignUpForm({
             </FieldDescription>
           </div>
           
+          <Controller
+            name="name"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="name">Name</FieldLabel>
+                <Input
+                  {...field}
+                  id="name"
+                  type="text"
+                  placeholder="Aaron"
+                  aria-invalid={fieldState.invalid}
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+
           <Controller
             name="email"
             control={form.control}

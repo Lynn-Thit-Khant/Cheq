@@ -43,10 +43,18 @@ const MAX_PASSWORD_LENGTH = 128
 const MIN_PASSWORD_LENGTH = 8
 
 function validateAuthInput(
-  formData: FormData
-): { email: string; password: string } | { error: string } {
+  formData: FormData,
+  requireName: boolean = false
+): { name?: string; email: string; password: string } | { error: string } {
+  const rawName = formData.get('name')
   const rawEmail = formData.get('email')
   const rawPassword = formData.get('password')
+
+  if (requireName && (typeof rawName !== 'string' || !rawName.trim())) {
+    return { error: 'Name is required.' }
+  }
+
+  const name = typeof rawName === 'string' ? rawName.trim() : undefined
 
   if (typeof rawEmail !== 'string' || !rawEmail.trim()) {
     return { error: 'Email is required.' }
@@ -75,7 +83,7 @@ function validateAuthInput(
     return { error: `Password must be at most ${MAX_PASSWORD_LENGTH} characters.` }
   }
 
-  return { email, password }
+  return { name, email, password }
 }
 
 // ---------------------------------------------------------------------------
@@ -119,8 +127,8 @@ export async function login(formData: FormData) {
     return { error: `Too many login attempts. Please try again in ${retryAfterSeconds} seconds.` }
   }
 
-  // Input validation
-  const validation = validateAuthInput(formData)
+  // Input validation (login doesn't require name)
+  const validation = validateAuthInput(formData, false)
   if ('error' in validation) {
     return { error: validation.error }
   }
@@ -148,8 +156,8 @@ export async function signup(formData: FormData) {
     return { error: `Too many sign-up attempts. Please try again in ${retryAfterSeconds} seconds.` }
   }
 
-  // Input validation
-  const validation = validateAuthInput(formData)
+  // Input validation (signup requires name)
+  const validation = validateAuthInput(formData, true)
   if ('error' in validation) {
     return { error: validation.error }
   }
@@ -162,6 +170,9 @@ export async function signup(formData: FormData) {
     email: validation.email,
     password: validation.password,
     options: {
+      data: {
+        full_name: validation.name,
+      },
       emailRedirectTo: `${siteUrl}/auth/confirm?next=/auth/login`
     }
   })
