@@ -1,6 +1,5 @@
 import { ChevronRight } from "lucide-react"
 import { BackButton } from "@/components/back-button"
-import { SharedLayoutBg } from "@/components/motion/shared-layout-bg"
 
 export default function PrivacyPage() {
   return (
@@ -14,23 +13,21 @@ export default function PrivacyPage() {
       <div className="flex-1 flex flex-col justify-start w-full mt-6">
 
       <div className="flex flex-col gap-4 w-full">
-        <div className="bg-card/80 backdrop-blur-xl rounded-[28px] overflow-hidden border border-border/40">
-          <SharedLayoutBg pillClassName="bg-black/5 dark:bg-white/5 rounded-[24px]">
-            <button className="flex min-h-[54px] w-full items-center justify-between px-5 py-2 group">
+        <div className="bg-card/80 backdrop-blur-xl rounded-[28px] overflow-hidden border border-border/40 p-1 flex flex-col">
+            <button className="flex min-h-[54px] w-full items-center justify-between px-4 py-2 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[24px]">
               <span className="text-[15px] font-medium text-foreground">Change password</span>
-              <ChevronRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors shrink-0" />
+              <ChevronRight className="size-4 text-muted-foreground transition-colors shrink-0" />
             </button>
 
-            <button className="flex min-h-[54px] w-full items-center justify-between px-5 py-2 group">
+            <button className="flex min-h-[54px] w-full items-center justify-between px-4 py-2 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[24px]">
               <span className="text-[15px] font-medium text-foreground">Multi factor authenticator (MFA)</span>
-              <ChevronRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors shrink-0" />
+              <ChevronRight className="size-4 text-muted-foreground transition-colors shrink-0" />
             </button>
 
-            <button className="flex min-h-[54px] w-full items-center justify-between px-5 py-2 group">
+            <button className="flex min-h-[54px] w-full items-center justify-between px-4 py-2 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[24px]">
               <span className="text-[15px] font-medium text-foreground">Passkey</span>
-              <ChevronRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors shrink-0" />
+              <ChevronRight className="size-4 text-muted-foreground transition-colors shrink-0" />
             </button>
-          </SharedLayoutBg>
         </div>
         </div>
       </div>

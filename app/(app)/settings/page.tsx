@@ -6,7 +6,6 @@ import { User, ShieldCheck, LayoutTemplate, SlidersHorizontal, Sparkles, Plug, M
 import { Switch } from "@/components/motion/switch"
 import { LogoutButton } from "@/components/logout-button"
 import Link from "next/link"
-import { SharedLayoutBg } from "@/components/motion/shared-layout-bg"
 import { createClient } from "@/lib/client"
 export default function SettingsPage() {
   const { setTheme, resolvedTheme } = useTheme()
@@ -45,73 +44,73 @@ export default function SettingsPage() {
 
       <div className="flex flex-col gap-6 w-full">
         {/* Account Cluster */}
-        <div className="bg-card/80 backdrop-blur-xl rounded-[28px] overflow-hidden border border-border/40">
-          <SharedLayoutBg pillClassName="bg-black/5 dark:bg-white/5 rounded-[24px]">
-            <Link href="/settings/profile" className="flex min-h-[54px] w-full items-center justify-between px-5 py-2 group">
-              <div className="flex items-center gap-4">
-                <div className="grid h-7 w-7 place-items-center text-muted-foreground"><User className="size-5" /></div>
-                <span className="text-[15px] font-medium text-foreground">Profile</span>
-              </div>
-              <ChevronRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-            </Link>
+        <div className="bg-card/80 backdrop-blur-xl rounded-[28px] overflow-hidden border border-border/40 p-1 flex flex-col">
+          <Link href="/settings/profile" className="flex min-h-[54px] w-full items-center justify-between px-4 py-2 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[24px]">
+            <div className="flex items-center gap-4">
+              <div className="grid h-7 w-7 place-items-center text-muted-foreground"><User className="size-5" /></div>
+              <span className="text-[15px] font-medium text-foreground">Profile</span>
+            </div>
+            <ChevronRight className="size-4 text-muted-foreground transition-colors" />
+          </Link>
 
-            <Link href="/settings/privacy" className="flex min-h-[54px] w-full items-center justify-between px-5 py-2 group">
-              <div className="flex items-center gap-4">
-                <div className="grid h-7 w-7 place-items-center text-muted-foreground"><ShieldCheck className="size-5" /></div>
-                <span className="text-[15px] font-medium text-foreground">Privacy</span>
-              </div>
-              <ChevronRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-            </Link>
-          </SharedLayoutBg>
+          <Link href="/settings/privacy" className="flex min-h-[54px] w-full items-center justify-between px-4 py-2 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[24px]">
+            <div className="flex items-center gap-4">
+              <div className="grid h-7 w-7 place-items-center text-muted-foreground"><ShieldCheck className="size-5" /></div>
+              <span className="text-[15px] font-medium text-foreground">Privacy</span>
+            </div>
+            <ChevronRight className="size-4 text-muted-foreground transition-colors" />
+          </Link>
         </div>
 
         {/* Configuration Cluster */}
-        <div className="bg-card/80 backdrop-blur-xl rounded-[28px] overflow-hidden border border-border/40">
-          <SharedLayoutBg pillClassName="bg-black/5 dark:bg-white/5 rounded-[24px]">
-            <Link href="/settings/templates" className="flex min-h-[54px] w-full items-center justify-between px-5 py-2 group">
-              <div className="flex items-center gap-4">
-                <div className="grid h-7 w-7 place-items-center text-muted-foreground"><LayoutTemplate className="size-5" /></div>
-                <span className="text-[15px] font-medium text-foreground">Templates</span>
-              </div>
-              <ChevronRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-            </Link>
-
-            <Link href="/settings/defaults" className="flex min-h-[54px] w-full items-center justify-between px-5 py-2 group">
-              <div className="flex items-center gap-4">
-                <div className="grid h-7 w-7 place-items-center text-muted-foreground"><SlidersHorizontal className="size-5" /></div>
-                <span className="text-[15px] font-medium text-foreground">Defaults</span>
-              </div>
-              <ChevronRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-            </Link>
-
-            <div className="flex min-h-[54px] w-full items-center justify-between px-5 py-2">
-              <div className="flex items-center gap-4">
-                <div className="grid h-7 w-7 place-items-center text-muted-foreground"><Sparkles className="size-5" /></div>
-                <span className="text-[15px] font-medium text-foreground">Agent</span>
-              </div>
-              <span className="text-[13px] text-muted-foreground/60">Coming soon</span>
+        <div className="bg-card/80 backdrop-blur-xl rounded-[28px] overflow-hidden border border-border/40 p-1 flex flex-col">
+          <Link href="/settings/templates" className="flex min-h-[54px] w-full items-center justify-between px-4 py-2 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[24px]">
+            <div className="flex items-center gap-4">
+              <div className="grid h-7 w-7 place-items-center text-muted-foreground"><LayoutTemplate className="size-5" /></div>
+              <span className="text-[15px] font-medium text-foreground">Templates</span>
             </div>
+            <ChevronRight className="size-4 text-muted-foreground transition-colors" />
+          </Link>
 
-            <div className="flex min-h-[54px] w-full items-center justify-between px-5 py-2">
-              <div className="flex items-center gap-4">
-                <div className="grid h-7 w-7 place-items-center text-muted-foreground"><Plug className="size-5" /></div>
-                <span className="text-[15px] font-medium text-foreground">Connectors</span>
-              </div>
-              <span className="text-[13px] text-muted-foreground/60">Coming soon</span>
+          <Link href="/settings/defaults" className="flex min-h-[54px] w-full items-center justify-between px-4 py-2 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[24px]">
+            <div className="flex items-center gap-4">
+              <div className="grid h-7 w-7 place-items-center text-muted-foreground"><SlidersHorizontal className="size-5" /></div>
+              <span className="text-[15px] font-medium text-foreground">Defaults</span>
             </div>
+            <ChevronRight className="size-4 text-muted-foreground transition-colors" />
+          </Link>
 
-            <div className="flex min-h-[54px] w-full items-center justify-between px-5 py-2">
-              <div className="flex items-center gap-4">
-                <div className="grid h-7 w-7 place-items-center text-muted-foreground"><Moon className="size-5" /></div>
-                <span className="text-[15px] font-medium text-foreground">Dark Mode</span>
-              </div>
-              <Switch
-                checked={isDark}
-                onCheckedChange={toggle}
-                aria-label="Toggle dark mode"
-              />
+          <div className="flex min-h-[54px] w-full items-center justify-between px-4 py-2 transition-colors active:bg-black/10 dark:active:bg-white/10 cursor-pointer rounded-[24px]">
+            <div className="flex items-center gap-4">
+              <div className="grid h-7 w-7 place-items-center text-muted-foreground"><Sparkles className="size-5" /></div>
+              <span className="text-[15px] font-medium text-foreground">Agent</span>
             </div>
-          </SharedLayoutBg>
+            <span className="text-[13px] text-muted-foreground/60">Coming soon</span>
+          </div>
+
+          <div className="flex min-h-[54px] w-full items-center justify-between px-4 py-2 transition-colors active:bg-black/10 dark:active:bg-white/10 cursor-pointer rounded-[24px]">
+            <div className="flex items-center gap-4">
+              <div className="grid h-7 w-7 place-items-center text-muted-foreground"><Plug className="size-5" /></div>
+              <span className="text-[15px] font-medium text-foreground">Connectors</span>
+            </div>
+            <span className="text-[13px] text-muted-foreground/60">Coming soon</span>
+          </div>
+
+          <div 
+            className="flex min-h-[54px] w-full items-center justify-between px-4 py-2 transition-colors active:bg-black/10 dark:active:bg-white/10 cursor-pointer rounded-[24px]"
+            onClick={toggle}
+          >
+            <div className="flex items-center gap-4">
+              <div className="grid h-7 w-7 place-items-center text-muted-foreground"><Moon className="size-5" /></div>
+              <span className="text-[15px] font-medium text-foreground">Dark Mode</span>
+            </div>
+            <Switch
+              checked={isDark}
+              onCheckedChange={toggle}
+              aria-label="Toggle dark mode"
+              className="pointer-events-none"
+            />
+          </div>
         </div>
 
       </div>

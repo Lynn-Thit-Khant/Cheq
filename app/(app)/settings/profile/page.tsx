@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import { BackButton } from "@/components/back-button"
 import { createClient } from "@/lib/client"
-import { SharedLayoutBg } from "@/components/motion/shared-layout-bg"
 
 export default function ProfilePage() {
   const [userEmail, setUserEmail] = useState<string>("")
@@ -28,18 +27,16 @@ export default function ProfilePage() {
       <div className="flex-1 flex flex-col justify-start w-full mt-6">
 
       <div className="flex flex-col gap-4 w-full">
-        <div className="bg-card/80 backdrop-blur-xl rounded-[28px] overflow-hidden border border-border/40 p-1">
-          <SharedLayoutBg pillClassName="bg-black/5 dark:bg-white/5 rounded-[24px]">
-            <div className="flex items-center justify-between px-4 py-3 gap-3 group relative z-10">
+        <div className="bg-card/80 backdrop-blur-xl rounded-[28px] overflow-hidden border border-border/40 p-1 flex flex-col">
+            <div className="flex items-center justify-between px-4 py-3 gap-3 group relative z-10 transition-colors active:bg-black/10 dark:active:bg-white/10 cursor-pointer rounded-[24px]">
               <span className="text-[15px] leading-6 text-muted-foreground shrink-0">Name</span>
               <span className="text-[15px] font-medium text-foreground text-right">{userName}</span>
             </div>
 
-            <div className="flex items-center justify-between px-4 py-3 gap-3 group relative z-10">
+            <div className="flex items-center justify-between px-4 py-3 gap-3 group relative z-10 transition-colors active:bg-black/10 dark:active:bg-white/10 cursor-pointer rounded-[24px]">
               <span className="text-[15px] leading-6 text-muted-foreground shrink-0">Email</span>
               <span className="text-[15px] font-medium text-foreground text-right break-all">{userEmail}</span>
             </div>
-          </SharedLayoutBg>
         </div>
         </div>
       </div>
