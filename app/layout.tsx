@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
@@ -50,6 +51,7 @@ export default async function RootLayout({
           <UrlSyncGuard serverIsLoggedIn={isLoggedIn} />
           {children}
         </ThemeProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
