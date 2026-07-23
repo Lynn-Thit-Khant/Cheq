@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { Dock, DockItem } from "@/components/motion/dock"
-import { Home, Wallet, User, Settings } from "lucide-react"
+import { Home, Wallet, Settings, Sparkles } from "lucide-react"
 
 export function BottomNav() {
   const pathname = usePathname()
@@ -12,8 +12,8 @@ export function BottomNav() {
   const tabs = [
     { name: "Home", href: "/home", icon: Home },
     { name: "Earnings", href: "/earnings", icon: Wallet },
-    { name: "Profile", href: "/profile", icon: User },
     { name: "Settings", href: "/settings", icon: Settings },
+    { name: "Agent", href: "/agent", icon: Sparkles },
   ]
 
   // Local state drives the pill animation instantly on click,
