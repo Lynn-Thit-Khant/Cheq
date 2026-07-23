@@ -37,7 +37,7 @@ export default function ProfilePage() {
     <>
     {/* Full screen backdrop for Telegram effect */}
     <div 
-      className={`fixed inset-0 z-[55] bg-black/60 backdrop-blur-[4px] transition-opacity duration-300 ${nameOpen || emailOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} 
+      className={`fixed inset-0 z-[55] bg-black/60 backdrop-blur-lg transition-opacity duration-300 ${nameOpen || emailOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} 
       onClick={() => { setNameOpen(false); setEmailOpen(false); }}
     />
 
