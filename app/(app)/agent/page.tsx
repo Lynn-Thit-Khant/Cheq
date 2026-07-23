@@ -25,7 +25,7 @@ export default function AgentPage() {
 
       <TextReveal
         as="p"
-        text="We're crafting a smarter way to manage your income."
+        text="We're crafting a smarter way to track your income."
         stagger={0.08}
         delay={0.6}
         blur={6}
