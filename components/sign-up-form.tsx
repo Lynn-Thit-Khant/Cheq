@@ -106,7 +106,7 @@ export function SignUpForm({
                   {...field}
                   id="name"
                   type="text"
-                  placeholder="Aaron"
+                  placeholder="Your name"
                   aria-invalid={fieldState.invalid}
                 />
                 {fieldState.invalid && (

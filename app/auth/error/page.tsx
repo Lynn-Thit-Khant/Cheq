@@ -21,6 +21,9 @@ export default function ErrorPage({ searchParams }: { searchParams: Promise<{ er
     } else if (err.includes('expired') || err.includes('invalid')) {
       title = "This link has expired"
       description = "For your security, sign-in links expire after a short time. Please request a new one."
+    } else {
+      title = "Authentication Error"
+      description = "An error occurred during authentication. Please try again."
     }
   }
 

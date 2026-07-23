@@ -64,7 +64,7 @@ export const PasswordStrengthInput = React.forwardRef<HTMLInputElement, Password
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
             tabIndex={-1}
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
@@ -126,9 +126,7 @@ export const PasswordStrengthInput = React.forwardRef<HTMLInputElement, Password
 )
 PasswordStrengthInput.displayName = 'PasswordStrengthInput'
 
-export function usePasswordStrength(password: string) {
-  return useMemo(() => passwordCriteria.every((c) => c.test(password)), [password])
-}
+
 
 export function validatePassword(password: string) {
   return passwordCriteria.every((c) => c.test(password))

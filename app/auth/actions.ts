@@ -119,6 +119,15 @@ async function getRateLimitKey(action: string): Promise<string> {
 // Auth Actions
 // ---------------------------------------------------------------------------
 
+async function requireMFA() {
+  const supabase = await createClient()
+  const { data: aalData, error: aalError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+  if (aalError || (aalData?.nextLevel === 'aal2' && aalData?.nextLevel !== aalData?.currentLevel)) {
+    return { error: 'MFA required. Please complete MFA to perform this action.' }
+  }
+  return null
+}
+
 export async function login(formData: FormData) {
   // Rate limiting
   const key = await getRateLimitKey('login')
@@ -226,6 +235,128 @@ export async function forgotPassword(formData: FormData) {
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${siteUrl}/auth/confirm?next=/auth/update-password`,
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  return { success: true }
+}
+
+export async function updateProfileName(formData: FormData) {
+  // Rate limiting
+  const key = await getRateLimitKey('update-profile-name')
+  const { limited, retryAfterSeconds } = checkRateLimit(key)
+  if (limited) {
+    return { error: `Too many requests. Please try again in ${retryAfterSeconds} seconds.` }
+  }
+
+  const rawName = formData.get('name')
+  
+  if (typeof rawName !== 'string' || !rawName.trim()) {
+    return { error: 'Name is required.' }
+  }
+
+  const name = rawName.trim()
+
+  if (name.length > 50) {
+    return { error: 'Name is too long.' }
+  }
+
+  const supabase = await createClient()
+
+  const mfaCheck = await requireMFA()
+  if (mfaCheck?.error) return mfaCheck
+
+  const { error } = await supabase.auth.updateUser({
+    data: { full_name: name }
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/', 'layout')
+  
+  return { success: true }
+}
+
+export async function updateProfileEmail(formData: FormData) {
+  // Rate limiting
+  const key = await getRateLimitKey('update-profile-email')
+  const { limited, retryAfterSeconds } = checkRateLimit(key)
+  if (limited) {
+    return { error: `Too many requests. Please try again in ${retryAfterSeconds} seconds.` }
+  }
+
+  const rawEmail = formData.get('email')
+  
+  if (typeof rawEmail !== 'string' || !rawEmail.trim()) {
+    return { error: 'Email is required.' }
+  }
+
+  const email = rawEmail.trim().toLowerCase()
+
+  if (email.length > MAX_EMAIL_LENGTH) {
+    return { error: 'Email address is too long.' }
+  }
+
+  if (!EMAIL_REGEX.test(email)) {
+    return { error: 'Please enter a valid email address.' }
+  }
+
+  const supabase = await createClient()
+
+  const mfaCheck = await requireMFA()
+  if (mfaCheck?.error) return mfaCheck
+
+  const { error } = await supabase.auth.updateUser({
+    email: email
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  return { success: true }
+}
+
+export async function updateProfilePassword(formData: FormData) {
+  // Rate limiting
+  const key = await getRateLimitKey('update-profile-password')
+  const { limited, retryAfterSeconds } = checkRateLimit(key)
+  if (limited) {
+    return { error: `Too many requests. Please try again in ${retryAfterSeconds} seconds.` }
+  }
+
+  const currentPassword = formData.get('current_password')
+  const newPassword = formData.get('password')
+  
+  if (typeof currentPassword !== 'string' || !currentPassword) {
+    return { error: 'Current password is required.' }
+  }
+
+  if (typeof newPassword !== 'string' || !newPassword) {
+    return { error: 'New password is required.' }
+  }
+
+  if (newPassword.length < MIN_PASSWORD_LENGTH) {
+    return { error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.` }
+  }
+
+  if (newPassword.length > MAX_PASSWORD_LENGTH) {
+    return { error: `Password must be at most ${MAX_PASSWORD_LENGTH} characters.` }
+  }
+
+  const supabase = await createClient()
+
+  const mfaCheck = await requireMFA()
+  if (mfaCheck?.error) return mfaCheck
+
+  const { error } = await supabase.auth.updateUser({
+    password: newPassword,
+    current_password: currentPassword
   })
 
   if (error) {

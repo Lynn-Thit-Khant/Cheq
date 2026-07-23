@@ -38,18 +38,10 @@ export default function SettingsPage() {
       <div className="flex flex-col gap-6 w-full">
         {/* Account Cluster */}
         <div className="bg-card/80 backdrop-blur-xl rounded-[28px] overflow-hidden border border-border/40 p-1 flex flex-col">
-          <Link href="/settings/profile" className="flex min-h-[54px] w-full items-center justify-between px-4 py-2 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[24px]">
+          <Link href="/settings/account" className="flex min-h-[54px] w-full items-center justify-between px-4 py-2 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[24px]">
             <div className="flex items-center gap-4">
               <div className="grid h-7 w-7 place-items-center text-muted-foreground"><User className="size-5" /></div>
-              <span className="text-[15px] font-medium text-foreground">Profile</span>
-            </div>
-            <ChevronRight className="size-4 text-muted-foreground transition-colors" />
-          </Link>
-
-          <Link href="/settings/privacy" className="flex min-h-[54px] w-full items-center justify-between px-4 py-2 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[24px]">
-            <div className="flex items-center gap-4">
-              <div className="grid h-7 w-7 place-items-center text-muted-foreground"><ShieldCheck className="size-5" /></div>
-              <span className="text-[15px] font-medium text-foreground">Privacy</span>
+              <span className="text-[15px] font-medium text-foreground">Account</span>
             </div>
             <ChevronRight className="size-4 text-muted-foreground transition-colors" />
           </Link>

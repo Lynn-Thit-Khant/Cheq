@@ -6,7 +6,7 @@ import { NextResponse, type NextRequest } from 'next/server'
  * These are transient flows (email confirm, password reset) that require an
  * active session but live under the /auth path prefix.
  */
-const AUTH_PASSTHROUGH_ROUTES = ['/auth/confirm', '/auth/error', '/auth/update-password', '/auth/forgot-password']
+const AUTH_PASSTHROUGH_ROUTES = ['/auth/confirm', '/auth/error', '/auth/update-password', '/auth/forgot-password', '/auth/mfa']
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({

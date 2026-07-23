@@ -19,6 +19,11 @@ export default async function AppLayout({
     redirect('/auth/login')
   }
 
+  const { data: aalData, error: aalError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+  if (!aalError && aalData?.nextLevel === 'aal2' && aalData?.nextLevel !== aalData?.currentLevel) {
+    redirect('/auth/mfa')
+  }
+
   return (
     <UserProvider user={user}>
       <div className="relative min-h-screen flex flex-col pb-24 bg-background text-foreground">
