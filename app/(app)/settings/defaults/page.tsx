@@ -11,24 +11,24 @@ export default function DefaultsPage() {
       </div>
       <div className="flex-1 flex flex-col justify-start w-full gap-6 mt-6">
         <div className="bg-card/80 backdrop-blur-xl rounded-[28px] overflow-hidden border border-border/40 p-1 flex flex-col">
-          <div className="flex min-h-[54px] w-full items-center justify-between px-4 py-2 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[24px] cursor-pointer">
+          <div className="flex h-14 w-full items-center justify-between px-4 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[24px] cursor-pointer">
             <span className="text-[15px] font-medium text-foreground">Time Format</span>
             <ChevronRight className="size-4 text-muted-foreground transition-colors" />
           </div>
 
-          <div className="flex min-h-[54px] w-full items-center justify-between px-4 py-2 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[24px] cursor-pointer">
+          <div className="flex h-14 w-full items-center justify-between px-4 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[24px] cursor-pointer">
             <span className="text-[15px] font-medium text-foreground">First Day of Week</span>
             <ChevronRight className="size-4 text-muted-foreground transition-colors" />
           </div>
         </div>
           
         <div className="bg-card/80 backdrop-blur-xl rounded-[28px] overflow-hidden border border-border/40 p-1 flex flex-col">
-          <div className="flex min-h-[54px] w-full items-center justify-between px-4 py-2 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[24px] cursor-pointer">
+          <div className="flex h-14 w-full items-center justify-between px-4 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[24px] cursor-pointer">
             <span className="text-[15px] font-medium text-foreground">Standard Hourly Rate</span>
             <ChevronRight className="size-4 text-muted-foreground transition-colors" />
           </div>
 
-          <div className="flex min-h-[54px] w-full items-center justify-between px-4 py-2 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[24px] cursor-pointer">
+          <div className="flex h-14 w-full items-center justify-between px-4 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[24px] cursor-pointer">
             <span className="text-[15px] font-medium text-foreground">Default Break Duration</span>
             <ChevronRight className="size-4 text-muted-foreground transition-colors" />
           </div>

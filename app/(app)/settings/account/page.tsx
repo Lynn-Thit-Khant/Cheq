@@ -218,21 +218,21 @@ export default function AccountPage() {
         <div className="flex flex-col p-1">
             <MorphPopover open={nameOpen} onOpenChange={setNameOpen}>
               <MorphPopoverTrigger>
-                <button type="button" className={`flex w-full items-center justify-between px-6 py-3 gap-3 group relative transition-[transform,box-shadow] duration-300 cursor-pointer rounded-[24px] outline-none ${nameOpen ? 'z-[60] bg-card shadow-2xl scale-[1.02] ring-1 ring-border/50' : 'z-10 hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10'}`}>
+                <button type="button" className={`flex w-full items-center justify-between h-14 px-6 gap-3 group relative transition-[transform,box-shadow] duration-300 cursor-pointer rounded-[24px] outline-none ${nameOpen ? 'z-[60] bg-card shadow-2xl scale-[1.02] ring-1 ring-border/50' : 'z-10 hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10'}`}>
                   <span className="text-[15px] leading-6 text-muted-foreground shrink-0">Name</span>
                   <span className="text-[15px] font-medium text-foreground text-right">{userName}</span>
                 </button>
               </MorphPopoverTrigger>
-              <MorphPopoverContent align="end" sideOffset={0} radius={30} unstyled className="w-auto p-4 -mr-4 -mt-2">
+              <MorphPopoverContent align="end" sideOffset={0} radius={30} unstyled className="w-auto p-4 -mr-4">
                 <div className="rounded-full bg-card/90 backdrop-blur-xl border border-border/50 overflow-hidden">
                   <Button
                     variant="ghost"
-                    size="md"
+                    size="lg"
                     onClick={() => {
                       setNameOpen(false)
                       setNameModalOpen(true)
                     }}
-                    className="w-full justify-start font-medium text-foreground"
+                    className="w-full justify-start font-medium text-foreground h-14"
                   >
                     <Pencil className="h-4 w-4" strokeWidth={1.5} />
                     Edit Name
@@ -243,22 +243,22 @@ export default function AccountPage() {
 
             <MorphPopover open={emailOpen} onOpenChange={setEmailOpen}>
               <MorphPopoverTrigger>
-                <button type="button" className={`flex w-full items-center justify-between px-6 py-3 gap-3 group relative transition-[transform,box-shadow] duration-300 cursor-pointer rounded-[24px] outline-none ${emailOpen ? 'z-[60] bg-card shadow-2xl scale-[1.02] ring-1 ring-border/50' : 'z-10 hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10'}`}>
+                <button type="button" className={`flex w-full items-center justify-between h-14 px-6 gap-3 group relative transition-[transform,box-shadow] duration-300 cursor-pointer rounded-[24px] outline-none ${emailOpen ? 'z-[60] bg-card shadow-2xl scale-[1.02] ring-1 ring-border/50' : 'z-10 hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10'}`}>
                   <span className="text-[15px] leading-6 text-muted-foreground shrink-0">Email</span>
                   <span className="text-[15px] font-medium text-foreground text-right break-all">{userEmail}</span>
                 </button>
               </MorphPopoverTrigger>
-              <MorphPopoverContent align="end" sideOffset={0} radius={30} unstyled className="w-auto p-4 -mr-4 -mt-2">
+              <MorphPopoverContent align="end" sideOffset={0} radius={30} unstyled className="w-auto p-4 -mr-4">
                 <div className="rounded-[20px] bg-card/90 backdrop-blur-xl border border-border/50 overflow-hidden flex flex-col p-1">
                   <Button
                     variant="ghost"
-                    size="md"
+                    size="lg"
                     onClick={() => {
                       setEmailOpen(false)
                       setEmailSuccess(false)
                       setEmailModalOpen(true)
                     }}
-                    className="w-full justify-start font-medium text-foreground rounded-[16px]"
+                    className="w-full justify-start font-medium text-foreground rounded-[16px] h-14"
                   >
                     <Pencil className="h-4 w-4" strokeWidth={1.5} />
                     Edit Email
@@ -267,7 +267,7 @@ export default function AccountPage() {
                     items={COPY_ITEMS}
                     value={copyState}
                     variant="ghost"
-                    size="md"
+                    size="lg"
                     cycle={false}
                     onClick={() => {
                       if (copyState === "copied") return;
@@ -277,7 +277,7 @@ export default function AccountPage() {
                         setCopyState("copy")
                       }, 2000)
                     }}
-                    className="w-full justify-start font-medium text-foreground rounded-[16px]"
+                    className="w-full justify-start font-medium text-foreground rounded-[16px] h-14"
                   />
                 </div>
               </MorphPopoverContent>
@@ -290,33 +290,33 @@ export default function AccountPage() {
         <div className="flex flex-col p-1">
             <MorphPopover open={passwordOpen} onOpenChange={setPasswordOpen}>
               <MorphPopoverTrigger>
-                <button type="button" className={`flex w-full items-center justify-between px-6 py-3 gap-3 group relative transition-[transform,box-shadow] duration-300 cursor-pointer rounded-[24px] outline-none ${passwordOpen ? 'z-[60] bg-card shadow-2xl scale-[1.02] ring-1 ring-border/50' : 'z-10 hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10'}`}>
+                <button type="button" className={`flex w-full items-center justify-between h-14 px-6 gap-3 group relative transition-[transform,box-shadow] duration-300 cursor-pointer rounded-[24px] outline-none ${passwordOpen ? 'z-[60] bg-card shadow-2xl scale-[1.02] ring-1 ring-border/50' : 'z-10 hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10'}`}>
                   <span className="text-[15px] leading-6 text-muted-foreground shrink-0">Password</span>
                   <span className="text-[15px] font-medium text-foreground text-right tracking-[0.2em] relative top-[2px]">••••••••</span>
                 </button>
               </MorphPopoverTrigger>
-              <MorphPopoverContent align="end" sideOffset={0} radius={30} unstyled className="w-auto p-4 -mr-4 -mt-2">
+              <MorphPopoverContent align="end" sideOffset={0} radius={30} unstyled className="w-auto p-4 -mr-4">
                 <div className="rounded-[20px] bg-card/90 backdrop-blur-xl border border-border/50 overflow-hidden flex flex-col p-0.5">
                   <Button
                     variant="ghost"
-                    size="md"
+                    size="lg"
                     onClick={() => {
                       setPasswordOpen(false)
                       setPasswordSuccess(false)
                       setPasswordModalOpen(true)
                     }}
-                    className="w-full justify-start font-medium text-foreground rounded-[18px]"
+                    className="w-full justify-start font-medium text-foreground rounded-[18px] h-14"
                   >
                     <Lock className="h-4 w-4" strokeWidth={1.5} />
                     Edit Password
                   </Button>
                   <Button
                     variant="ghost"
-                    size="md"
+                    size="lg"
                     onClick={() => {
                       router.push('/auth/forgot-password')
                     }}
-                    className="w-full justify-start font-medium text-foreground rounded-[18px]"
+                    className="w-full justify-start font-medium text-foreground rounded-[18px] h-14"
                   >
                     <KeyRound className="h-4 w-4" strokeWidth={1.5} />
                     Forgot password
@@ -328,7 +328,7 @@ export default function AccountPage() {
               <MorphPopoverTrigger>
                 <button 
                   type="button" 
-                  className={`flex w-full items-center justify-between px-6 py-3 gap-3 group relative transition-[transform,box-shadow] duration-300 cursor-pointer rounded-[24px] outline-none ${mfaPopoverOpen ? 'z-[60] bg-card shadow-2xl scale-[1.02] ring-1 ring-border/50' : 'z-10 hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10'}`}
+                  className={`flex w-full items-center justify-between h-14 px-6 gap-3 group relative transition-[transform,box-shadow] duration-300 cursor-pointer rounded-[24px] outline-none ${mfaPopoverOpen ? 'z-[60] bg-card shadow-2xl scale-[1.02] ring-1 ring-border/50' : 'z-10 hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10'}`}
                 >
                   <span className="text-[15px] leading-6 text-muted-foreground shrink-0">Multi-factor authentication</span>
                   {mfaEnabled ? (
@@ -338,11 +338,11 @@ export default function AccountPage() {
                   )}
                 </button>
               </MorphPopoverTrigger>
-              <MorphPopoverContent align="end" sideOffset={0} radius={30} unstyled className="w-auto p-4 -mr-4 -mt-2">
+              <MorphPopoverContent align="end" sideOffset={0} radius={30} unstyled className="w-auto p-4 -mr-4">
                 <div className="rounded-full bg-card/90 backdrop-blur-xl border border-border/50 overflow-hidden">
                   <Button
                     variant="ghost"
-                    size="md"
+                    size="lg"
                     onClick={() => {
                       setMfaPopoverOpen(false)
                       if (!mfaEnabled) {
@@ -351,7 +351,7 @@ export default function AccountPage() {
                         setMfaRemoveModalOpen(true)
                       }
                     }}
-                    className="w-full justify-start font-medium text-foreground"
+                    className="w-full justify-start font-medium text-foreground h-14"
                   >
                     <Pencil className="h-4 w-4" strokeWidth={1.5} />
                     {mfaEnabled ? "Remove MFA" : "Setup MFA"}
