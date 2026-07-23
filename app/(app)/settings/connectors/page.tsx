@@ -9,7 +9,7 @@ export default function ConnectorsPage() {
         <div />
       </div>
 
-      <div className="flex-1 flex flex-col justify-start w-full gap-6 mt-6">
+      <div className="flex-1 flex flex-col justify-start w-full pb-24 gap-6 mt-6">
 
       <div className="bg-card/80 backdrop-blur-xl rounded-[28px] overflow-hidden border border-border/40 p-6 text-center">
         <p className="text-muted-foreground">Manage integrations with third-party APIs, bank feeds, and external data services here.</p>

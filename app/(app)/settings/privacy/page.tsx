@@ -11,11 +11,11 @@ export default function PrivacyPage() {
         <div />
       </div>
 
-      <div className="flex-1 flex flex-col justify-start w-full mt-6">
+      <div className="flex-1 flex flex-col justify-start w-full pb-24 mt-6">
 
       <div className="flex flex-col gap-4 w-full">
         <div className="bg-card/80 backdrop-blur-xl rounded-[28px] overflow-hidden border border-border/40">
-          <SharedLayoutBg pillClassName="bg-black/5 dark:bg-white/5 rounded-[24px]">
+          <SharedLayoutBg pillClassName="bg-black/5 dark:bg-white/10 rounded-[24px]">
             <button className="flex min-h-[54px] w-full items-center justify-between px-5 py-2 group">
               <span className="text-[15px] font-medium text-foreground">Change password</span>
               <ChevronRight className="size-4 text-muted-foreground group-hover:text-foreground transition-colors shrink-0" />

@@ -69,7 +69,7 @@ export function DockItem({
     <motion.span
       layoutId={pillLayoutId}
       transition={reduce ? { duration: 0 } : SPRING_LAYOUT}
-      className="absolute inset-0.5 -z-10 rounded-full bg-black/5 dark:bg-white/5"
+      className="absolute inset-0.5 -z-10 rounded-full bg-black/5 dark:bg-white/10"
     />
   ) : null;
   const sharedStyle = { width: size, height: size };
