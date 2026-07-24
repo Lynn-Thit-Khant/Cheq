@@ -87,10 +87,10 @@ export function MFARemoveModal({
     <CenterMorphModal open={open} onOpenChange={onOpenChange}>
       <CenterMorphModalContent ariaLabel="Remove MFA" className="w-full max-w-sm bg-card p-6 border-border/50">
         <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-3 text-center sm:text-left pr-8">
+          <div className="flex flex-col gap-3 text-center">
             <h2 className="text-lg font-semibold tracking-tight text-foreground">Remove Authenticator</h2>
             <p className="text-sm text-muted-foreground">
-              Please enter the 6-digit code from your authenticator app to confirm you want to remove it.
+              Please enter the 6-digit code from your authenticator app.
             </p>
           </div>
 

@@ -40,11 +40,25 @@ export function MFAEnrollModal({
 
     // Start enrollment when opened
     ;(async () => {
+      // 1. Cleanup unverified factors to avoid hitting the factor limit
+      const { data: listData } = await supabase.auth.mfa.listFactors()
+      if (listData?.totp) {
+        for (const factor of listData.totp) {
+          if (factor.status === 'unverified') {
+            await supabase.auth.mfa.unenroll({ factorId: factor.id })
+          }
+        }
+      }
+
+      // 2. Enroll new factor
       const { data, error } = await supabase.auth.mfa.enroll({
         factorType: 'totp',
+        issuer: 'Cheq',
+        friendlyName: `Authenticator ${new Date().getTime().toString().slice(-4)}`,
       })
       if (error) {
         setErrorMsg(error.message)
+        setStatus('error')
         return
       }
 
@@ -82,22 +96,26 @@ export function MFAEnrollModal({
   return (
     <CenterMorphModal open={open} onOpenChange={onOpenChange}>
       <CenterMorphModalContent ariaLabel="Enroll MFA" className="w-full max-w-sm bg-card p-6 border-border/50">
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-3 text-center sm:text-left pr-8">
+        <div className="flex flex-col items-center gap-6">
+          <div className="flex flex-col gap-3 text-center">
             <h2 className="text-lg font-semibold tracking-tight text-foreground">Setup Authenticator</h2>
             <p className="text-sm text-muted-foreground">
-              Scan the QR code below with your authenticator app (like Google Authenticator), then enter the code to verify.
+              Scan the QR code below with your authenticator app.
             </p>
           </div>
 
           <div className="flex justify-center">
-            <div className="bg-white rounded-3xl p-4">
+            <div className="bg-white rounded-3xl p-4 shadow-sm border border-black/5">
               {qr ? (
                 <img 
                   src={qr} 
                   alt="Authenticator QR Code" 
                   className="w-48 h-48 object-contain" 
                 />
+              ) : errorMsg && !qr ? (
+                <div className="w-48 h-48 flex items-center justify-center text-center p-2">
+                  <span className="text-sm text-destructive">{errorMsg}</span>
+                </div>
               ) : (
                 <div className="w-48 h-48 flex items-center justify-center">
                   <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
@@ -106,21 +124,23 @@ export function MFAEnrollModal({
             </div>
           </div>
 
-          <OTPInput
-            label="Verification Code"
-            successMessage="Verified."
-            errorMessage={errorMsg || "Invalid code, please try again."}
-            value={verifyCode}
-            status={status}
-            disabled={isEnrolling || !qr}
-            onChange={(v) => {
-              setVerifyCode(v)
-              if (status !== "idle") setStatus("idle")
-            }}
-            onComplete={handleVerify}
-          />
+          <div className="flex justify-center w-full">
+            <OTPInput
+              label="Verification Code"
+              successMessage="Verified."
+              errorMessage={errorMsg || "Invalid code, please try again."}
+              value={verifyCode}
+              status={status}
+              disabled={isEnrolling || !qr}
+              onChange={(v) => {
+                setVerifyCode(v)
+                if (status !== "idle") setStatus("idle")
+              }}
+              onComplete={handleVerify}
+            />
+          </div>
 
-          <div className="mt-2 flex justify-end gap-3">
+          <div className="mt-2 flex justify-end gap-3 w-full">
             <CenterMorphModalClose>
               <Button variant="ghost" disabled={isEnrolling}>Cancel</Button>
             </CenterMorphModalClose>

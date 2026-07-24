@@ -255,7 +255,7 @@ export function OTPInput({
                 data-active={isActive}
                 data-filled={char !== ""}
                 className={cn(
-                  "relative grid h-14 w-12 place-items-center overflow-hidden rounded-xl border bg-card text-xl font-semibold tabular-nums transition-colors duration-200",
+                  "relative grid h-14 w-12 place-items-center overflow-hidden rounded-xl border bg-black/5 dark:bg-white/5 text-xl font-semibold tabular-nums transition-colors duration-200",
                   showSuccess
                     ? "border-emerald-500/60 text-foreground"
                     : status === "error"

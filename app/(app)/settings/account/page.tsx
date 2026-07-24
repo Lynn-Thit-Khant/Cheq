@@ -396,7 +396,7 @@ export default function AccountPage() {
     <CenterMorphModal open={nameModalOpen} onOpenChange={setNameModalOpen}>
       <CenterMorphModalContent ariaLabel="Edit Name" className="w-full max-w-sm bg-card p-6 border-border/50">
         <FieldGroup>
-          <div className="flex flex-col gap-2 text-center sm:text-left">
+          <div className="flex flex-col gap-2 text-center">
             <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Edit Name</h2>
           </div>
           <Field>
@@ -436,7 +436,7 @@ export default function AccountPage() {
         ) : (
           <>
             <FieldGroup>
-              <div className="flex flex-col gap-2 text-center sm:text-left">
+              <div className="flex flex-col gap-2 text-center">
                 <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Edit Email</h2>
               </div>
               <Field>
@@ -488,7 +488,7 @@ export default function AccountPage() {
         ) : passwordStep === 'input' ? (
           <>
             <FieldGroup>
-              <div className="flex flex-col gap-2 text-center sm:text-left">
+              <div className="flex flex-col gap-2 text-center">
                 <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Edit Password</h2>
               </div>
               <Field>
@@ -538,7 +538,7 @@ export default function AccountPage() {
           </>
         ) : (
           <>
-            <div className="flex flex-col gap-3 text-center sm:text-left mb-6">
+            <div className="flex flex-col gap-3 text-center mb-6">
               <h2 className="text-lg font-semibold tracking-tight text-foreground">Verify it's you</h2>
               <p className="text-sm text-muted-foreground">
                 Please enter the 6-digit code from your authenticator app to confirm the password change.
