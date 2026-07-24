@@ -446,8 +446,8 @@ export default function AccountPage() {
         showCloseButton={!emailSuccess}
       >
         {emailSuccess ? (
-          <div className="flex flex-col gap-6 text-center pb-2">
-            <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4 text-center">
               <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Email updated successfully</h2>
               <p className="text-sm text-muted-foreground">
                 For security reasons, please sign in again with your new email address.
@@ -562,8 +562,8 @@ export default function AccountPage() {
         showCloseButton={!passwordSuccess}
       >
         {passwordSuccess ? (
-          <div className="flex flex-col gap-6 text-center pb-2">
-            <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4 text-center">
               <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Password updated successfully</h2>
               <p className="text-sm text-muted-foreground">
                 For security reasons, please sign in again with your new password.
