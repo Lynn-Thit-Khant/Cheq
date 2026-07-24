@@ -395,27 +395,29 @@ export default function AccountPage() {
 
     <CenterMorphModal open={nameModalOpen} onOpenChange={setNameModalOpen}>
       <CenterMorphModalContent ariaLabel="Edit Name" className="w-full max-w-sm bg-card p-6 border-border/50">
-        <FieldGroup>
-          <div className="flex flex-col gap-2 text-center">
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col text-center">
             <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Edit Name</h2>
           </div>
-          <Field>
-            <FieldLabel>Name</FieldLabel>
-            <Input 
-              value={newName} 
-              onChange={(e) => setNewName(e.target.value)} 
-              placeholder="Your name"
-              className="w-full bg-card"
-            />
-          </Field>
-        </FieldGroup>
-        <div className="mt-6 flex justify-end gap-3">
-          <CenterMorphModalClose>
-            <Button variant="ghost" disabled={isSaving}>Cancel</Button>
-          </CenterMorphModalClose>
-          <Button onClick={handleSaveName} disabled={isSaving || !newName.trim()}>
-            {isSaving ? "Saving..." : "Save"}
-          </Button>
+          <FieldGroup>
+            <Field>
+              <FieldLabel>Name</FieldLabel>
+              <Input 
+                value={newName} 
+                onChange={(e) => setNewName(e.target.value)} 
+                placeholder="Your name"
+                className="w-full bg-card"
+              />
+            </Field>
+          </FieldGroup>
+          <div className="flex justify-end gap-3">
+            <CenterMorphModalClose>
+              <Button variant="ghost" disabled={isSaving}>Cancel</Button>
+            </CenterMorphModalClose>
+            <Button onClick={handleSaveName} disabled={isSaving || !newName.trim()}>
+              {isSaving ? "Saving..." : "Save"}
+            </Button>
+          </div>
         </div>
       </CenterMorphModalContent>
     </CenterMorphModal>
@@ -423,22 +425,20 @@ export default function AccountPage() {
     <CenterMorphModal open={emailModalOpen} onOpenChange={setEmailModalOpen}>
       <CenterMorphModalContent ariaLabel="Edit Email" className="w-full max-w-sm bg-card p-6 border-border/50">
         {emailSuccess ? (
-          <div className="flex flex-col items-center text-center py-6 px-2">
-            <div className="flex flex-col gap-2 mb-3">
-              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Check your inbox</h2>
-            </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+          <div className="flex flex-col gap-4 text-center pb-2">
+            <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Check your inbox</h2>
+            <p className="text-sm text-muted-foreground">
               We sent a confirmation link to
               <br />
               <span className="font-medium text-foreground mt-1 inline-block">{newEmail}</span>
             </p>
           </div>
         ) : (
-          <>
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col text-center">
+              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Edit Email</h2>
+            </div>
             <FieldGroup>
-              <div className="flex flex-col gap-2 text-center">
-                <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Edit Email</h2>
-              </div>
               <Field>
                 <FieldLabel>Email</FieldLabel>
                 <Input 
@@ -450,7 +450,7 @@ export default function AccountPage() {
                 />
               </Field>
             </FieldGroup>
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="flex justify-end gap-3">
               <CenterMorphModalClose>
                 <Button variant="ghost" disabled={isSavingEmail}>Cancel</Button>
               </CenterMorphModalClose>
@@ -458,7 +458,7 @@ export default function AccountPage() {
                 {isSavingEmail ? "Saving..." : "Save"}
               </Button>
             </div>
-          </>
+          </div>
         )}
       </CenterMorphModalContent>
     </CenterMorphModal>
@@ -477,20 +477,18 @@ export default function AccountPage() {
     >
       <CenterMorphModalContent ariaLabel="Edit Password" className="w-full max-w-sm bg-card p-6 border-border/50">
         {passwordSuccess ? (
-          <div className="flex flex-col items-center text-center py-6 px-2">
-            <div className="flex flex-col gap-2 mb-3">
-              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Password updated</h2>
-            </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+          <div className="flex flex-col gap-4 text-center pb-2">
+            <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Password updated</h2>
+            <p className="text-sm text-muted-foreground">
               Your password has been successfully changed.
             </p>
           </div>
         ) : passwordStep === 'input' ? (
-          <>
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col text-center">
+              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Edit Password</h2>
+            </div>
             <FieldGroup>
-              <div className="flex flex-col gap-2 text-center">
-                <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Edit Password</h2>
-              </div>
               <Field>
                 <div className="flex items-center justify-between">
                   <FieldLabel>Current Password</FieldLabel>
@@ -527,7 +525,7 @@ export default function AccountPage() {
                 />
               </Field>
             </FieldGroup>
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="flex justify-end gap-3">
               <CenterMorphModalClose>
                 <Button variant="ghost" disabled={isSavingPassword}>Cancel</Button>
               </CenterMorphModalClose>
@@ -535,13 +533,13 @@ export default function AccountPage() {
                 {mfaEnabled ? "Next" : (isSavingPassword ? "Saving..." : "Update")}
               </Button>
             </div>
-          </>
+          </div>
         ) : (
-          <>
-            <div className="flex flex-col gap-3 text-center mb-6">
-              <h2 className="text-lg font-semibold tracking-tight text-foreground">Verify it's you</h2>
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4 text-center">
+              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Verify it's you</h2>
               <p className="text-sm text-muted-foreground">
-                Please enter the 6-digit code from your authenticator app to confirm the password change.
+                Please enter the 6-digit code from your authenticator app.
               </p>
             </div>
             <div className="flex justify-center w-full">
@@ -559,13 +557,13 @@ export default function AccountPage() {
                 onComplete={() => {}}
               />
             </div>
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="flex justify-end gap-3">
               <Button variant="ghost" onClick={() => setPasswordStep('input')} disabled={isSavingPassword}>Back</Button>
               <Button onClick={handleSavePassword} disabled={isSavingPassword || passwordTotpCode.length < 6 || passwordTotpStatus === 'success'}>
                 {isSavingPassword ? "Updating..." : "Update"}
               </Button>
             </div>
-          </>
+          </div>
         )}
       </CenterMorphModalContent>
     </CenterMorphModal>

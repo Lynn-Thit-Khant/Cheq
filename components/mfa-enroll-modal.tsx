@@ -97,8 +97,8 @@ export function MFAEnrollModal({
     <CenterMorphModal open={open} onOpenChange={onOpenChange}>
       <CenterMorphModalContent ariaLabel="Enroll MFA" className="w-full max-w-sm bg-card p-6 border-border/50">
         <div className="flex flex-col items-center gap-6">
-          <div className="flex flex-col gap-3 text-center">
-            <h2 className="text-lg font-semibold tracking-tight text-foreground">Setup Authenticator</h2>
+          <div className="flex flex-col gap-4 text-center">
+            <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Setup Authenticator</h2>
             <p className="text-sm text-muted-foreground">
               Scan the QR code below with your authenticator app.
             </p>
