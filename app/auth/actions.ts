@@ -255,8 +255,7 @@ export async function updateProfileName(formData: FormData) {
 
   const supabase = await createClient()
 
-  const mfaCheck = await requireMFA()
-  if (mfaCheck?.error) return mfaCheck
+
 
   const { error } = await supabase.auth.updateUser({
     data: { full_name: name }
