@@ -62,10 +62,6 @@ export default function AccountPage() {
   }, [anyOpen]);
   
   // Inline MFA states for password update
-  const [passwordStep, setPasswordStep] = useState<'input' | 'mfa'>('input')
-  const [passwordTotpCode, setPasswordTotpCode] = useState('')
-  const [passwordTotpStatus, setPasswordTotpStatus] = useState<OTPStatus>("idle")
-  const [passwordTotpError, setPasswordTotpError] = useState('')
   
   const supabase = useMemo(() => createClient(), [])
 
@@ -533,7 +529,6 @@ export default function AccountPage() {
       onOpenChange={(open) => {
         setPasswordModalOpen(open)
         if (!open) {
-          setPasswordStep('input')
           setPasswordError('')
           setCurrentPassword('')
           setNewPassword('')
