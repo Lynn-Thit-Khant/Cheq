@@ -44,7 +44,7 @@ export function MFAEnrollModal({
       const { data: listData } = await supabase.auth.mfa.listFactors()
       if (listData?.totp) {
         for (const factor of listData.totp) {
-          if (factor.status === 'unverified') {
+          if ((factor.status as string) === 'unverified') {
             await supabase.auth.mfa.unenroll({ factorId: factor.id })
           }
         }
