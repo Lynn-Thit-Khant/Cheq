@@ -119,14 +119,6 @@ async function getRateLimitKey(action: string): Promise<string> {
 // Auth Actions
 // ---------------------------------------------------------------------------
 
-async function requireMFA() {
-  const supabase = await createClient()
-  const { data: aalData, error: aalError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
-  if (aalError || (aalData?.nextLevel === 'aal2' && aalData?.nextLevel !== aalData?.currentLevel)) {
-    return { error: 'MFA required. Please complete MFA to perform this action.' }
-  }
-  return null
-}
 
 export async function login(formData: FormData) {
   // Rate limiting
@@ -305,8 +297,6 @@ export async function updateProfileEmail(formData: FormData) {
 
   const supabase = await createClient()
 
-  const mfaCheck = await requireMFA()
-  if (mfaCheck?.error) return mfaCheck
 
   const { error } = await supabase.auth.updateUser({
     email: email
@@ -348,8 +338,6 @@ export async function updateProfilePassword(formData: FormData) {
 
   const supabase = await createClient()
 
-  const mfaCheck = await requireMFA()
-  if (mfaCheck?.error) return mfaCheck
 
   const { error } = await supabase.auth.updateUser({
     password: newPassword,

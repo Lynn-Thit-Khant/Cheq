@@ -156,7 +156,12 @@ export default function AccountPage() {
     const res = await updateProfileEmail(formData)
     setIsSavingEmail(false)
     if ('error' in res) {
-      if (res.error === 'MFA required. Please complete MFA to perform this action.') {
+      if (
+        res.error === 'MFA required. Please complete MFA to perform this action.' || 
+        res.error.toLowerCase().includes('aal2') ||
+        res.error.toLowerCase().includes('multi-factor') ||
+        res.error.toLowerCase().includes('mfa')
+      ) {
         setEmailStep('mfa')
       } else {
         setEmailPasswordError(res.error)
@@ -190,6 +195,8 @@ export default function AccountPage() {
     }
 
     if (mfaEnabled) {
+      setEmailMfaStatus('idle')
+      setEmailMfaError('')
       setEmailStep('mfa_reverify')
       setIsSavingEmail(false)
     } else {
