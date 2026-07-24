@@ -30,8 +30,8 @@ export function UserProvider({ children, user }: { children: ReactNode; user: Us
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       const isAuth = !!session?.user
-      if (isAuth !== isAuthenticated) {
-        setIsAuthenticated(isAuth)
+      if (isAuth !== isAuthenticated || event === 'USER_UPDATED') {
+        if (isAuth !== isAuthenticated) setIsAuthenticated(isAuth)
         router.refresh()
       }
     })

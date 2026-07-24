@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input"
 import { Check } from "lucide-react"
 import { updateProfileName, updateProfileEmail, updateProfilePassword } from "@/app/auth/actions"
 import { PasswordStrengthInput } from "@/components/password-strength-input"
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
+import { Field, FieldGroup, FieldLabel, FieldError } from "@/components/ui/field"
 
 import {
   CenterMorphModal,
@@ -534,7 +534,7 @@ export default function AccountPage() {
                   className="w-full bg-card"
                 />
               </Field>
-              <Field>
+              <Field data-invalid={!!emailPasswordError}>
                 <div className="flex items-center justify-between">
                   <FieldLabel>Current Password</FieldLabel>
                   <Link href="/auth/forgot-password" className="text-sm text-muted-foreground hover:text-foreground hover:underline underline-offset-4">
@@ -549,11 +549,12 @@ export default function AccountPage() {
                   onChange={(e) => {
                     setEmailCurrentPassword(e.target.value)
                     if (emailPasswordError) setEmailPasswordError('')
-                  }} 
+                  }}
+                  aria-invalid={!!emailPasswordError}
                   required
                 />
                 {emailPasswordError && (
-                  <p className="text-sm font-medium text-destructive mt-1">{emailPasswordError}</p>
+                  <FieldError errors={[{ message: emailPasswordError }]} />
                 )}
               </Field>
             </FieldGroup>
