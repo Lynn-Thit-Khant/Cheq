@@ -97,13 +97,12 @@ export default function AccountPage() {
   const [passwordSuccess, setPasswordSuccess] = useState(false)
   const [copyState, setCopyState] = useState<string>("copy")
 
-  const [emailStep, setEmailStep] = useState<'input' | 'verify' | 'mfa' | 'mfa_reverify'>('input')
+  const [emailStep, setEmailStep] = useState<'input' | 'verify'>('input')
+  const [passwordError, setPasswordError] = useState("")
   const [emailCurrentPassword, setEmailCurrentPassword] = useState("")
   const [emailOtpCode, setEmailOtpCode] = useState("")
   const [emailOtpStatus, setEmailOtpStatus] = useState<OTPStatus>("idle")
   const [emailOtpError, setEmailOtpError] = useState("")
-  const [emailMfaStatus, setEmailMfaStatus] = useState<OTPStatus>("idle")
-  const [emailMfaError, setEmailMfaError] = useState("")
 
   useEffect(() => {
     setNewName(userName)
@@ -140,32 +139,14 @@ export default function AccountPage() {
     setIsSavingEmail(true)
     setEmailPasswordError('')
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: userEmail,
-      password: emailCurrentPassword
-    })
-
-    if (signInError) {
-       setEmailPasswordError("Incorrect current password.")
-       setIsSavingEmail(false)
-       return
-    }
-
     const formData = new FormData()
     formData.append('email', newEmail)
+    formData.append('password', emailCurrentPassword)
     const res = await updateProfileEmail(formData)
+    
     setIsSavingEmail(false)
     if ('error' in res && typeof res.error === 'string') {
-      if (
-        res.error === 'MFA required. Please complete MFA to perform this action.' || 
-        res.error.toLowerCase().includes('aal2') ||
-        res.error.toLowerCase().includes('multi-factor') ||
-        res.error.toLowerCase().includes('mfa')
-      ) {
-        setEmailStep('mfa')
-      } else {
-        setEmailPasswordError(res.error)
-      }
+      setEmailPasswordError(res.error)
     } else {
       setEmailStep('verify')
     }
@@ -176,10 +157,6 @@ export default function AccountPage() {
     setEmailOtpError('')
     setEmailOtpStatus('idle')
 
-    if (mfaEnabled) {
-      ;(window as any).__suppressAuthRefresh = true
-    }
-
     const { error: otpError } = await supabase.auth.verifyOtp({
       email: newEmail,
       token: emailOtpCode,
@@ -187,129 +164,20 @@ export default function AccountPage() {
     })
 
     if (otpError) {
-       ;(window as any).__suppressAuthRefresh = false
        setEmailOtpError("Invalid verification code.")
        setEmailOtpStatus("error")
        setIsSavingEmail(false)
        return
     }
 
-    if (mfaEnabled) {
-      setEmailMfaStatus('idle')
-      setEmailMfaError('')
-      setEmailStep('mfa_reverify')
-      setIsSavingEmail(false)
-    } else {
-      setEmailSuccess(true)
-      setIsSavingEmail(false)
-      router.refresh()
-    }
-  }
-
-  const handleVerifyEmailMfa = async (code: string) => {
-      setEmailMfaError('')
-      setEmailMfaStatus('idle')
-
-      try {
-        const challenge = await supabase.auth.mfa.challenge({ factorId: enrolledFactorId! })
-        if (challenge.error) throw challenge.error
-
-        const verify = await supabase.auth.mfa.verify({
-          factorId: enrolledFactorId!,
-          challengeId: challenge.data.id,
-          code,
-        })
-        
-        if (verify.error) throw verify.error
-        
-        setEmailMfaStatus('success')
-        setTimeout(async () => {
-          setIsSavingEmail(true)
-          const formData = new FormData()
-          formData.append('email', newEmail)
-          const res = await updateProfileEmail(formData)
-          setIsSavingEmail(false)
-          
-          if ('error' in res && typeof res.error === 'string') {
-            setEmailMfaError(res.error)
-            setEmailMfaStatus('error')
-          } else if ('error' in res) {
-            setEmailMfaError('An error occurred')
-            setEmailMfaStatus('error')
-          } else {
-            setEmailStep('verify')
-          }
-        }, 1000)
-      } catch (err: any) {
-        setEmailMfaError(err.message || "Failed to verify code")
-        setEmailMfaStatus('error')
-      }
-  }
-
-  const handleVerifyEmailMfaReverify = async (code: string) => {
-      setEmailMfaError('')
-      setEmailMfaStatus('idle')
-
-      try {
-        const challenge = await supabase.auth.mfa.challenge({ factorId: enrolledFactorId! })
-        if (challenge.error) throw challenge.error
-
-        const verify = await supabase.auth.mfa.verify({
-          factorId: enrolledFactorId!,
-          challengeId: challenge.data.id,
-          code,
-        })
-        
-        if (verify.error) throw verify.error
-        
-        setEmailMfaStatus('success')
-        
-        ;(window as any).__suppressAuthRefresh = false
-        router.refresh()
-        
-        setTimeout(() => {
-          setEmailSuccess(true)
-        }, 1000)
-      } catch (err: any) {
-        setEmailMfaError(err.message || "Failed to verify code")
-        setEmailMfaStatus('error')
-      }
+    setEmailSuccess(true)
+    setIsSavingEmail(false)
+    router.refresh()
   }
 
   const handleSavePassword = async () => {
     if (!currentPassword || !newPassword || newPassword !== confirmPassword) {
       return
-    }
-
-    if (mfaEnabled && passwordStep === 'input') {
-      setPasswordStep('mfa')
-      return
-    }
-
-    if (mfaEnabled && passwordStep === 'mfa') {
-      setIsSavingPassword(true)
-      setPasswordTotpError('')
-      setPasswordTotpStatus('idle')
-
-      try {
-        const challenge = await supabase.auth.mfa.challenge({ factorId: enrolledFactorId! })
-        if (challenge.error) throw challenge.error
-
-        const verify = await supabase.auth.mfa.verify({
-          factorId: enrolledFactorId!,
-          challengeId: challenge.data.id,
-          code: passwordTotpCode,
-        })
-        
-        if (verify.error) throw verify.error
-        
-        setPasswordTotpStatus('success')
-      } catch (err: any) {
-        setPasswordTotpError(err.message || "Failed to verify code")
-        setPasswordTotpStatus('error')
-        setIsSavingPassword(false)
-        return
-      }
     }
 
     setIsSavingPassword(true)
@@ -319,17 +187,12 @@ export default function AccountPage() {
     const res = await updateProfilePassword(formData)
     setIsSavingPassword(false)
     if ('error' in res) {
-      if (mfaEnabled) {
-        setPasswordTotpStatus('error')
-        setPasswordTotpError(res.error as string)
-      }
+      setPasswordError(res.error as string)
     } else {
       setPasswordSuccess(true)
       setCurrentPassword("")
       setNewPassword("")
       setConfirmPassword("")
-      setPasswordStep('input')
-      setPasswordTotpCode('')
     }
   }
 
@@ -570,8 +433,6 @@ export default function AccountPage() {
           setEmailOtpCode('')
           setEmailOtpStatus('idle')
           setEmailOtpError('')
-          setEmailMfaStatus('idle')
-          setEmailMfaError('')
           setEmailSuccess(false)
         }
       }}
@@ -663,38 +524,6 @@ export default function AccountPage() {
               </Button>
             </div>
           </div>
-        ) : emailStep === 'mfa' || emailStep === 'mfa_reverify' ? (
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-4 text-center">
-              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">
-                {emailStep === 'mfa_reverify' ? "Re-verify MFA" : "Verify it's you"}
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                {emailStep === 'mfa_reverify' 
-                  ? "Please re-verify your MFA to secure your new email."
-                  : "Please enter the 6-digit code from your authenticator app."}
-              </p>
-            </div>
-            <div className="flex justify-center w-full">
-              <OTPInput
-                key={emailStep}
-                label="Verification Code"
-                successMessage="Verified."
-                errorMessage={emailMfaError || "Invalid code."}
-                value=""
-                status={emailMfaStatus}
-                onChange={(v) => {
-                  if (emailMfaStatus !== 'idle') setEmailMfaStatus('idle')
-                }}
-                onComplete={emailStep === 'mfa_reverify' ? handleVerifyEmailMfaReverify : handleVerifyEmailMfa}
-              />
-            </div>
-            {emailStep === 'mfa' && (
-              <div className="mt-2 flex justify-end gap-3">
-                <Button variant="ghost" disabled={emailMfaStatus === 'success'} onClick={() => setEmailStep('verify')}>Back</Button>
-              </div>
-            )}
-          </div>
         ) : null}
       </CenterMorphModalContent>
     </CenterMorphModal>
@@ -705,9 +534,11 @@ export default function AccountPage() {
         setPasswordModalOpen(open)
         if (!open) {
           setPasswordStep('input')
-          setPasswordTotpCode('')
-          setPasswordTotpStatus('idle')
-          setPasswordTotpError('')
+          setPasswordError('')
+          setCurrentPassword('')
+          setNewPassword('')
+          setConfirmPassword('')
+          setPasswordSuccess(false)
         }
       }}
     >
@@ -719,11 +550,16 @@ export default function AccountPage() {
               Your password has been successfully changed.
             </p>
           </div>
-        ) : passwordStep === 'input' ? (
+        ) : (
           <div className="flex flex-col gap-6">
             <div className="flex flex-col text-center">
               <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Edit Password</h2>
             </div>
+            {passwordError && (
+              <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md border border-destructive/20 text-center">
+                {passwordError}
+              </div>
+            )}
             <FieldGroup>
               <Field>
                 <div className="flex items-center justify-between">
@@ -737,7 +573,10 @@ export default function AccountPage() {
                   placeholder="Current Password"
                   showStrengthIndicator={false}
                   value={currentPassword} 
-                  onChange={(e) => setCurrentPassword(e.target.value)} 
+                  onChange={(e) => {
+                    setCurrentPassword(e.target.value)
+                    if (passwordError) setPasswordError("")
+                  }} 
                   required
                 />
               </Field>
@@ -766,37 +605,7 @@ export default function AccountPage() {
                 <Button variant="ghost" disabled={isSavingPassword}>Cancel</Button>
               </CenterMorphModalClose>
               <Button onClick={handleSavePassword} disabled={isSavingPassword || !currentPassword || !newPassword || newPassword !== confirmPassword}>
-                {mfaEnabled ? "Next" : (isSavingPassword ? "Saving..." : "Update")}
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-4 text-center">
-              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Verify it's you</h2>
-              <p className="text-sm text-muted-foreground">
-                Please enter the 6-digit code from your authenticator app.
-              </p>
-            </div>
-            <div className="flex justify-center w-full">
-              <OTPInput
-                label="Verification Code"
-                successMessage="Verified."
-                errorMessage={passwordTotpError || "Invalid code."}
-                value={passwordTotpCode}
-                status={passwordTotpStatus}
-                disabled={isSavingPassword}
-                onChange={(v) => {
-                  setPasswordTotpCode(v)
-                  if (passwordTotpStatus !== "idle") setPasswordTotpStatus("idle")
-                }}
-                onComplete={() => {}}
-              />
-            </div>
-            <div className="flex justify-end gap-3">
-              <Button variant="ghost" onClick={() => setPasswordStep('input')} disabled={isSavingPassword}>Back</Button>
-              <Button onClick={handleSavePassword} disabled={isSavingPassword || passwordTotpCode.length < 6 || passwordTotpStatus === 'success'}>
-                {isSavingPassword ? "Updating..." : "Update"}
+                {isSavingPassword ? "Saving..." : "Update"}
               </Button>
             </div>
           </div>

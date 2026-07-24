@@ -294,6 +294,11 @@ export async function updateProfileEmail(formData: FormData) {
     return { error: 'Please enter a valid email address.' }
   }
 
+  const password = formData.get('password')
+  if (typeof password !== 'string' || !password) {
+    return { error: 'Current password is required.' }
+  }
+
   const cookieStore = await cookies()
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -311,6 +316,32 @@ export async function updateProfileEmail(formData: FormData) {
       },
     }
   )
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user?.email) {
+    return { error: 'Not authenticated.' }
+  }
+
+  // Verify password using a dummy client to avoid modifying the current session
+  const dummyClient = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    {
+      cookies: {
+        getAll: () => [],
+        setAll: () => {},
+      }
+    }
+  )
+
+  const { error: signInError } = await dummyClient.auth.signInWithPassword({
+    email: user.email,
+    password: password
+  })
+
+  if (signInError) {
+    return { error: 'Incorrect current password.' }
+  }
 
   const { error } = await supabase.auth.updateUser({
     email: email
