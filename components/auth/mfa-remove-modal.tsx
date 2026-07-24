@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { createClient } from "@/lib/client"
 import { useMemo } from "react"
 import { OTPInput, type OTPStatus } from "@/components/motion/otp-input"
@@ -54,7 +54,7 @@ export function MFARemoveModal({
       setIsVerifying(false)
 
     } catch (err: any) {
-      setErrorMsg(err.message || "Failed to verify code")
+      setErrorMsg(err.message)
       setStatus('error')
       setIsVerifying(false)
     } 
@@ -72,7 +72,7 @@ export function MFARemoveModal({
       onOpenChange(false)
       setIsRemoving(false)
     } catch (err: any) {
-      setErrorMsg(err.message || "Failed to remove authenticator")
+      setErrorMsg(err.message)
       setIsRemoving(false)
     }
   }
@@ -91,7 +91,7 @@ export function MFARemoveModal({
           <div className="flex flex-col gap-4 text-center">
             <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Remove Authenticator</h2>
             <p className="text-sm text-muted-foreground">
-              Please enter the 6-digit code from your authenticator app to verify it's you.
+              Please enter the 6-digit code from your authenticator app to verify it&apos;s you.
             </p>
           </div>
 
@@ -99,7 +99,7 @@ export function MFARemoveModal({
             <OTPInput
               label="Verification Code"
               successMessage="Verification successful."
-              errorMessage={errorMsg || "Invalid code, please try again."}
+              errorMessage={errorMsg}
               value={verifyCode}
               status={status}
               disabled={isVerifying || isRemoving || !factorId}
@@ -121,7 +121,7 @@ export function MFARemoveModal({
               isLoading={isRemoving}
               onClick={handleRemove}
             >
-              {isRemoving ? "Removing..." : "Remove"}
+              {isRemoving ? "Removing" : "Remove"}
             </Button>
           </div>
         </div>

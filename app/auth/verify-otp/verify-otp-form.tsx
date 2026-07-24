@@ -58,7 +58,7 @@ export function VerifyOTPForm({ email, type }: VerifyOTPFormProps) {
             <OTPInput
               label="Verification Code"
               successMessage="Verification successful."
-              errorMessage={errorMsg || "Invalid code, please try again."}
+              errorMessage={errorMsg}
               value={value}
               status={status}
               onChange={(v) => {

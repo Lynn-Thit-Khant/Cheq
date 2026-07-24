@@ -175,8 +175,8 @@ export function SignUpForm({
           />
 
           <Field>
-            <Button size="lg" type="submit" disabled={isLoading} className="w-full">
-              {isLoading ? 'Creating account...' : 'Create Account'}
+            <Button size="lg" type="submit" disabled={isLoading} isLoading={isLoading} className="w-full">
+              {isLoading ? 'Creating account' : 'Create Account'}
             </Button>
           </Field>
 

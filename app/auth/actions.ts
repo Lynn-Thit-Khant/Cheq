@@ -90,20 +90,7 @@ function validateAuthInput(
 // Helpers
 // ---------------------------------------------------------------------------
 
-/**
- * Derives the site origin from the incoming request headers.
- * Falls back to NEXT_PUBLIC_SITE_URL env var, then localhost.
- */
-async function getSiteUrl(): Promise<string> {
-  const headerStore = await headers()
-  const origin = headerStore.get('origin')
-  const host = headerStore.get('x-forwarded-host') || headerStore.get('host')
-  const proto = headerStore.get('x-forwarded-proto') || 'http'
 
-  if (origin) return origin
-  if (host) return `${proto}://${host}`
-  return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-}
 
 /**
  * Extracts a rate-limit key from the request (IP-based).
@@ -164,8 +151,6 @@ export async function signup(formData: FormData) {
   }
 
   const supabase = await createClient()
-
-  const siteUrl = await getSiteUrl()
 
   const { error } = await supabase.auth.signUp({
     email: validation.email,
@@ -236,7 +221,6 @@ export async function forgotPassword(formData: FormData) {
   }
 
   const supabase = await createClient()
-  const siteUrl = await getSiteUrl()
 
   const { error } = await supabase.auth.resetPasswordForEmail(email)
 
@@ -428,7 +412,7 @@ export async function updateProfilePassword(formData: FormData) {
 export async function verifyEmailOtp(email: string, token: string, type: 'signup' | 'recovery') {
   const supabase = await createClient()
 
-  const { data, error } = await supabase.auth.verifyOtp({
+  const { error } = await supabase.auth.verifyOtp({
     email,
     token,
     type,

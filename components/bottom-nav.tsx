@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { Dock, DockItem } from "@/components/motion/dock"
 import { Home, Wallet, Settings, Sparkles } from "lucide-react"
@@ -16,14 +16,13 @@ export function BottomNav() {
     { name: "Agent", href: "/agent", icon: Sparkles },
   ]
 
-  // Local state drives the pill animation instantly on click,
-  // decoupled from the slower route change.
   const [activeHref, setActiveHref] = useState(pathname)
+  const [prevPathname, setPrevPathname] = useState(pathname)
 
-  // Sync back when the URL changes externally (browser back/forward)
-  useEffect(() => {
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname)
     setActiveHref(pathname)
-  }, [pathname])
+  }
 
   const handleTabClick = (href: string) => {
     if (href === activeHref) return

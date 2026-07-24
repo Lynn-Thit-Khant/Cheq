@@ -120,8 +120,8 @@ export function LoginForm({
           />
 
           <Field>
-            <Button size="lg" type="submit" disabled={isLoading} className="w-full">
-              {isLoading ? 'Signing in...' : 'Sign in'}
+            <Button size="lg" type="submit" disabled={isLoading} isLoading={isLoading} className="w-full">
+              {isLoading ? 'Signing in' : 'Sign in'}
             </Button>
           </Field>
 

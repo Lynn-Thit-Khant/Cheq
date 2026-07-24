@@ -105,8 +105,8 @@ export function ForgotPasswordForm({
             />
 
             <Field>
-              <Button size="lg" type="submit" disabled={isLoading} className="w-full">
-                {isLoading ? 'Sending...' : 'Reset password'}
+              <Button size="lg" type="submit" disabled={isLoading} isLoading={isLoading} className="w-full">
+                {isLoading ? 'Sending' : 'Reset password'}
               </Button>
             </Field>
           </FieldGroup>

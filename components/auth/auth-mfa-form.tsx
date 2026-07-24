@@ -56,7 +56,7 @@ export function AuthMFAForm() {
 
     } catch (err: any) {
       // Silent failure or handle via UI if necessary
-      setErrorMsg(err.message || "Failed to verify code")
+      setErrorMsg(err.message)
       setStatus("error")
     }
   }
@@ -74,7 +74,7 @@ export function AuthMFAForm() {
         <OTPInput
           label="Verification Code"
           successMessage="Verification successful."
-          errorMessage={errorMsg || "Invalid code, please try again."}
+          errorMessage={errorMsg}
           value={value}
           status={status}
           onChange={(v) => {

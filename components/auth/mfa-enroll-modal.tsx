@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { createClient } from "@/lib/client"
 import { useMemo } from "react"
+
 import { OTPInput, type OTPStatus } from "@/components/motion/otp-input"
 import { Button } from "@/components/motion/button/base"
 import {
@@ -81,7 +82,7 @@ export function MFAEnrollModal({
       setIsVerifying(false)
 
     } catch (err: any) {
-      setErrorMsg(err.message || "Failed to verify code")
+      setErrorMsg(err.message)
       setStatus('error')
       setIsVerifying(false)
     } 
@@ -111,15 +112,18 @@ export function MFAEnrollModal({
                 <img 
                   src={qr} 
                   alt="Authenticator QR Code" 
-                  className="w-48 h-48 object-contain" 
+                  width={192}
+                  height={192}
+                  className="object-contain" 
                 />
               ) : errorMsg && !qr ? (
                 <div className="w-48 h-48 flex items-center justify-center text-center p-2">
                   <span className="text-sm text-destructive">{errorMsg}</span>
                 </div>
               ) : (
-                <div className="w-48 h-48 flex items-center justify-center">
+                <div className="w-48 h-48 flex flex-col items-center justify-center gap-3">
                   <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
+                  <span className="text-sm text-muted-foreground animate-pulse">Loading QR...</span>
                 </div>
               )}
             </div>
@@ -129,7 +133,7 @@ export function MFAEnrollModal({
             <OTPInput
               label="Verification Code"
               successMessage="Verification successful."
-              errorMessage={errorMsg || "Invalid code, please try again."}
+              errorMessage={errorMsg}
               value={verifyCode}
               status={status}
               disabled={isVerifying || !qr}

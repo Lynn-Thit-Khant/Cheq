@@ -415,7 +415,7 @@ export default function AccountPage() {
               <Button variant="ghost" disabled={isSaving}>Cancel</Button>
             </CenterMorphModalClose>
             <Button onClick={handleSaveName} isLoading={isSaving} disabled={isSaving || !newName.trim()}>
-              {isSaving ? "Saving..." : "Save"}
+              {isSaving ? "Saving" : "Save"}
             </Button>
           </div>
         </div>
@@ -455,7 +455,7 @@ export default function AccountPage() {
             </div>
             <div className="flex justify-center w-full">
               <Button onClick={handleSignOut} isLoading={isSigningOut} className="w-full">
-                {isSigningOut ? "Signing out..." : "Sign in again"}
+                {isSigningOut ? "Signing out" : "Sign in again"}
               </Button>
             </div>
           </div>
@@ -504,7 +504,7 @@ export default function AccountPage() {
                 <Button variant="ghost" disabled={isSavingEmail}>Cancel</Button>
               </CenterMorphModalClose>
               <Button onClick={handleNextEmail} isLoading={isSavingEmail} disabled={isSavingEmail || !newEmail.trim() || newEmail === userEmail || !emailCurrentPassword}>
-                {isSavingEmail ? "Processing..." : "Next"}
+                {isSavingEmail ? "Processing" : "Next"}
               </Button>
             </div>
           </div>
@@ -534,7 +534,7 @@ export default function AccountPage() {
             <div className="mt-2 flex justify-end gap-3">
               <Button variant="ghost" disabled={isSavingEmail} onClick={() => setEmailStep('input')}>Back</Button>
               <Button onClick={handleVerifyEmail} isLoading={isSavingEmail} disabled={isSavingEmail || !emailCurrentPassword || emailOtpCode.length !== 6}>
-                {isSavingEmail ? "Updating..." : "Update"}
+                {isSavingEmail ? "Updating" : "Update"}
               </Button>
             </div>
           </div>
@@ -571,7 +571,7 @@ export default function AccountPage() {
             </div>
             <div className="flex justify-center w-full">
               <Button onClick={handleSignOut} isLoading={isSigningOut} className="w-full">
-                {isSigningOut ? "Signing out..." : "Sign in again"}
+                {isSigningOut ? "Signing out" : "Sign in again"}
               </Button>
             </div>
           </div>
@@ -630,7 +630,7 @@ export default function AccountPage() {
                 <Button variant="ghost" disabled={isSavingPassword}>Cancel</Button>
               </CenterMorphModalClose>
               <Button onClick={handleSavePassword} isLoading={isSavingPassword} disabled={isSavingPassword || !currentPassword || !newPassword || newPassword !== confirmPassword}>
-                {isSavingPassword ? "Updating..." : "Update"}
+                {isSavingPassword ? "Updating" : "Update"}
               </Button>
             </div>
           </div>

@@ -126,8 +126,8 @@ export function UpdatePasswordForm({
           />
 
           <Field>
-            <Button size="lg" type="submit" disabled={isLoading} className="w-full">
-              {isLoading ? 'Saving...' : 'Save new password'}
+            <Button size="lg" type="submit" disabled={isLoading} isLoading={isLoading} className="w-full">
+              {isLoading ? 'Saving' : 'Save new password'}
             </Button>
           </Field>
         </FieldGroup>

@@ -11,15 +11,11 @@ export const metadata: Metadata = {
   description: "The smartest way to track, manage, and visualize your part-time income.",
 };
 
-import { createClient } from "@/lib/server";
-
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
 
   return (
     <html
