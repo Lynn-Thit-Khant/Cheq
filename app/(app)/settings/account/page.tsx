@@ -131,18 +131,32 @@ export default function AccountPage() {
     }
   }
 
+  const [emailPasswordError, setEmailPasswordError] = useState("")
+
   const handleNextEmail = async () => {
-    if (!newEmail.trim() || newEmail === userEmail) {
-      setEmailModalOpen(false)
+    if (!newEmail.trim() || newEmail === userEmail || !emailCurrentPassword) {
       return
     }
     setIsSavingEmail(true)
+    setEmailPasswordError('')
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: userEmail,
+      password: emailCurrentPassword
+    })
+
+    if (signInError) {
+       setEmailPasswordError("Incorrect current password.")
+       setIsSavingEmail(false)
+       return
+    }
+
     const formData = new FormData()
     formData.append('email', newEmail)
     const res = await updateProfileEmail(formData)
     setIsSavingEmail(false)
     if ('error' in res) {
-
+      setEmailPasswordError(res.error)
     } else {
       setEmailStep('verify')
     }
@@ -152,18 +166,6 @@ export default function AccountPage() {
     setIsSavingEmail(true)
     setEmailOtpError('')
     setEmailOtpStatus('idle')
-
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: userEmail,
-      password: emailCurrentPassword
-    })
-
-    if (signInError) {
-       setEmailOtpError("Incorrect current password.")
-       setEmailOtpStatus("error")
-       setIsSavingEmail(false)
-       return
-    }
 
     const { error: otpError } = await supabase.auth.verifyOtp({
        email: newEmail,
@@ -499,6 +501,7 @@ export default function AccountPage() {
         if (!open) {
           setEmailStep('input')
           setEmailCurrentPassword('')
+          setEmailPasswordError('')
           setEmailOtpCode('')
           setEmailOtpStatus('idle')
           setEmailOtpError('')
@@ -522,7 +525,7 @@ export default function AccountPage() {
             </div>
             <FieldGroup>
               <Field>
-                <FieldLabel>Email</FieldLabel>
+                <FieldLabel>New Email</FieldLabel>
                 <Input 
                   value={newEmail} 
                   onChange={(e) => setNewEmail(e.target.value)} 
@@ -531,25 +534,6 @@ export default function AccountPage() {
                   className="w-full bg-card"
                 />
               </Field>
-            </FieldGroup>
-            <div className="flex justify-end gap-3">
-              <CenterMorphModalClose>
-                <Button variant="ghost" disabled={isSavingEmail}>Cancel</Button>
-              </CenterMorphModalClose>
-              <Button onClick={handleNextEmail} disabled={isSavingEmail || !newEmail.trim() || newEmail === userEmail}>
-                {isSavingEmail ? "Sending..." : "Next"}
-              </Button>
-            </div>
-          </div>
-        ) : emailStep === 'verify' ? (
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-3 text-center mb-4">
-              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Verify it's you</h2>
-              <p className="text-sm text-muted-foreground">
-                Please verify your current password and the 6-digit code sent to your new email.
-              </p>
-            </div>
-            <FieldGroup>
               <Field>
                 <div className="flex items-center justify-between">
                   <FieldLabel>Current Password</FieldLabel>
@@ -562,11 +546,36 @@ export default function AccountPage() {
                   placeholder="Current Password"
                   showStrengthIndicator={false}
                   value={emailCurrentPassword} 
-                  onChange={(e) => setEmailCurrentPassword(e.target.value)} 
+                  onChange={(e) => {
+                    setEmailCurrentPassword(e.target.value)
+                    if (emailPasswordError) setEmailPasswordError('')
+                  }} 
                   required
                 />
+                {emailPasswordError && (
+                  <p className="text-sm font-medium text-destructive mt-1">{emailPasswordError}</p>
+                )}
               </Field>
-              <div className="flex justify-center w-full mt-4 mb-2">
+            </FieldGroup>
+            <div className="flex justify-end gap-3">
+              <CenterMorphModalClose>
+                <Button variant="ghost" disabled={isSavingEmail}>Cancel</Button>
+              </CenterMorphModalClose>
+              <Button onClick={handleNextEmail} disabled={isSavingEmail || !newEmail.trim() || newEmail === userEmail || !emailCurrentPassword}>
+                {isSavingEmail ? "Verifying..." : "Next"}
+              </Button>
+            </div>
+          </div>
+        ) : emailStep === 'verify' ? (
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-3 text-center mb-4">
+              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Verify new email</h2>
+              <p className="text-sm text-muted-foreground">
+                Please enter the 6-digit code sent to your new email address.
+              </p>
+            </div>
+            <FieldGroup>
+              <div className="flex justify-center w-full mt-2 mb-2">
                 <OTPInput
                   label="Verification Code"
                   successMessage="Verified."
