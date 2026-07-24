@@ -2,8 +2,8 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect, RedirectType } from 'next/navigation'
-import { headers } from 'next/headers'
-
+import { headers, cookies } from 'next/headers'
+import { createServerClient } from '@supabase/ssr'
 import { createClient } from '@/lib/server'
 
 // ---------------------------------------------------------------------------
@@ -294,8 +294,23 @@ export async function updateProfileEmail(formData: FormData) {
     return { error: 'Please enter a valid email address.' }
   }
 
-  const supabase = await createClient()
-
+  const cookieStore = await cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll() {
+          // Intentionally do not set cookies here to prevent Next.js route refresh
+          // which causes layout.tsx to incorrectly redirect to /auth/mfa 
+          // due to the temporary AAL1 downgrade during updateUser.
+        },
+      },
+    }
+  )
 
   const { error } = await supabase.auth.updateUser({
     email: email
@@ -335,8 +350,23 @@ export async function updateProfilePassword(formData: FormData) {
     return { error: `Password must be at most ${MAX_PASSWORD_LENGTH} characters.` }
   }
 
-  const supabase = await createClient()
-
+  const cookieStore = await cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll() {
+          // Intentionally do not set cookies here to prevent Next.js route refresh
+          // which causes layout.tsx to incorrectly redirect to /auth/mfa 
+          // due to the temporary AAL1 downgrade during updateUser.
+        },
+      },
+    }
+  )
 
   const { error } = await supabase.auth.updateUser({
     password: newPassword,
