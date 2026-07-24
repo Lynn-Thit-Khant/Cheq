@@ -685,7 +685,7 @@ export default function AccountPage() {
               </div>
             )}
           </div>
-        )}
+        ) : null}
       </CenterMorphModalContent>
     </CenterMorphModal>
 
