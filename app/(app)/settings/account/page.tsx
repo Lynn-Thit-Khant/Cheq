@@ -504,7 +504,7 @@ export default function AccountPage() {
                 <Button variant="ghost" disabled={isSavingEmail}>Cancel</Button>
               </CenterMorphModalClose>
               <Button onClick={handleNextEmail} isLoading={isSavingEmail} disabled={isSavingEmail || !newEmail.trim() || newEmail === userEmail || !emailCurrentPassword}>
-                {isSavingEmail ? "Verifying..." : "Next"}
+                {isSavingEmail ? "Processing..." : "Next"}
               </Button>
             </div>
           </div>
@@ -533,8 +533,8 @@ export default function AccountPage() {
             </div>
             <div className="mt-2 flex justify-end gap-3">
               <Button variant="ghost" disabled={isSavingEmail} onClick={() => setEmailStep('input')}>Back</Button>
-              <Button onClick={handleVerifyEmail} disabled={isSavingEmail || !emailCurrentPassword || emailOtpCode.length !== 6}>
-                {isSavingEmail ? "Verifying..." : "Update"}
+              <Button onClick={handleVerifyEmail} isLoading={isSavingEmail} disabled={isSavingEmail || !emailCurrentPassword || emailOtpCode.length !== 6}>
+                {isSavingEmail ? "Updating..." : "Update"}
               </Button>
             </div>
           </div>
@@ -630,7 +630,7 @@ export default function AccountPage() {
                 <Button variant="ghost" disabled={isSavingPassword}>Cancel</Button>
               </CenterMorphModalClose>
               <Button onClick={handleSavePassword} isLoading={isSavingPassword} disabled={isSavingPassword || !currentPassword || !newPassword || newPassword !== confirmPassword}>
-                {isSavingPassword ? "Saving..." : "Update"}
+                {isSavingPassword ? "Updating..." : "Update"}
               </Button>
             </div>
           </div>
