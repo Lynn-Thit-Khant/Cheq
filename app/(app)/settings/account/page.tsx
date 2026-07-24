@@ -47,6 +47,20 @@ export default function AccountPage() {
   const [mfaEnabled, setMfaEnabled] = useState(false)
   const [enrolledFactorId, setEnrolledFactorId] = useState<string | null>(null)
   
+  const anyOpen = nameOpen || emailOpen || passwordOpen || mfaPopoverOpen;
+  const [backdropActive, setBackdropActive] = useState(false);
+
+  useEffect(() => {
+    if (anyOpen) {
+      setBackdropActive(true);
+    } else {
+      const timer = setTimeout(() => {
+        setBackdropActive(false);
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [anyOpen]);
+  
   // Inline MFA states for password update
   const [passwordStep, setPasswordStep] = useState<'input' | 'mfa'>('input')
   const [passwordTotpCode, setPasswordTotpCode] = useState('')
@@ -200,7 +214,7 @@ export default function AccountPage() {
     <>
     {/* Full screen backdrop for Telegram effect */}
     <div 
-      className={`fixed inset-0 z-[55] bg-black/60 backdrop-blur-lg transition-opacity duration-300 ${nameOpen || emailOpen || passwordOpen || mfaPopoverOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} 
+      className={`fixed inset-0 z-[55] bg-black/60 backdrop-blur-lg transition-opacity duration-300 ${anyOpen ? 'opacity-100' : 'opacity-0'} ${backdropActive ? 'pointer-events-auto' : 'pointer-events-none'}`} 
       onPointerDown={(e) => { 
         e.preventDefault();
         setNameOpen(false); 
@@ -209,6 +223,10 @@ export default function AccountPage() {
         setMfaPopoverOpen(false); 
       }}
       onTouchStart={(e) => e.preventDefault()}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
     />
 
     <div className="flex flex-1 flex-col p-4 w-full max-w-md mx-auto mt-2 h-full">
