@@ -1,4 +1,4 @@
- "use client"
+"use client"
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -97,14 +97,6 @@ export default function AccountPage() {
   const [passwordSuccess, setPasswordSuccess] = useState(false)
   const [copyState, setCopyState] = useState<string>("copy")
 
-  const [emailStep, setEmailStep] = useState<'input' | 'verify' | 'mfa'>('input')
-  const [emailCurrentPassword, setEmailCurrentPassword] = useState("")
-  const [emailOtpCode, setEmailOtpCode] = useState("")
-  const [emailOtpStatus, setEmailOtpStatus] = useState<OTPStatus>("idle")
-  const [emailOtpError, setEmailOtpError] = useState("")
-  const [emailMfaStatus, setEmailMfaStatus] = useState<OTPStatus>("idle")
-  const [emailMfaError, setEmailMfaError] = useState("")
-
   useEffect(() => {
     setNewName(userName)
   }, [userName])
@@ -131,85 +123,21 @@ export default function AccountPage() {
     }
   }
 
-  const [emailPasswordError, setEmailPasswordError] = useState("")
-
-  const handleNextEmail = async () => {
-    if (!newEmail.trim() || newEmail === userEmail || !emailCurrentPassword) {
+  const handleSaveEmail = async () => {
+    if (!newEmail.trim() || newEmail === userEmail) {
+      setEmailModalOpen(false)
       return
     }
     setIsSavingEmail(true)
-    setEmailPasswordError('')
-
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: userEmail,
-      password: emailCurrentPassword
-    })
-
-    if (signInError) {
-       setEmailPasswordError("Incorrect current password.")
-       setIsSavingEmail(false)
-       return
-    }
-
     const formData = new FormData()
     formData.append('email', newEmail)
     const res = await updateProfileEmail(formData)
     setIsSavingEmail(false)
     if ('error' in res) {
-      setEmailPasswordError(res.error)
-    } else {
-      setEmailStep('verify')
-    }
-  }
 
-  const handleVerifyEmail = async () => {
-    setIsSavingEmail(true)
-    setEmailOtpError('')
-    setEmailOtpStatus('idle')
-
-    const { error: otpError } = await supabase.auth.verifyOtp({
-       email: newEmail,
-       token: emailOtpCode,
-       type: 'email_change'
-    })
-
-    if (otpError) {
-       setEmailOtpError("Invalid verification code.")
-       setEmailOtpStatus("error")
-       setIsSavingEmail(false)
-       return
-    }
-
-    if (mfaEnabled) {
-      setEmailStep('mfa')
     } else {
       setEmailSuccess(true)
     }
-    setIsSavingEmail(false)
-  }
-
-  const handleVerifyEmailMfa = async (code: string) => {
-      setEmailMfaError('')
-      setEmailMfaStatus('idle')
-
-      try {
-        const challenge = await supabase.auth.mfa.challenge({ factorId: enrolledFactorId! })
-        if (challenge.error) throw challenge.error
-
-        const verify = await supabase.auth.mfa.verify({
-          factorId: enrolledFactorId!,
-          challengeId: challenge.data.id,
-          code,
-        })
-        
-        if (verify.error) throw verify.error
-        
-        setEmailMfaStatus('success')
-        setTimeout(() => setEmailSuccess(true), 1000)
-      } catch (err: any) {
-        setEmailMfaError(err.message || "Failed to verify code")
-        setEmailMfaStatus('error')
-      }
   }
 
   const handleSavePassword = async () => {
@@ -494,38 +422,25 @@ export default function AccountPage() {
       </CenterMorphModalContent>
     </CenterMorphModal>
 
-    <CenterMorphModal 
-      open={emailModalOpen} 
-      onOpenChange={(open) => {
-        setEmailModalOpen(open)
-        if (!open) {
-          setEmailStep('input')
-          setEmailCurrentPassword('')
-          setEmailPasswordError('')
-          setEmailOtpCode('')
-          setEmailOtpStatus('idle')
-          setEmailOtpError('')
-          setEmailMfaStatus('idle')
-          setEmailMfaError('')
-        }
-      }}
-    >
+    <CenterMorphModal open={emailModalOpen} onOpenChange={setEmailModalOpen}>
       <CenterMorphModalContent ariaLabel="Edit Email" className="w-full max-w-sm bg-card p-6 border-border/50">
         {emailSuccess ? (
-          <div className="flex flex-col gap-3 text-center pb-2">
-            <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Email updated</h2>
+          <div className="flex flex-col gap-4 text-center pb-2">
+            <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Check your inbox</h2>
             <p className="text-sm text-muted-foreground">
-              Your email address has been successfully changed.
+              We sent a confirmation link to
+              <br />
+              <span className="font-medium text-foreground mt-1 inline-block">{newEmail}</span>
             </p>
           </div>
-        ) : emailStep === 'input' ? (
+        ) : (
           <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-2 text-center mb-4">
+            <div className="flex flex-col text-center">
               <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Edit Email</h2>
             </div>
             <FieldGroup>
               <Field>
-                <FieldLabel>New Email</FieldLabel>
+                <FieldLabel>Email</FieldLabel>
                 <Input 
                   value={newEmail} 
                   onChange={(e) => setNewEmail(e.target.value)} 
@@ -534,92 +449,14 @@ export default function AccountPage() {
                   className="w-full bg-card"
                 />
               </Field>
-              <Field>
-                <div className="flex items-center justify-between">
-                  <FieldLabel>Current Password</FieldLabel>
-                  <Link href="/auth/forgot-password" className="text-sm text-muted-foreground hover:text-foreground hover:underline underline-offset-4">
-                    Forgot password?
-                  </Link>
-                </div>
-                <PasswordStrengthInput 
-                  id="email-current-password"
-                  placeholder="Current Password"
-                  showStrengthIndicator={false}
-                  value={emailCurrentPassword} 
-                  onChange={(e) => {
-                    setEmailCurrentPassword(e.target.value)
-                    if (emailPasswordError) setEmailPasswordError('')
-                  }} 
-                  required
-                />
-                {emailPasswordError && (
-                  <p className="text-sm font-medium text-destructive mt-1">{emailPasswordError}</p>
-                )}
-              </Field>
             </FieldGroup>
             <div className="flex justify-end gap-3">
               <CenterMorphModalClose>
                 <Button variant="ghost" disabled={isSavingEmail}>Cancel</Button>
               </CenterMorphModalClose>
-              <Button onClick={handleNextEmail} disabled={isSavingEmail || !newEmail.trim() || newEmail === userEmail || !emailCurrentPassword}>
-                {isSavingEmail ? "Verifying..." : "Next"}
+              <Button onClick={handleSaveEmail} disabled={isSavingEmail || !newEmail.trim()}>
+                {isSavingEmail ? "Saving..." : "Save"}
               </Button>
-            </div>
-          </div>
-        ) : emailStep === 'verify' ? (
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-3 text-center mb-4">
-              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Verify new email</h2>
-              <p className="text-sm text-muted-foreground">
-                Please enter the 6-digit code sent to your new email address.
-              </p>
-            </div>
-            <FieldGroup>
-              <div className="flex justify-center w-full mt-2 mb-2">
-                <OTPInput
-                  label="Verification Code"
-                  successMessage="Verified."
-                  errorMessage={emailOtpError || "Invalid code."}
-                  value={emailOtpCode}
-                  status={emailOtpStatus}
-                  onChange={(v) => {
-                    setEmailOtpCode(v)
-                    if (emailOtpStatus !== 'idle') setEmailOtpStatus('idle')
-                  }}
-                  onComplete={() => {}}
-                />
-              </div>
-            </FieldGroup>
-            <div className="flex justify-end gap-3">
-              <Button variant="ghost" disabled={isSavingEmail} onClick={() => setEmailStep('input')}>Back</Button>
-              <Button onClick={handleVerifyEmail} disabled={isSavingEmail || !emailCurrentPassword || emailOtpCode.length !== 6}>
-                {isSavingEmail ? "Verifying..." : "Update"}
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-3 text-center mb-4">
-              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Verify it's you</h2>
-              <p className="text-sm text-muted-foreground">
-                Please enter the 6-digit code from your authenticator app.
-              </p>
-            </div>
-            <div className="flex justify-center w-full mt-2">
-              <OTPInput
-                label="Verification Code"
-                successMessage="Verified."
-                errorMessage={emailMfaError || "Invalid code."}
-                value=""
-                status={emailMfaStatus}
-                onChange={(v) => {
-                  if (emailMfaStatus !== 'idle') setEmailMfaStatus('idle')
-                }}
-                onComplete={handleVerifyEmailMfa}
-              />
-            </div>
-            <div className="flex justify-end gap-3">
-              <Button variant="ghost" disabled={emailMfaStatus === 'success'} onClick={() => setEmailStep('verify')}>Back</Button>
             </div>
           </div>
         )}
