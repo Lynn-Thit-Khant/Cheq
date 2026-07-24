@@ -32,7 +32,9 @@ export function UserProvider({ children, user }: { children: ReactNode; user: Us
       const isAuth = !!session?.user
       if (isAuth !== isAuthenticated || event === 'USER_UPDATED') {
         if (isAuth !== isAuthenticated) setIsAuthenticated(isAuth)
-        router.refresh()
+        if (!(typeof window !== 'undefined' && (window as any).__suppressAuthRefresh)) {
+          router.refresh()
+        }
       }
     })
 

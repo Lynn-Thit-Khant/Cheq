@@ -97,7 +97,7 @@ export default function AccountPage() {
   const [passwordSuccess, setPasswordSuccess] = useState(false)
   const [copyState, setCopyState] = useState<string>("copy")
 
-  const [emailStep, setEmailStep] = useState<'input' | 'verify' | 'mfa'>('input')
+  const [emailStep, setEmailStep] = useState<'input' | 'verify' | 'mfa' | 'mfa_reverify'>('input')
   const [emailCurrentPassword, setEmailCurrentPassword] = useState("")
   const [emailOtpCode, setEmailOtpCode] = useState("")
   const [emailOtpStatus, setEmailOtpStatus] = useState<OTPStatus>("idle")
@@ -171,22 +171,32 @@ export default function AccountPage() {
     setEmailOtpError('')
     setEmailOtpStatus('idle')
 
+    if (mfaEnabled) {
+      ;(window as any).__suppressAuthRefresh = true
+    }
+
     const { error: otpError } = await supabase.auth.verifyOtp({
-       email: newEmail,
-       token: emailOtpCode,
-       type: 'email_change'
+      email: newEmail,
+      token: emailOtpCode,
+      type: 'email_change'
     })
 
     if (otpError) {
+       ;(window as any).__suppressAuthRefresh = false
        setEmailOtpError("Invalid verification code.")
        setEmailOtpStatus("error")
        setIsSavingEmail(false)
        return
     }
 
-    setEmailSuccess(true)
-    setIsSavingEmail(false)
-    router.refresh()
+    if (mfaEnabled) {
+      setEmailStep('mfa_reverify')
+      setIsSavingEmail(false)
+    } else {
+      setEmailSuccess(true)
+      setIsSavingEmail(false)
+      router.refresh()
+    }
   }
 
   const handleVerifyEmailMfa = async (code: string) => {
@@ -219,6 +229,36 @@ export default function AccountPage() {
           } else {
             setEmailStep('verify')
           }
+        }, 1000)
+      } catch (err: any) {
+        setEmailMfaError(err.message || "Failed to verify code")
+        setEmailMfaStatus('error')
+      }
+  }
+
+  const handleVerifyEmailMfaReverify = async (code: string) => {
+      setEmailMfaError('')
+      setEmailMfaStatus('idle')
+
+      try {
+        const challenge = await supabase.auth.mfa.challenge({ factorId: enrolledFactorId! })
+        if (challenge.error) throw challenge.error
+
+        const verify = await supabase.auth.mfa.verify({
+          factorId: enrolledFactorId!,
+          challengeId: challenge.data.id,
+          code,
+        })
+        
+        if (verify.error) throw verify.error
+        
+        setEmailMfaStatus('success')
+        
+        ;(window as any).__suppressAuthRefresh = false
+        router.refresh()
+        
+        setTimeout(() => {
+          setEmailSuccess(true)
         }, 1000)
       } catch (err: any) {
         setEmailMfaError(err.message || "Failed to verify code")
@@ -513,6 +553,7 @@ export default function AccountPage() {
       onOpenChange={(open) => {
         setEmailModalOpen(open)
         if (!open) {
+          ;(window as any).__suppressAuthRefresh = false
           setEmailStep('input')
           setEmailCurrentPassword('')
           setEmailPasswordError('')
@@ -592,6 +633,7 @@ export default function AccountPage() {
             </div>
             <div className="flex justify-center w-full">
                 <OTPInput
+                  key="email-otp"
                   label="Verification Code"
                   successMessage="Verified."
                   errorMessage={emailOtpError || "Invalid code."}
@@ -611,16 +653,21 @@ export default function AccountPage() {
               </Button>
             </div>
           </div>
-        ) : (
+        ) : emailStep === 'mfa' || emailStep === 'mfa_reverify' ? (
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-4 text-center">
-              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Verify it's you</h2>
+              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">
+                {emailStep === 'mfa_reverify' ? "Re-verify MFA" : "Verify it's you"}
+              </h2>
               <p className="text-sm text-muted-foreground">
-                Please enter the 6-digit code from your authenticator app.
+                {emailStep === 'mfa_reverify' 
+                  ? "Please re-verify your MFA to secure your new email."
+                  : "Please enter the 6-digit code from your authenticator app."}
               </p>
             </div>
             <div className="flex justify-center w-full">
               <OTPInput
+                key={emailStep}
                 label="Verification Code"
                 successMessage="Verified."
                 errorMessage={emailMfaError || "Invalid code."}
@@ -629,12 +676,14 @@ export default function AccountPage() {
                 onChange={(v) => {
                   if (emailMfaStatus !== 'idle') setEmailMfaStatus('idle')
                 }}
-                onComplete={handleVerifyEmailMfa}
+                onComplete={emailStep === 'mfa_reverify' ? handleVerifyEmailMfaReverify : handleVerifyEmailMfa}
               />
             </div>
-            <div className="mt-2 flex justify-end gap-3">
-              <Button variant="ghost" disabled={emailMfaStatus === 'success'} onClick={() => setEmailStep('verify')}>Back</Button>
-            </div>
+            {emailStep === 'mfa' && (
+              <div className="mt-2 flex justify-end gap-3">
+                <Button variant="ghost" disabled={emailMfaStatus === 'success'} onClick={() => setEmailStep('verify')}>Back</Button>
+              </div>
+            )}
           </div>
         )}
       </CenterMorphModalContent>
