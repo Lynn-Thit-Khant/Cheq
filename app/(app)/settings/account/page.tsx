@@ -156,7 +156,11 @@ export default function AccountPage() {
     const res = await updateProfileEmail(formData)
     setIsSavingEmail(false)
     if ('error' in res) {
-      setEmailPasswordError(res.error)
+      if (res.error === 'MFA required. Please complete MFA to perform this action.') {
+        setEmailStep('mfa')
+      } else {
+        setEmailPasswordError(res.error)
+      }
     } else {
       setEmailStep('verify')
     }
@@ -180,12 +184,9 @@ export default function AccountPage() {
        return
     }
 
-    if (mfaEnabled) {
-      setEmailStep('mfa')
-    } else {
-      setEmailSuccess(true)
-    }
+    setEmailSuccess(true)
     setIsSavingEmail(false)
+    router.refresh()
   }
 
   const handleVerifyEmailMfa = async (code: string) => {
@@ -205,7 +206,10 @@ export default function AccountPage() {
         if (verify.error) throw verify.error
         
         setEmailMfaStatus('success')
-        setTimeout(() => setEmailSuccess(true), 1000)
+        setTimeout(() => {
+          setEmailStep('input')
+          handleNextEmail()
+        }, 1000)
       } catch (err: any) {
         setEmailMfaError(err.message || "Failed to verify code")
         setEmailMfaStatus('error')
@@ -507,6 +511,7 @@ export default function AccountPage() {
           setEmailOtpError('')
           setEmailMfaStatus('idle')
           setEmailMfaError('')
+          setEmailSuccess(false)
         }
       }}
     >
@@ -569,14 +574,13 @@ export default function AccountPage() {
           </div>
         ) : emailStep === 'verify' ? (
           <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-3 text-center mb-4">
+            <div className="flex flex-col gap-4 text-center">
               <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Verify new email</h2>
               <p className="text-sm text-muted-foreground">
                 Please enter the 6-digit code sent to your new email address.
               </p>
             </div>
-            <FieldGroup>
-              <div className="flex justify-center w-full mt-2 mb-2">
+            <div className="flex justify-center w-full">
                 <OTPInput
                   label="Verification Code"
                   successMessage="Verified."
@@ -589,9 +593,8 @@ export default function AccountPage() {
                   }}
                   onComplete={() => {}}
                 />
-              </div>
-            </FieldGroup>
-            <div className="flex justify-end gap-3">
+            </div>
+            <div className="mt-2 flex justify-end gap-3">
               <Button variant="ghost" disabled={isSavingEmail} onClick={() => setEmailStep('input')}>Back</Button>
               <Button onClick={handleVerifyEmail} disabled={isSavingEmail || !emailCurrentPassword || emailOtpCode.length !== 6}>
                 {isSavingEmail ? "Verifying..." : "Update"}
@@ -600,13 +603,13 @@ export default function AccountPage() {
           </div>
         ) : (
           <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-3 text-center mb-4">
+            <div className="flex flex-col gap-4 text-center">
               <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Verify it's you</h2>
               <p className="text-sm text-muted-foreground">
                 Please enter the 6-digit code from your authenticator app.
               </p>
             </div>
-            <div className="flex justify-center w-full mt-2">
+            <div className="flex justify-center w-full">
               <OTPInput
                 label="Verification Code"
                 successMessage="Verified."
@@ -619,7 +622,7 @@ export default function AccountPage() {
                 onComplete={handleVerifyEmailMfa}
               />
             </div>
-            <div className="flex justify-end gap-3">
+            <div className="mt-2 flex justify-end gap-3">
               <Button variant="ghost" disabled={emailMfaStatus === 'success'} onClick={() => setEmailStep('verify')}>Back</Button>
             </div>
           </div>
