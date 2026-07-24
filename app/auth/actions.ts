@@ -182,7 +182,6 @@ export async function signup(formData: FormData) {
       data: {
         full_name: validation.name,
       },
-      emailRedirectTo: `${siteUrl}/auth/confirm?next=/auth/login`
     }
   })
 
@@ -190,7 +189,7 @@ export async function signup(formData: FormData) {
     return { error: error.message }
   }
 
-  redirect('/auth/sign-up-success', RedirectType.replace)
+  redirect(`/auth/verify-otp?email=${encodeURIComponent(validation.email)}&type=signup`, RedirectType.replace)
 }
 
 export async function logout() {
@@ -233,15 +232,13 @@ export async function forgotPassword(formData: FormData) {
   const supabase = await createClient()
   const siteUrl = await getSiteUrl()
 
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${siteUrl}/auth/confirm?next=/auth/update-password`,
-  })
+  const { error } = await supabase.auth.resetPasswordForEmail(email)
 
   if (error) {
     return { error: error.message }
   }
 
-  return { success: true }
+  return { success: true, email }
 }
 
 export async function updateProfileName(formData: FormData) {
@@ -357,6 +354,38 @@ export async function updateProfilePassword(formData: FormData) {
   const { error } = await supabase.auth.updateUser({
     password: newPassword,
     current_password: currentPassword
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  return { success: true }
+}
+
+export async function verifyEmailOtp(email: string, token: string, type: 'signup' | 'recovery') {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type,
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  return { success: true }
+}
+
+export async function verifyEmailChange(email: string, token: string) {
+  const supabase = await createClient()
+
+  const { error } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: 'email_change',
   })
 
   if (error) {

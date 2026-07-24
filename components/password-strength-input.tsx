@@ -63,6 +63,7 @@ export const PasswordStrengthInput = React.forwardRef<HTMLInputElement, Password
           />
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
             tabIndex={-1}
@@ -76,9 +77,9 @@ export const PasswordStrengthInput = React.forwardRef<HTMLInputElement, Password
           </button>
         </div>
 
-        {/* Show the checklist when focused or when there's input */}
+        {/* Show the checklist only when focused */}
         <AnimatePresence>
-          {showStrengthIndicator && (isFocused || stringValue.length > 0) && (
+          {showStrengthIndicator && isFocused && (
             <motion.ul
               initial={{ opacity: 0, y: -10, height: 0, overflow: 'hidden' }}
               animate={{ opacity: 1, y: 0, height: "auto" }}
