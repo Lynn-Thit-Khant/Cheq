@@ -121,7 +121,7 @@ export function MFARemoveModal({
               isLoading={isRemoving}
               onClick={handleRemove}
             >
-              Remove
+              {isRemoving ? "Removing..." : "Remove"}
             </Button>
           </div>
         </div>
