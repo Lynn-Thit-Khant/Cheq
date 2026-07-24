@@ -206,9 +206,19 @@ export default function AccountPage() {
         if (verify.error) throw verify.error
         
         setEmailMfaStatus('success')
-        setTimeout(() => {
-          setEmailStep('input')
-          handleNextEmail()
+        setTimeout(async () => {
+          setIsSavingEmail(true)
+          const formData = new FormData()
+          formData.append('email', newEmail)
+          const res = await updateProfileEmail(formData)
+          setIsSavingEmail(false)
+          
+          if ('error' in res) {
+            setEmailMfaError(res.error)
+            setEmailMfaStatus('error')
+          } else {
+            setEmailStep('verify')
+          }
         }, 1000)
       } catch (err: any) {
         setEmailMfaError(err.message || "Failed to verify code")
