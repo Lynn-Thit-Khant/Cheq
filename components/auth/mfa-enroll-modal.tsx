@@ -25,7 +25,7 @@ export function MFAEnrollModal({
   const [verifyCode, setVerifyCode] = useState('')
   const [status, setStatus] = useState<OTPStatus>("idle")
   const [errorMsg, setErrorMsg] = useState('')
-  const [isEnrolling, setIsEnrolling] = useState(false)
+  const [isVerifying, setIsVerifying] = useState(false)
 
   const supabase = useMemo(() => createClient(), [])
 
@@ -62,7 +62,7 @@ export function MFAEnrollModal({
   }, [open, supabase])
 
   const handleVerify = async (code: string) => {
-    setIsEnrolling(true)
+    setIsVerifying(true)
     setErrorMsg('')
     setStatus('idle')
 
@@ -78,12 +78,12 @@ export function MFAEnrollModal({
       if (verify.error) throw verify.error
 
       setStatus('success')
-      setIsEnrolling(false)
+      setIsVerifying(false)
 
     } catch (err: any) {
       setErrorMsg(err.message || "Failed to verify code")
       setStatus('error')
-      setIsEnrolling(false)
+      setIsVerifying(false)
     } 
   }
 
@@ -128,11 +128,11 @@ export function MFAEnrollModal({
           <div className="flex justify-center w-full">
             <OTPInput
               label="Verification Code"
-              successMessage="Verified."
+              successMessage="Verification successful."
               errorMessage={errorMsg || "Invalid code, please try again."}
               value={verifyCode}
               status={status}
-              disabled={isEnrolling || !qr}
+              disabled={isVerifying || !qr}
               onChange={(v) => {
                 setVerifyCode(v)
                 if (status !== "idle") setStatus("idle")
@@ -143,7 +143,7 @@ export function MFAEnrollModal({
 
           <div className="mt-2 flex justify-end gap-3 w-full">
             <CenterMorphModalClose>
-              <Button variant="ghost" disabled={isEnrolling}>Cancel</Button>
+              <Button variant="ghost" disabled={isVerifying}>Cancel</Button>
             </CenterMorphModalClose>
             <Button 
               variant="primary"

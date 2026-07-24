@@ -73,7 +73,7 @@ export function AuthMFAForm() {
       <div className="flex justify-center w-full">
         <OTPInput
           label="Verification Code"
-          successMessage="Verified."
+          successMessage="Verification successful."
           errorMessage={errorMsg || "Invalid code, please try again."}
           value={value}
           status={status}

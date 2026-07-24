@@ -25,6 +25,7 @@ export function MFARemoveModal({
   const [verifyCode, setVerifyCode] = useState('')
   const [status, setStatus] = useState<OTPStatus>("idle")
   const [errorMsg, setErrorMsg] = useState('')
+  const [isVerifying, setIsVerifying] = useState(false)
   const [isRemoving, setIsRemoving] = useState(false)
 
   const supabase = useMemo(() => createClient(), [])
@@ -33,7 +34,7 @@ export function MFARemoveModal({
 
   const handleVerify = async (code: string) => {
     if (!factorId) return
-    setIsRemoving(true)
+    setIsVerifying(true)
     setErrorMsg('')
     setStatus('idle')
 
@@ -50,12 +51,12 @@ export function MFARemoveModal({
       if (verify.error) throw verify.error
 
       setStatus('success')
-      setIsRemoving(false)
+      setIsVerifying(false)
 
     } catch (err: any) {
       setErrorMsg(err.message || "Failed to verify code")
       setStatus('error')
-      setIsRemoving(false)
+      setIsVerifying(false)
     } 
   }
 
@@ -97,11 +98,11 @@ export function MFARemoveModal({
           <div className="flex justify-center w-full">
             <OTPInput
               label="Verification Code"
-              successMessage="Verified."
+              successMessage="Verification successful."
               errorMessage={errorMsg || "Invalid code, please try again."}
               value={verifyCode}
               status={status}
-              disabled={isRemoving || !factorId}
+              disabled={isVerifying || isRemoving || !factorId}
               onChange={(v) => {
                 setVerifyCode(v)
                 if (status !== "idle") setStatus("idle")

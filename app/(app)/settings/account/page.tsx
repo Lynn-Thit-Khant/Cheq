@@ -520,7 +520,7 @@ export default function AccountPage() {
                 <OTPInput
                   key="email-otp"
                   label="Verification Code"
-                  successMessage="Verified."
+                  successMessage="Verification successful."
                   errorMessage={emailOtpError || "Invalid code."}
                   value={emailOtpCode}
                   status={emailOtpStatus}

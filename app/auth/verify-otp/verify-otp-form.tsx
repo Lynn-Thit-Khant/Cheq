@@ -57,7 +57,7 @@ export function VerifyOTPForm({ email, type }: VerifyOTPFormProps) {
           <div className="flex justify-center w-full mt-2">
             <OTPInput
               label="Verification Code"
-              successMessage="Verified."
+              successMessage="Verification successful."
               errorMessage={errorMsg || "Invalid code, please try again."}
               value={value}
               status={status}
