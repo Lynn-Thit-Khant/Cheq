@@ -100,6 +100,13 @@ export default function AccountPage() {
   const [emailOtpStatus, setEmailOtpStatus] = useState<OTPStatus>("idle")
   const [emailOtpError, setEmailOtpError] = useState("")
 
+  const [isSigningOut, setIsSigningOut] = useState(false)
+  const handleSignOut = async () => {
+    setIsSigningOut(true)
+    await supabase.auth.signOut()
+    router.push('/auth/login')
+    router.refresh()
+  }
 
   const handleSaveName = async () => {
     if (!newName.trim() || newName === userName) {
@@ -416,6 +423,7 @@ export default function AccountPage() {
     <CenterMorphModal 
       open={emailModalOpen} 
       onOpenChange={(open) => {
+        if (emailSuccess) return // Prevent dismissing on success
         setEmailModalOpen(open)
         if (open) setNewEmail(userEmail)
         if (!open) {
@@ -426,17 +434,28 @@ export default function AccountPage() {
           setEmailOtpCode('')
           setEmailOtpStatus('idle')
           setEmailOtpError('')
-          setEmailSuccess(false)
         }
       }}
     >
-      <CenterMorphModalContent ariaLabel="Edit Email" className="w-full max-w-sm bg-card p-6 border-border/50">
+      <CenterMorphModalContent 
+        ariaLabel="Edit Email" 
+        className="w-full max-w-sm bg-card p-6 border-border/50"
+        dismissible={!emailSuccess}
+        showCloseButton={!emailSuccess}
+      >
         {emailSuccess ? (
-          <div className="flex flex-col gap-3 text-center pb-2">
-            <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Email updated</h2>
-            <p className="text-sm text-muted-foreground">
-              Your email address has been successfully changed.
-            </p>
+          <div className="flex flex-col gap-6 text-center pb-2">
+            <div className="flex flex-col gap-3">
+              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Email updated successfully</h2>
+              <p className="text-sm text-muted-foreground">
+                For security reasons, please sign in again with your new email address.
+              </p>
+            </div>
+            <div className="flex justify-center w-full">
+              <Button onClick={handleSignOut} isLoading={isSigningOut} className="w-full">
+                {isSigningOut ? "Signing out..." : "Sign in again"}
+              </Button>
+            </div>
           </div>
         ) : emailStep === 'input' ? (
           <div className="flex flex-col gap-6">
@@ -524,23 +543,35 @@ export default function AccountPage() {
     <CenterMorphModal 
       open={passwordModalOpen} 
       onOpenChange={(open) => {
+        if (passwordSuccess) return // Prevent dismissing on success
         setPasswordModalOpen(open)
         if (!open) {
           setPasswordError('')
           setCurrentPassword('')
           setNewPassword('')
           setConfirmPassword('')
-          setPasswordSuccess(false)
         }
       }}
     >
-      <CenterMorphModalContent ariaLabel="Edit Password" className="w-full max-w-sm bg-card p-6 border-border/50">
+      <CenterMorphModalContent 
+        ariaLabel="Edit Password" 
+        className="w-full max-w-sm bg-card p-6 border-border/50"
+        dismissible={!passwordSuccess}
+        showCloseButton={!passwordSuccess}
+      >
         {passwordSuccess ? (
-          <div className="flex flex-col gap-4 text-center pb-2">
-            <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Password updated</h2>
-            <p className="text-sm text-muted-foreground">
-              Your password has been successfully changed.
-            </p>
+          <div className="flex flex-col gap-6 text-center pb-2">
+            <div className="flex flex-col gap-3">
+              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Password updated successfully</h2>
+              <p className="text-sm text-muted-foreground">
+                For security reasons, please sign in again with your new password.
+              </p>
+            </div>
+            <div className="flex justify-center w-full">
+              <Button onClick={handleSignOut} isLoading={isSigningOut} className="w-full">
+                {isSigningOut ? "Signing out..." : "Sign in again"}
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="flex flex-col gap-6">
