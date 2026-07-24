@@ -153,6 +153,8 @@ export default function AccountPage() {
     setEmailOtpError('')
     setEmailOtpStatus('idle')
 
+    ;(window as any).__suppressAuthRefresh = true
+
     const { error: otpError } = await supabase.auth.verifyOtp({
       email: newEmail,
       token: emailOtpCode,
@@ -160,6 +162,7 @@ export default function AccountPage() {
     })
 
     if (otpError) {
+       ;(window as any).__suppressAuthRefresh = false
        setEmailOtpError("Invalid verification code.")
        setEmailOtpStatus("error")
        setIsSavingEmail(false)
@@ -168,7 +171,6 @@ export default function AccountPage() {
 
     setEmailSuccess(true)
     setIsSavingEmail(false)
-    router.refresh()
   }
 
   const handleSavePassword = async () => {
