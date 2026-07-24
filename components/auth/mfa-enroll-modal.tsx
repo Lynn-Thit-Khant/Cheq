@@ -30,13 +30,7 @@ export function MFAEnrollModal({
   const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
-    if (!open) {
-      // Reset state when closed
-      setVerifyCode('')
-      setStatus('idle')
-      setErrorMsg('')
-      return
-    }
+    if (!open) return
 
     // Start enrollment when opened
     ;(async () => {
@@ -94,7 +88,14 @@ export function MFAEnrollModal({
   }
 
   return (
-    <CenterMorphModal open={open} onOpenChange={onOpenChange}>
+    <CenterMorphModal open={open} onOpenChange={(val) => {
+      onOpenChange(val)
+      if (!val) {
+        setVerifyCode('')
+        setStatus('idle')
+        setErrorMsg('')
+      }
+    }}>
       <CenterMorphModalContent ariaLabel="Enroll MFA" className="w-full max-w-sm bg-card p-6 border-border/50">
         <div className="flex flex-col items-center gap-6">
           <div className="flex flex-col gap-4 text-center">

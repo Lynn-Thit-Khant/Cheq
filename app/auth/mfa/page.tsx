@@ -1,4 +1,4 @@
-import { AuthMFAForm } from "@/components/auth-mfa-form"
+import { AuthMFAForm } from "@/components/auth/auth-mfa-form"
 import { createClient } from "@/lib/server"
 import { redirect } from "next/navigation"
 

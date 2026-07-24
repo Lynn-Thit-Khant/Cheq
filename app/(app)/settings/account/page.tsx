@@ -26,8 +26,8 @@ import {
   CenterMorphModalClose,
 } from "@/components/motion/center-morph-modal"
 import { createClient } from "@/lib/client"
-import { MFAEnrollModal } from "@/components/mfa-enroll-modal"
-import { MFARemoveModal } from "@/components/mfa-remove-modal"
+import { MFAEnrollModal } from "@/components/auth/mfa-enroll-modal"
+import { MFARemoveModal } from "@/components/auth/mfa-remove-modal"
 import { useMemo } from "react"
 
 export default function AccountPage() {
@@ -100,13 +100,6 @@ export default function AccountPage() {
   const [emailOtpStatus, setEmailOtpStatus] = useState<OTPStatus>("idle")
   const [emailOtpError, setEmailOtpError] = useState("")
 
-  useEffect(() => {
-    setNewName(userName)
-  }, [userName])
-
-  useEffect(() => {
-    setNewEmail(userEmail)
-  }, [userEmail])
 
   const handleSaveName = async () => {
     if (!newName.trim() || newName === userName) {
@@ -388,7 +381,10 @@ export default function AccountPage() {
       </div>
     </div>
 
-    <CenterMorphModal open={nameModalOpen} onOpenChange={setNameModalOpen}>
+    <CenterMorphModal open={nameModalOpen} onOpenChange={(open) => {
+      setNameModalOpen(open)
+      if (open) setNewName(userName)
+    }}>
       <CenterMorphModalContent ariaLabel="Edit Name" className="w-full max-w-sm bg-card p-6 border-border/50">
         <div className="flex flex-col gap-6">
           <div className="flex flex-col text-center">
@@ -409,7 +405,7 @@ export default function AccountPage() {
             <CenterMorphModalClose>
               <Button variant="ghost" disabled={isSaving}>Cancel</Button>
             </CenterMorphModalClose>
-            <Button onClick={handleSaveName} disabled={isSaving || !newName.trim()}>
+            <Button onClick={handleSaveName} isLoading={isSaving} disabled={isSaving || !newName.trim()}>
               {isSaving ? "Saving..." : "Save"}
             </Button>
           </div>
@@ -421,6 +417,7 @@ export default function AccountPage() {
       open={emailModalOpen} 
       onOpenChange={(open) => {
         setEmailModalOpen(open)
+        if (open) setNewEmail(userEmail)
         if (!open) {
           ;(window as any).__suppressAuthRefresh = false
           setEmailStep('input')
@@ -485,7 +482,7 @@ export default function AccountPage() {
               <CenterMorphModalClose>
                 <Button variant="ghost" disabled={isSavingEmail}>Cancel</Button>
               </CenterMorphModalClose>
-              <Button onClick={handleNextEmail} disabled={isSavingEmail || !newEmail.trim() || newEmail === userEmail || !emailCurrentPassword}>
+              <Button onClick={handleNextEmail} isLoading={isSavingEmail} disabled={isSavingEmail || !newEmail.trim() || newEmail === userEmail || !emailCurrentPassword}>
                 {isSavingEmail ? "Verifying..." : "Next"}
               </Button>
             </div>
@@ -599,7 +596,7 @@ export default function AccountPage() {
               <CenterMorphModalClose>
                 <Button variant="ghost" disabled={isSavingPassword}>Cancel</Button>
               </CenterMorphModalClose>
-              <Button onClick={handleSavePassword} disabled={isSavingPassword || !currentPassword || !newPassword || newPassword !== confirmPassword}>
+              <Button onClick={handleSavePassword} isLoading={isSavingPassword} disabled={isSavingPassword || !currentPassword || !newPassword || newPassword !== confirmPassword}>
                 {isSavingPassword ? "Saving..." : "Update"}
               </Button>
             </div>
@@ -611,7 +608,7 @@ export default function AccountPage() {
     <MFAEnrollModal 
       open={mfaModalOpen} 
       onOpenChange={setMfaModalOpen} 
-      onEnrolled={(id) => {
+      onEnrolled={(id: string) => {
         setMfaEnabled(true)
         setEnrolledFactorId(id)
       }} 

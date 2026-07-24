@@ -18,6 +18,7 @@ import {
 import { EASE_OUT, SPRING_PRESS } from "@/lib/ease";
 import { cn } from "@/lib/utils";
 import { useHoverCapable } from "@/lib/hooks/use-hover-capable";
+import { Loader2 } from "lucide-react";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "outline" | "destructive";
 export type ButtonSize = "sm" | "md" | "lg" | "icon";
@@ -31,6 +32,7 @@ export interface ButtonProps extends Omit<
   pressScale?: number;
   /** Spawn a Material-style ripple from the press point. Off by default. */
   ripple?: boolean;
+  isLoading?: boolean;
   children?: ReactNode;
 }
 
@@ -60,6 +62,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       size = "md",
       pressScale = 0.93,
       ripple = false,
+      isLoading = false,
       className,
       children,
       onPointerDown,
@@ -97,8 +100,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <motion.button
         ref={ref}
         type="button"
-        whileTap={reduce ? undefined : { scale: pressScale }}
-        whileHover={reduce || !canHover ? undefined : { scale: 1.02 }}
+        whileTap={reduce || isLoading ? undefined : { scale: pressScale }}
+        whileHover={reduce || !canHover || isLoading ? undefined : { scale: 1.02 }}
+        disabled={isLoading || rest.disabled}
         transition={SPRING_PRESS}
         onPointerDown={handlePointerDown}
         className={cn(
@@ -139,7 +143,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             </AnimatePresence>
           </span>
         ) : null}
-        {children}
+        {isLoading ? (
+          <span className="flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            {children}
+          </span>
+        ) : children}
       </motion.button>
     );
   },

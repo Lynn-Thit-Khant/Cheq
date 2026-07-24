@@ -1,89 +1,15 @@
-'use client'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
+import { VerifyOTPForm } from './verify-otp-form'
 
-import { useState, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { OTPInput, type OTPStatus } from '@/components/motion/otp-input'
-import { verifyEmailOtp } from '@/app/auth/actions'
-import { FieldGroup } from '@/components/ui/field'
-import { BackButton } from '@/components/back-button'
-
-function VerifyOTPForm() {
-  const [value, setValue] = useState('')
-  const [status, setStatus] = useState<OTPStatus>('idle')
-  const [errorMsg, setErrorMsg] = useState('')
-  
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const email = searchParams.get('email')
-  const type = searchParams.get('type') as 'signup' | 'recovery' | null
+export default async function VerifyOTPPage() {
+  const cookieStore = await cookies()
+  const email = cookieStore.get('auth_email')?.value
+  const type = cookieStore.get('auth_type')?.value as 'signup' | 'recovery' | undefined
 
   if (!email || !type) {
-    return (
-      <div className="flex flex-col items-center gap-2 text-center">
-        <p className="text-sm text-destructive">Missing email or verification type.</p>
-      </div>
-    )
+    redirect('/auth/login')
   }
 
-  const handleComplete = async (code: string) => {
-    setStatus('idle')
-    setErrorMsg('')
-    
-    const result = await verifyEmailOtp(email, code, type)
-    
-    if (result.error) {
-      setErrorMsg(result.error)
-      setStatus('error')
-    } else {
-      setStatus('success')
-      
-      setTimeout(() => {
-        router.refresh()
-        if (type === 'signup') {
-          router.replace('/home')
-        } else {
-          router.replace('/auth/update-password')
-        }
-      }, 1000)
-    }
-  }
-
-  return (
-    <div className="w-full max-w-sm">
-      <BackButton href="/auth/login" />
-      <div className="flex flex-col gap-6 mt-8">
-        <FieldGroup>
-          <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-3xl font-bold">Verify Email</h1>
-            <p className="text-sm text-muted-foreground">
-              Please enter the 6-digit code sent to your email.
-            </p>
-          </div>
-
-          <div className="flex justify-center w-full mt-2">
-            <OTPInput
-              label="Verification Code"
-              successMessage="Verified."
-              errorMessage={errorMsg || "Invalid code, please try again."}
-              value={value}
-              status={status}
-              onChange={(v) => {
-                setValue(v)
-                if (status !== 'idle') setStatus('idle')
-              }}
-              onComplete={handleComplete}
-            />
-          </div>
-        </FieldGroup>
-      </div>
-    </div>
-  )
-}
-
-export default function VerifyOTPPage() {
-  return (
-    <Suspense fallback={<div className="text-center">Loading...</div>}>
-      <VerifyOTPForm />
-    </Suspense>
-  )
+  return <VerifyOTPForm email={email} type={type} />
 }

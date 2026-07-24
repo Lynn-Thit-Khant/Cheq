@@ -18,9 +18,21 @@ interface TextRevealProps {
   whileInView?: boolean
 }
 
+const motionMap = {
+  span: motion.span,
+  div: motion.div,
+  p: motion.p,
+  h1: motion.h1,
+  h2: motion.h2,
+  h3: motion.h3,
+  h4: motion.h4,
+  h5: motion.h5,
+  h6: motion.h6,
+}
+
 export function TextReveal({
   text,
-  as: Component = "span",
+  as = "span",
   className,
   split = "word",
   stagger = 0.12,
@@ -74,7 +86,7 @@ export function TextReveal({
     },
   }
 
-  const MotionComponent = motion(Component as any)
+  const MotionComponent = (motionMap as any)[as as any] || motion.span
 
   return (
     <MotionComponent

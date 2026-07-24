@@ -29,14 +29,7 @@ export function MFARemoveModal({
 
   const supabase = useMemo(() => createClient(), [])
 
-  useEffect(() => {
-    if (!open) {
-      // Reset state when closed
-      setVerifyCode('')
-      setStatus('idle')
-      setErrorMsg('')
-    }
-  }, [open])
+
 
   const handleVerify = async (code: string) => {
     if (!factorId) return
@@ -84,7 +77,14 @@ export function MFARemoveModal({
   }
 
   return (
-    <CenterMorphModal open={open} onOpenChange={onOpenChange}>
+    <CenterMorphModal open={open} onOpenChange={(val) => {
+      onOpenChange(val)
+      if (!val) {
+        setVerifyCode('')
+        setStatus('idle')
+        setErrorMsg('')
+      }
+    }}>
       <CenterMorphModalContent ariaLabel="Remove MFA" className="w-full max-w-sm bg-card p-6 border-border/50">
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-4 text-center">
@@ -117,6 +117,7 @@ export function MFARemoveModal({
             <Button 
               variant="destructive"
               disabled={isRemoving || status !== 'success'}
+              isLoading={isRemoving}
               onClick={handleRemove}
             >
               Remove

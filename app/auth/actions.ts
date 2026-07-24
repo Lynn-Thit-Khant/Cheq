@@ -181,7 +181,21 @@ export async function signup(formData: FormData) {
     return { error: error.message }
   }
 
-  redirect(`/auth/verify-otp?email=${encodeURIComponent(validation.email)}&type=signup`, RedirectType.replace)
+  const cookieStore = await cookies()
+  cookieStore.set('auth_email', validation.email, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 10 * 60, // 10 minutes
+    path: '/auth/verify-otp'
+  })
+  cookieStore.set('auth_type', 'signup', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 10 * 60,
+    path: '/auth/verify-otp'
+  })
+
+  redirect('/auth/verify-otp', RedirectType.replace)
 }
 
 export async function logout() {
@@ -423,6 +437,10 @@ export async function verifyEmailOtp(email: string, token: string, type: 'signup
   if (error) {
     return { error: error.message }
   }
+
+  const cookieStore = await cookies()
+  cookieStore.delete({ name: 'auth_email', path: '/auth/verify-otp' })
+  cookieStore.delete({ name: 'auth_type', path: '/auth/verify-otp' })
 
   return { success: true }
 }
