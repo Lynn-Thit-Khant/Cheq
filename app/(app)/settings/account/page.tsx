@@ -201,7 +201,13 @@ export default function AccountPage() {
     {/* Full screen backdrop for Telegram effect */}
     <div 
       className={`fixed inset-0 z-[55] bg-black/60 backdrop-blur-lg transition-opacity duration-300 ${nameOpen || emailOpen || passwordOpen || mfaPopoverOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`} 
-      onClick={() => { setNameOpen(false); setEmailOpen(false); setPasswordOpen(false); setMfaPopoverOpen(false); }}
+      onPointerDown={(e) => { 
+        e.preventDefault();
+        setNameOpen(false); 
+        setEmailOpen(false); 
+        setPasswordOpen(false); 
+        setMfaPopoverOpen(false); 
+      }}
     />
 
     <div className="flex flex-1 flex-col p-4 w-full max-w-md mx-auto mt-2 h-full">

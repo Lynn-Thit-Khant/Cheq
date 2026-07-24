@@ -32,7 +32,7 @@ export function BottomNav() {
   }
 
   return (
-    <div className="fixed bottom-6 inset-x-0 flex justify-center z-50 pointer-events-none">
+    <div className="absolute bottom-6 inset-x-0 flex justify-center z-50 pointer-events-none">
       <div className="pointer-events-auto">
         <Dock size={48}>
           {tabs.map((tab) => {
