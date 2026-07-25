@@ -44,13 +44,13 @@ const MIN_PASSWORD_LENGTH = 8
 
 function validateAuthInput(
   formData: FormData,
-  requireName: boolean = false
+  type: 'login' | 'signup'
 ): { name?: string; email: string; password: string } | { error: string } {
   const rawName = formData.get('name')
   const rawEmail = formData.get('email')
   const rawPassword = formData.get('password')
 
-  if (requireName && (typeof rawName !== 'string' || !rawName.trim())) {
+  if (type === 'signup' && (typeof rawName !== 'string' || !rawName.trim())) {
     return { error: 'Name is required.' }
   }
 
@@ -75,12 +75,14 @@ function validateAuthInput(
     return { error: 'Please enter a valid email address.' }
   }
 
-  if (password.length < MIN_PASSWORD_LENGTH) {
-    return { error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.` }
-  }
+  if (type === 'signup') {
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      return { error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.` }
+    }
 
-  if (password.length > MAX_PASSWORD_LENGTH) {
-    return { error: `Password must be at most ${MAX_PASSWORD_LENGTH} characters.` }
+    if (password.length > MAX_PASSWORD_LENGTH) {
+      return { error: `Password must be at most ${MAX_PASSWORD_LENGTH} characters.` }
+    }
   }
 
   return { name, email, password }
@@ -115,8 +117,8 @@ export async function login(formData: FormData) {
     return { error: `Too many login attempts. Please try again in ${retryAfterSeconds} seconds.` }
   }
 
-  // Input validation (login doesn't require name)
-  const validation = validateAuthInput(formData, false)
+  // Input validation
+  const validation = validateAuthInput(formData, 'login')
   if ('error' in validation) {
     return { error: validation.error }
   }
@@ -144,15 +146,15 @@ export async function signup(formData: FormData) {
     return { error: `Too many sign-up attempts. Please try again in ${retryAfterSeconds} seconds.` }
   }
 
-  // Input validation (signup requires name)
-  const validation = validateAuthInput(formData, true)
+  // Input validation
+  const validation = validateAuthInput(formData, 'signup')
   if ('error' in validation) {
     return { error: validation.error }
   }
 
   const supabase = await createClient()
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email: validation.email,
     password: validation.password,
     options: {
@@ -164,6 +166,10 @@ export async function signup(formData: FormData) {
 
   if (error) {
     return { error: error.message }
+  }
+
+  if (data.user && data.user.identities && data.user.identities.length === 0) {
+    return { error: 'User already registered' }
   }
 
   const cookieStore = await cookies()

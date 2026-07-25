@@ -56,7 +56,6 @@ export function UpdatePasswordForm({
           errorMessage = 'Please ensure all password requirements are met.'
         }
         form.setError('password', { type: 'manual', message: errorMessage })
-        form.setError('repeatPassword', { type: 'manual', message: errorMessage })
         return
       }
       
@@ -70,7 +69,6 @@ export function UpdatePasswordForm({
         errorMessage = 'Please ensure all password requirements are met.'
       }
       form.setError('password', { type: 'manual', message: errorMessage })
-      form.setError('repeatPassword', { type: 'manual', message: errorMessage })
     } finally {
       setIsLoading(false)
     }

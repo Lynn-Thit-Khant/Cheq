@@ -65,8 +65,11 @@ export function SignUpForm({
           errorMessage = 'Please ensure all password requirements are met.'
         }
           
-        form.setError('password', { type: 'manual', message: errorMessage })
-        form.setError('repeatPassword', { type: 'manual', message: errorMessage })
+        if (errorMessage.toLowerCase().includes('password')) {
+          form.setError('password', { type: 'manual', message: errorMessage })
+        } else {
+          form.setError('email', { type: 'manual', message: errorMessage })
+        }
       }
     } catch (error: unknown) {
       if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
@@ -78,8 +81,11 @@ export function SignUpForm({
         errorMessage = 'Please ensure all password requirements are met.'
       }
 
-      form.setError('password', { type: 'manual', message: errorMessage })
-      form.setError('repeatPassword', { type: 'manual', message: errorMessage })
+      if (errorMessage.toLowerCase().includes('password')) {
+        form.setError('password', { type: 'manual', message: errorMessage })
+      } else {
+        form.setError('email', { type: 'manual', message: errorMessage })
+      }
     } finally {
       setIsLoading(false)
     }

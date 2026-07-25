@@ -57,8 +57,8 @@ export function LoginForm({
       if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
         throw error
       }
-      form.setError('password', { type: 'manual', message: error instanceof Error ? error.message : 'An error occurred' })
       form.setError('email', { type: 'manual', message: error instanceof Error ? error.message : 'An error occurred' })
+      form.setError('password', { type: 'manual', message: error instanceof Error ? error.message : 'An error occurred' })
     } finally {
       setIsLoading(false)
     }
