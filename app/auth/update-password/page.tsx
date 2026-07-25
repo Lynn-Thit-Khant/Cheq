@@ -12,6 +12,11 @@ export default async function UpdatePasswordPage() {
     redirect('/auth/login')
   }
 
+  const { data: mfaData, error: mfaError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+  if (!mfaError && mfaData.nextLevel === 'aal2' && mfaData.currentLevel !== 'aal2') {
+    redirect('/auth/mfa?next=/auth/update-password')
+  }
+
   return (
     <div className="w-full max-w-sm">
       <UpdatePasswordForm />

@@ -27,7 +27,7 @@ interface PasswordStrengthInputProps extends Omit<React.ComponentProps<"input">,
 export const PasswordStrengthInput = React.forwardRef<HTMLInputElement, PasswordStrengthInputProps>(
   ({ id, name, value = '', onChange, onBlur, onFocus, placeholder, required, showStrengthIndicator = true, ...props }, ref) => {
     const [showPassword, setShowPassword] = useState(false)
-    const [isFocused, setIsFocused] = useState(false)
+    const [hasBeenFocused, setHasBeenFocused] = useState(false)
 
     const stringValue = String(value)
 
@@ -51,13 +51,10 @@ export const PasswordStrengthInput = React.forwardRef<HTMLInputElement, Password
             value={value}
             onChange={onChange}
             onFocus={(e) => {
-              setIsFocused(true)
+              setHasBeenFocused(true)
               onFocus?.(e)
             }}
-            onBlur={(e) => {
-              setIsFocused(false)
-              onBlur?.(e)
-            }}
+            onBlur={onBlur}
             className="pr-10"
             {...props}
           />
@@ -77,9 +74,9 @@ export const PasswordStrengthInput = React.forwardRef<HTMLInputElement, Password
           </button>
         </div>
 
-        {/* Show the checklist only when focused */}
+        {/* Show the checklist when enabled and after first focus */}
         <AnimatePresence>
-          {showStrengthIndicator && isFocused && (
+          {showStrengthIndicator && hasBeenFocused && (
             <motion.ul
               initial={{ opacity: 0, y: -10, height: 0, overflow: 'hidden' }}
               animate={{ opacity: 1, y: 0, height: "auto" }}

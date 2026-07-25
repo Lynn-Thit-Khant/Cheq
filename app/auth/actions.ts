@@ -228,7 +228,21 @@ export async function forgotPassword(formData: FormData) {
     return { error: error.message }
   }
 
-  return { success: true, email }
+  const cookieStore = await cookies()
+  cookieStore.set('auth_email', email, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 10 * 60, // 10 minutes
+    path: '/auth/verify-otp'
+  })
+  cookieStore.set('auth_type', 'recovery', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 10 * 60,
+    path: '/auth/verify-otp'
+  })
+
+  redirect('/auth/verify-otp', RedirectType.replace)
 }
 
 export async function updateProfileName(formData: FormData) {

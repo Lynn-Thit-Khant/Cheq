@@ -2,7 +2,9 @@ import { AuthMFAForm } from "@/components/auth/auth-mfa-form"
 import { createClient } from "@/lib/server"
 import { redirect } from "next/navigation"
 
-export default async function MFAPage() {
+export default async function MFAPage(props: { searchParams: Promise<{ next?: string }> }) {
+  const searchParams = await props.searchParams;
+  const nextUrl = searchParams.next?.startsWith('/') ? searchParams.next : '/home'
   const supabase = await createClient()
   
   // Verify user is actually logged in first (aal1 is required to do aal2 check)
@@ -14,7 +16,7 @@ export default async function MFAPage() {
   // Ensure they actually need MFA
   const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
   if (error || (data.nextLevel === data.currentLevel)) {
-    redirect('/home')
+    redirect(nextUrl)
   }
 
   return (

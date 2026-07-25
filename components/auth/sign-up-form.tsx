@@ -91,9 +91,6 @@ export function SignUpForm({
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
             <h1 className="text-3xl font-bold">Create an account</h1>
-            <FieldDescription>
-              Already have an account? <Link href="/auth/login">Sign in</Link>
-            </FieldDescription>
           </div>
           
           <Controller
@@ -178,6 +175,11 @@ export function SignUpForm({
             <Button size="lg" type="submit" disabled={isLoading} isLoading={isLoading} className="w-full">
               {isLoading ? 'Creating account' : 'Create Account'}
             </Button>
+            <div className="text-center mt-6 mb-4">
+              <FieldDescription className="text-center">
+                Already have an account? <Link href="/auth/login">Sign in</Link>
+              </FieldDescription>
+            </div>
           </Field>
 
         </FieldGroup>

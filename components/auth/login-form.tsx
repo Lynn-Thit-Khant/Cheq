@@ -70,9 +70,6 @@ export function LoginForm({
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
             <h1 className="text-3xl font-bold">Welcome back</h1>
-            <FieldDescription>
-              Don&apos;t have an account? <Link href="/auth/sign-up">Sign up</Link>
-            </FieldDescription>
           </div>
           
           <Controller
@@ -123,6 +120,11 @@ export function LoginForm({
             <Button size="lg" type="submit" disabled={isLoading} isLoading={isLoading} className="w-full">
               {isLoading ? 'Signing in' : 'Sign in'}
             </Button>
+            <div className="text-center mt-6 mb-4">
+              <FieldDescription className="text-center">
+                Don&apos;t have an account? <Link href="/auth/sign-up">Sign up</Link>
+              </FieldDescription>
+            </div>
           </Field>
 
         </FieldGroup>

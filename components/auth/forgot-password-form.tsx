@@ -28,7 +28,6 @@ export function ForgotPasswordForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const [success, setSuccess] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
@@ -50,10 +49,11 @@ export function ForgotPasswordForm({
 
       if (result && 'error' in result && result.error) {
         form.setError('email', { type: 'manual', message: result.error })
-      } else {
-        setSuccess(true)
       }
     } catch (error: unknown) {
+      if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
+        throw error
+      }
       form.setError('email', { type: 'manual', message: error instanceof Error ? error.message : 'An error occurred' })
     } finally {
       setIsLoading(false)
@@ -62,26 +62,10 @@ export function ForgotPasswordForm({
 
   return (
     <div className={cn("flex flex-col gap-6 px-4 sm:px-0", className)} {...props}>
-      {success ? (
-        <FieldGroup>
-          <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-3xl font-bold">Check your email</h1>
-            <FieldDescription>We&apos;ve sent you a secure link to reset your password.</FieldDescription>
-          </div>
-          <div className="flex flex-col gap-3 mt-4">
-            <Button size="lg" className="w-full" onClick={() => router.push('/auth/login')}>
-              Back to Sign in
-            </Button>
-          </div>
-        </FieldGroup>
-      ) : (
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup>
             <div className="flex flex-col items-center gap-2 text-center">
               <h1 className="text-3xl font-bold">Reset Password</h1>
-              <FieldDescription>
-                Remember your password? <Link href="/auth/login">Sign in</Link>
-              </FieldDescription>
             </div>
             
             <Controller
@@ -108,10 +92,14 @@ export function ForgotPasswordForm({
               <Button size="lg" type="submit" disabled={isLoading} isLoading={isLoading} className="w-full">
                 {isLoading ? 'Sending' : 'Reset password'}
               </Button>
+              <div className="text-center mt-6 mb-4">
+                <FieldDescription className="text-center">
+                  Remember your password? <Link href="/auth/login">Sign in</Link>
+                </FieldDescription>
+              </div>
             </Field>
           </FieldGroup>
         </form>
-      )}
     </div>
   )
 }

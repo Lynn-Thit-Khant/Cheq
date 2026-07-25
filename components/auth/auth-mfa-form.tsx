@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/client"
 import { OTPInput, type OTPStatus } from "@/components/motion/otp-input"
 
@@ -12,6 +12,8 @@ export function AuthMFAForm() {
   const [factorId, setFactorId] = useState<string | null>(null)
   
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const nextUrl = searchParams.get('next')
   const supabase = createClient()
 
   useEffect(() => {
@@ -51,7 +53,8 @@ export function AuthMFAForm() {
       // Wait for success animation then redirect
       setTimeout(() => {
         router.refresh() // Refreshes server session
-        router.replace('/home')
+        const redirectPath = nextUrl?.startsWith('/') ? nextUrl : '/home'
+        router.replace(redirectPath)
       }, 1000)
 
     } catch (err: any) {
