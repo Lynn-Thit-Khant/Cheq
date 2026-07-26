@@ -92,7 +92,25 @@ function validateAuthInput(
 // Helpers
 // ---------------------------------------------------------------------------
 
+function getSafeErrorMessage(error: any): string {
+  if (error?.status === 400 || error?.code === 'invalid_credentials') {
+    return 'Invalid email or password.'
+  }
+  if (error?.status === 429) {
+    return 'Too many requests. Please try again later.'
+  }
+  return 'An unexpected error occurred. Please try again.'
+}
 
+async function verifyCsrfOrigin() {
+  const headerStore = await headers()
+  const origin = headerStore.get('origin')
+  const host = headerStore.get('host')
+
+  if (origin && new URL(origin).host !== host) {
+    throw new Error('CSRF origin mismatch')
+  }
+}
 
 /**
  * Extracts a rate-limit key from the request (IP-based).
@@ -110,6 +128,7 @@ async function getRateLimitKey(action: string): Promise<string> {
 
 
 export async function login(formData: FormData) {
+  await verifyCsrfOrigin()
   // Rate limiting
   const key = await getRateLimitKey('login')
   const { limited, retryAfterSeconds } = checkRateLimit(key)
@@ -131,7 +150,7 @@ export async function login(formData: FormData) {
   })
 
   if (error) {
-    return { error: error.message }
+    return { error: getSafeErrorMessage(error) }
   }
 
   revalidatePath('/', 'layout')
@@ -139,6 +158,7 @@ export async function login(formData: FormData) {
 }
 
 export async function signup(formData: FormData) {
+  await verifyCsrfOrigin()
   // Rate limiting
   const key = await getRateLimitKey('signup')
   const { limited, retryAfterSeconds } = checkRateLimit(key)
@@ -165,7 +185,7 @@ export async function signup(formData: FormData) {
   })
 
   if (error) {
-    return { error: error.message }
+    return { error: getSafeErrorMessage(error) }
   }
 
   if (data.user && data.user.identities && data.user.identities.length === 0) {
@@ -176,12 +196,14 @@ export async function signup(formData: FormData) {
   cookieStore.set('auth_email', validation.email, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
     maxAge: 10 * 60, // 10 minutes
     path: '/auth/verify-otp'
   })
   cookieStore.set('auth_type', 'signup', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
     maxAge: 10 * 60,
     path: '/auth/verify-otp'
   })
@@ -190,6 +212,7 @@ export async function signup(formData: FormData) {
 }
 
 export async function logout() {
+  await verifyCsrfOrigin()
   const supabase = await createClient()
 
   const { error } = await supabase.auth.signOut({ scope: 'local' })
@@ -207,6 +230,7 @@ export async function logout() {
 }
 
 export async function forgotPassword(formData: FormData) {
+  await verifyCsrfOrigin()
   // Rate limiting (stricter for password reset to prevent email bombing)
   const key = await getRateLimitKey('forgot-password')
   const { limited, retryAfterSeconds } = checkRateLimit(key)
@@ -231,19 +255,21 @@ export async function forgotPassword(formData: FormData) {
   const { error } = await supabase.auth.resetPasswordForEmail(email)
 
   if (error) {
-    return { error: error.message }
+    return { error: getSafeErrorMessage(error) }
   }
 
   const cookieStore = await cookies()
   cookieStore.set('auth_email', email, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
     maxAge: 10 * 60, // 10 minutes
     path: '/auth/verify-otp'
   })
   cookieStore.set('auth_type', 'recovery', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
     maxAge: 10 * 60,
     path: '/auth/verify-otp'
   })
@@ -252,6 +278,7 @@ export async function forgotPassword(formData: FormData) {
 }
 
 export async function updateProfileName(formData: FormData) {
+  await verifyCsrfOrigin()
   // Rate limiting
   const key = await getRateLimitKey('update-profile-name')
   const { limited, retryAfterSeconds } = checkRateLimit(key)
@@ -280,7 +307,7 @@ export async function updateProfileName(formData: FormData) {
   })
 
   if (error) {
-    return { error: error.message }
+    return { error: getSafeErrorMessage(error) }
   }
 
   revalidatePath('/', 'layout')
@@ -289,6 +316,7 @@ export async function updateProfileName(formData: FormData) {
 }
 
 export async function updateProfileEmail(formData: FormData) {
+  await verifyCsrfOrigin()
   // Rate limiting
   const key = await getRateLimitKey('update-profile-email')
   const { limited, retryAfterSeconds } = checkRateLimit(key)
@@ -366,13 +394,14 @@ export async function updateProfileEmail(formData: FormData) {
   })
 
   if (error) {
-    return { error: error.message }
+    return { error: getSafeErrorMessage(error) }
   }
 
   return { success: true }
 }
 
 export async function updateProfilePassword(formData: FormData) {
+  await verifyCsrfOrigin()
   // Rate limiting
   const key = await getRateLimitKey('update-profile-password')
   const { limited, retryAfterSeconds } = checkRateLimit(key)
@@ -423,13 +452,14 @@ export async function updateProfilePassword(formData: FormData) {
   })
 
   if (error) {
-    return { error: error.message }
+    return { error: getSafeErrorMessage(error) }
   }
 
   return { success: true }
 }
 
 export async function verifyEmailOtp(email: string, token: string, type: 'signup' | 'recovery') {
+  await verifyCsrfOrigin()
   const supabase = await createClient()
 
   const { error } = await supabase.auth.verifyOtp({
@@ -439,7 +469,7 @@ export async function verifyEmailOtp(email: string, token: string, type: 'signup
   })
 
   if (error) {
-    return { error: error.message }
+    return { error: getSafeErrorMessage(error) }
   }
 
   const cookieStore = await cookies()
@@ -450,6 +480,7 @@ export async function verifyEmailOtp(email: string, token: string, type: 'signup
 }
 
 export async function verifyEmailChange(email: string, token: string) {
+  await verifyCsrfOrigin()
   const supabase = await createClient()
 
   const { error } = await supabase.auth.verifyOtp({

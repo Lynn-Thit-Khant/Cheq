@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       revalidatePath('/', 'layout')
       redirect(next)
     } else {
-      redirect(`/auth/error?error=${error.message}`)
+      redirect(`/auth/error?error=${encodeURIComponent(error.message)}`)
     }
   }
 
@@ -48,10 +48,10 @@ export async function GET(request: NextRequest) {
       revalidatePath('/', 'layout')
       redirect(next)
     } else {
-      redirect(`/auth/error?error=${error.message}`)
+      redirect(`/auth/error?error=${encodeURIComponent(error.message)}`)
     }
   }
 
   // If neither are present, show a generic error
-  redirect(`/auth/error?error=Invalid confirmation link`)
+  redirect(`/auth/error?error=${encodeURIComponent('Invalid confirmation link')}`)
 }
