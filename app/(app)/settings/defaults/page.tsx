@@ -9,6 +9,11 @@ import {
   CenterMorphModalContent, 
   CenterMorphModalClose 
 } from "@/components/motion/center-morph-modal"
+import {
+  MorphPopover,
+  MorphPopoverContent,
+  MorphPopoverTrigger,
+} from "@/components/motion/popover-morph"
 import { Tabs, TabsList, TabsTrigger } from "@/components/motion/tabs"
 import { Button } from "@/components/motion/button/base"
 import { Input } from "@/components/ui/input"
@@ -24,17 +29,30 @@ export default function DefaultsPage() {
   })
   const [isLoading, setIsLoading] = useState(true)
 
-  const [timeFormatModal, setTimeFormatModal] = useState(false)
-  const [firstDayModal, setFirstDayModal] = useState(false)
   const [hourlyRateModal, setHourlyRateModal] = useState(false)
   const [breakDurationModal, setBreakDurationModal] = useState(false)
 
-  const [tempTimeFormat, setTempTimeFormat] = useState<'12h'|'24h'>('12h')
-  const [tempFirstDay, setTempFirstDay] = useState<'Monday'|'Sunday'>('Monday')
+  const [timeFormatOpen, setTimeFormatOpen] = useState(false)
+  const [firstDayOpen, setFirstDayOpen] = useState(false)
+
   const [tempHourlyRate, setTempHourlyRate] = useState(0)
   const [tempBreakDuration, setTempBreakDuration] = useState(0)
 
   const [isSaving, setIsSaving] = useState(false)
+
+  const anyOpen = timeFormatOpen || firstDayOpen;
+  const [backdropActive, setBackdropActive] = useState(false);
+
+  useEffect(() => {
+    if (anyOpen) {
+      setBackdropActive(true);
+    } else {
+      const timer = setTimeout(() => {
+        setBackdropActive(false);
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [anyOpen]);
 
   useEffect(() => {
     getUserPreferences().then(data => {
@@ -43,26 +61,14 @@ export default function DefaultsPage() {
     })
   }, [])
 
-  const handleSaveTimeFormat = async () => {
-    setIsSaving(true)
-    try {
-      await updateUserPreferences({ time_format: tempTimeFormat })
-      setPreferences(prev => ({ ...prev, time_format: tempTimeFormat }))
-      setTimeFormatModal(false)
-    } finally {
-      setIsSaving(false)
-    }
+  const handleAutoSaveTimeFormat = async (v: '12h'|'24h') => {
+    setPreferences(prev => ({ ...prev, time_format: v }))
+    await updateUserPreferences({ time_format: v })
   }
 
-  const handleSaveFirstDay = async () => {
-    setIsSaving(true)
-    try {
-      await updateUserPreferences({ first_day_of_week: tempFirstDay })
-      setPreferences(prev => ({ ...prev, first_day_of_week: tempFirstDay }))
-      setFirstDayModal(false)
-    } finally {
-      setIsSaving(false)
-    }
+  const handleAutoSaveFirstDay = async (v: 'Monday'|'Sunday') => {
+    setPreferences(prev => ({ ...prev, first_day_of_week: v }))
+    await updateUserPreferences({ first_day_of_week: v })
   }
 
   const handleSaveHourlyRate = async () => {
@@ -89,6 +95,20 @@ export default function DefaultsPage() {
 
   return (
     <>
+      <div 
+        className={`fixed inset-0 z-[55] bg-black/60 backdrop-blur-lg transition-opacity duration-300 ${anyOpen ? 'opacity-100' : 'opacity-0'} ${backdropActive ? 'pointer-events-auto' : 'pointer-events-none'}`} 
+        onPointerDown={(e) => { 
+          e.preventDefault();
+          setTimeFormatOpen(false); 
+          setFirstDayOpen(false); 
+        }}
+        onTouchStart={(e) => e.preventDefault()}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+      />
+
       <div className="flex flex-1 flex-col p-4 w-full max-w-md mx-auto mt-2 h-full relative">
         <div className="grid grid-cols-[3rem_1fr_3rem] items-center w-full mb-2 shrink-0">
           <BackButton href="/settings" />
@@ -102,37 +122,62 @@ export default function DefaultsPage() {
           </div>
         ) : (
           <div className="flex-1 flex flex-col justify-start w-full gap-6 mt-6">
-            <div className="bg-card/80 backdrop-blur-xl rounded-[28px] overflow-hidden border border-border/40 p-1 flex flex-col">
-              <div 
-                onClick={() => {
-                  setTempTimeFormat(preferences.time_format)
-                  setTimeFormatModal(true)
-                }}
-                className="flex h-14 w-full items-center justify-between px-4 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[28px] cursor-pointer"
-              >
-                <span className="text-[15px] leading-6 text-muted-foreground shrink-0">Time Format</span>
-                <span className="text-[15px] font-medium text-foreground text-right">{preferences.time_format === '12h' ? '12 hr' : '24 hr'}</span>
-              </div>
+            <div className="flex flex-col w-full relative">
+              <div className="absolute inset-0 bg-card/80 backdrop-blur-xl rounded-[28px] border border-border/40 pointer-events-none" />
+              <div className="flex flex-col p-1">
+              <MorphPopover open={timeFormatOpen} onOpenChange={setTimeFormatOpen}>
+                <MorphPopoverTrigger>
+                  <button type="button" className={`flex h-14 w-full items-center justify-between px-6 gap-3 group relative transition-[transform,box-shadow] duration-300 cursor-pointer rounded-[28px] outline-none ${timeFormatOpen ? 'z-[60] bg-card shadow-2xl scale-[1.02] ring-1 ring-border/50' : 'z-10 hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10'}`}>
+                    <span className="text-[15px] leading-6 text-muted-foreground shrink-0">Time Format</span>
+                    <span className="text-[15px] font-medium text-foreground text-right">{preferences.time_format === '12h' ? '12 hr' : '24 hr'}</span>
+                  </button>
+                </MorphPopoverTrigger>
+                <MorphPopoverContent align="end" sideOffset={0} radius={999} unstyled className="w-auto p-4 -mr-4">
+                  <Tabs 
+                    value={preferences.time_format} 
+                    onValueChange={(v) => handleAutoSaveTimeFormat(v as '12h'|'24h')} 
+                    variant="pill"
+                  >
+                    <TabsList className="bg-card/90 backdrop-blur-xl border border-border/50 p-1 rounded-full h-11 shadow-2xl">
+                      <TabsTrigger value="12h" className="px-5 h-full text-[14px] rounded-full" indicatorClassName="bg-black/10 dark:bg-white/10">12-Hour</TabsTrigger>
+                      <TabsTrigger value="24h" className="px-5 h-full text-[14px] rounded-full" indicatorClassName="bg-black/10 dark:bg-white/10">24-Hour</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </MorphPopoverContent>
+              </MorphPopover>
 
-              <div 
-                onClick={() => {
-                  setTempFirstDay(preferences.first_day_of_week)
-                  setFirstDayModal(true)
-                }}
-                className="flex h-14 w-full items-center justify-between px-4 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[28px] cursor-pointer"
-              >
-                <span className="text-[15px] leading-6 text-muted-foreground shrink-0">First Day of Week</span>
-                <span className="text-[15px] font-medium text-foreground text-right">{preferences.first_day_of_week}</span>
+              <MorphPopover open={firstDayOpen} onOpenChange={setFirstDayOpen}>
+                <MorphPopoverTrigger>
+                  <button type="button" className={`flex h-14 w-full items-center justify-between px-6 gap-3 group relative transition-[transform,box-shadow] duration-300 cursor-pointer rounded-[28px] outline-none ${firstDayOpen ? 'z-[60] bg-card shadow-2xl scale-[1.02] ring-1 ring-border/50' : 'z-10 hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10'}`}>
+                    <span className="text-[15px] leading-6 text-muted-foreground shrink-0">First Day of Week</span>
+                    <span className="text-[15px] font-medium text-foreground text-right">{preferences.first_day_of_week}</span>
+                  </button>
+                </MorphPopoverTrigger>
+                <MorphPopoverContent align="end" sideOffset={0} radius={999} unstyled className="w-auto p-4 -mr-4">
+                  <Tabs 
+                    value={preferences.first_day_of_week} 
+                    onValueChange={(v) => handleAutoSaveFirstDay(v as 'Monday'|'Sunday')} 
+                    variant="pill"
+                  >
+                    <TabsList className="bg-card/90 backdrop-blur-xl border border-border/50 p-1 rounded-full h-11 shadow-2xl">
+                      <TabsTrigger value="Monday" className="px-5 h-full text-[14px] rounded-full" indicatorClassName="bg-black/10 dark:bg-white/10">Monday</TabsTrigger>
+                      <TabsTrigger value="Sunday" className="px-5 h-full text-[14px] rounded-full" indicatorClassName="bg-black/10 dark:bg-white/10">Sunday</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </MorphPopoverContent>
+              </MorphPopover>
               </div>
             </div>
               
-            <div className="bg-card/80 backdrop-blur-xl rounded-[28px] overflow-hidden border border-border/40 p-1 flex flex-col">
+            <div className="flex flex-col w-full relative">
+              <div className="absolute inset-0 bg-card/80 backdrop-blur-xl rounded-[28px] border border-border/40 pointer-events-none" />
+              <div className="flex flex-col p-1">
               <div 
                 onClick={() => {
                   setTempHourlyRate(preferences.default_hourly_rate)
                   setHourlyRateModal(true)
                 }}
-                className="flex h-14 w-full items-center justify-between px-4 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[28px] cursor-pointer"
+                className="flex h-14 w-full items-center justify-between px-6 group transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 rounded-[28px] cursor-pointer relative z-10"
               >
                 <span className="text-[15px] leading-6 text-muted-foreground shrink-0">Default Hourly Rate</span>
                 <span className="text-[15px] font-medium text-foreground text-right">${preferences.default_hourly_rate.toFixed(2)}</span>
@@ -143,79 +188,16 @@ export default function DefaultsPage() {
                   setTempBreakDuration(preferences.default_break_duration)
                   setBreakDurationModal(true)
                 }}
-                className="flex h-14 w-full items-center justify-between px-4 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[28px] cursor-pointer"
+                className="flex h-14 w-full items-center justify-between px-6 group transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 rounded-[28px] cursor-pointer relative z-10"
               >
                 <span className="text-[15px] leading-6 text-muted-foreground shrink-0">Default Break Duration</span>
                 <span className="text-[15px] font-medium text-foreground text-right">{preferences.default_break_duration} min</span>
               </div>
             </div>
+            </div>
           </div>
         )}
       </div>
-
-      {/* Time Format Modal */}
-      <CenterMorphModal open={timeFormatModal} onOpenChange={setTimeFormatModal}>
-        <CenterMorphModalContent ariaLabel="Edit Time Format" className="w-full max-w-sm bg-card p-6 border-border/50">
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-4 text-center">
-              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Time Format</h2>
-              <p className="text-sm text-muted-foreground">Select your preferred time display.</p>
-            </div>
-            
-            <Tabs 
-              value={tempTimeFormat} 
-              onValueChange={(v) => setTempTimeFormat(v as '12h'|'24h')} 
-              variant="pill"
-            >
-              <TabsList className="w-full bg-black/5 dark:bg-white/5">
-                <TabsTrigger value="12h" className="flex-1 py-2">12-Hour</TabsTrigger>
-                <TabsTrigger value="24h" className="flex-1 py-2">24-Hour</TabsTrigger>
-              </TabsList>
-            </Tabs>
-
-            <div className="mt-2 flex justify-end gap-3">
-              <CenterMorphModalClose>
-                <Button variant="ghost" disabled={isSaving}>Cancel</Button>
-              </CenterMorphModalClose>
-              <Button onClick={handleSaveTimeFormat} isLoading={isSaving} disabled={isSaving}>
-                {isSaving ? "Saving" : "Save"}
-              </Button>
-            </div>
-          </div>
-        </CenterMorphModalContent>
-      </CenterMorphModal>
-
-      {/* First Day Modal */}
-      <CenterMorphModal open={firstDayModal} onOpenChange={setFirstDayModal}>
-        <CenterMorphModalContent ariaLabel="Edit First Day" className="w-full max-w-sm bg-card p-6 border-border/50">
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-4 text-center">
-              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">First Day of Week</h2>
-              <p className="text-sm text-muted-foreground">Choose which day starts your calendar week.</p>
-            </div>
-            
-            <Tabs 
-              value={tempFirstDay} 
-              onValueChange={(v) => setTempFirstDay(v as 'Monday'|'Sunday')} 
-              variant="pill"
-            >
-              <TabsList className="w-full bg-black/5 dark:bg-white/5">
-                <TabsTrigger value="Monday" className="flex-1 py-2">Monday</TabsTrigger>
-                <TabsTrigger value="Sunday" className="flex-1 py-2">Sunday</TabsTrigger>
-              </TabsList>
-            </Tabs>
-
-            <div className="mt-2 flex justify-end gap-3">
-              <CenterMorphModalClose>
-                <Button variant="ghost" disabled={isSaving}>Cancel</Button>
-              </CenterMorphModalClose>
-              <Button onClick={handleSaveFirstDay} isLoading={isSaving} disabled={isSaving}>
-                {isSaving ? "Saving" : "Save"}
-              </Button>
-            </div>
-          </div>
-        </CenterMorphModalContent>
-      </CenterMorphModal>
 
       {/* Hourly Rate Modal */}
       <CenterMorphModal open={hourlyRateModal} onOpenChange={setHourlyRateModal}>
@@ -231,6 +213,7 @@ export default function DefaultsPage() {
                 <FieldLabel>Hourly Rate ($)</FieldLabel>
                 <Input 
                   type="number"
+                  inputMode="decimal"
                   min="0"
                   step="0.01"
                   value={tempHourlyRate || ''}
@@ -259,7 +242,7 @@ export default function DefaultsPage() {
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-4 text-center">
               <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Default Break Duration</h2>
-              <p className="text-sm text-muted-foreground">Enter your standard unpaid break time per shift.</p>
+              <p className="text-sm text-muted-foreground">Enter your standard unpaid break time.</p>
             </div>
             
             <FieldGroup>
@@ -267,6 +250,8 @@ export default function DefaultsPage() {
                 <FieldLabel>Break Duration (minutes)</FieldLabel>
                 <Input 
                   type="number"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   min="0"
                   step="1"
                   value={tempBreakDuration || ''}

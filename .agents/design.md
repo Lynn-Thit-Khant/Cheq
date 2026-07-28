@@ -19,3 +19,8 @@
   - **Tabs Container**: `<Tabs value={state} onValueChange={setState} variant="pill">`
   - **List Container**: `<TabsList className="w-full bg-black/5 dark:bg-white/5">`
   - **Triggers**: `<TabsTrigger value="your_value" className="flex-1 py-2">Label</TabsTrigger>`
+- **UI Guidelines - Popover Morph**: When a list row acts as a trigger for contextual actions or quick inline selections, use `MorphPopover` from `@/components/motion/popover-morph`.
+  - **Backdrop**: Include a global backdrop element at the top level of the component to dim the rest of the screen: `<div className={"fixed inset-0 z-[55] bg-black/60 backdrop-blur-lg transition-opacity duration-300 " + (isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none")} onPointerDown={() => setIsOpen(false)} />`.
+  - **Trigger Styling**: Wrap the row inside `<MorphPopoverTrigger>`. The trigger button must elevate when opened: `className={isOpen ? 'z-[60] bg-card shadow-2xl scale-[1.02] ring-1 ring-border/50' : 'z-10 hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10'}`.
+  - **Content Styling**: Pass `align="end" sideOffset={0} radius={999} unstyled className="w-auto p-4 -mr-4"` to `<MorphPopoverContent>`.
+  - **Inner Menu Structure**: Use a squishy glass container inside the content: `<div className="rounded-[32px] bg-card/90 backdrop-blur-xl border border-border/50 overflow-hidden flex flex-col p-1.5 gap-0.5">`.
