@@ -14,3 +14,8 @@
   - **Props & State**: Use `usePathname` and `useRouter` from `next/navigation` to manage active state. Pass `active={isActive}` to trigger the animated pill indicator (powered by Framer Motion). Add an `onClick` handler for navigation and `aria-label` for accessibility.
   - **Icons**: Use `lucide-react` icons sized perfectly for the dock (e.g., `<Icon className="size-5" />`).
   - **Hover Tooltips**: For labels that appear on hover, add `className="group"` to the `<DockItem>` and include an absolute span inside: `<span className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 transition-opacity duration-200 group-hover:opacity-100 pointer-events-none rounded-full border border-border bg-card/80 backdrop-blur-xl px-3 py-1 text-sm font-medium text-foreground shadow-2xl whitespace-nowrap">Label</span>`.
+- **UI Guidelines - Tabs & Segmented Controls**: When creating inline tab switchers or segmented controls (e.g., choosing 12h/24h time format), use `Tabs` from `@/components/motion/tabs`. 
+  - **Component Structure**: Always use `variant="pill"`. The active indicator will use Framer Motion's `layoutId` spring animation with a `bg-card shadow-sm` card effect.
+  - **Tabs Container**: `<Tabs value={state} onValueChange={setState} variant="pill">`
+  - **List Container**: `<TabsList className="w-full bg-black/5 dark:bg-white/5">`
+  - **Triggers**: `<TabsTrigger value="your_value" className="flex-1 py-2">Label</TabsTrigger>`

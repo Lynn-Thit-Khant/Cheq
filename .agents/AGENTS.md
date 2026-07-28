@@ -2,3 +2,4 @@
 
 - **Consultation Mode**: If the user asks "what do you think?", DO NOT edit or modify the code. Only provide thoughts, analysis, or suggestions.
 - **Execution Mode**: If the user asks to "implement" something, edit the local code as requested but DO NOT commit or push to Git unless explicitly instructed to do so.
+- **UI & Design**: Whenever you need to build or modify UI components, refer to and strictly follow the design guidelines in `c:\Users\Lynn\cheq\.agents\design.md`. Use the `view_file` tool to read it if you haven't already.
