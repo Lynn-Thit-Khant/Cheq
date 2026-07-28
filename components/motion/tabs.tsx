@@ -46,6 +46,7 @@ export function Tabs({
   variant = "pill",
   children,
   className,
+  id,
 }: {
   defaultValue?: string;
   value?: string;
