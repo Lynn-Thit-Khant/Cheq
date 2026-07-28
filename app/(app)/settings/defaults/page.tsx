@@ -134,6 +134,7 @@ export default function DefaultsPage() {
                 </MorphPopoverTrigger>
                 <MorphPopoverContent align="end" sideOffset={0} radius={999} unstyled className="w-auto p-4 -mr-4">
                   <Tabs 
+                    id="time-format-tabs"
                     value={preferences.time_format} 
                     onValueChange={(v) => handleAutoSaveTimeFormat(v as '12h'|'24h')} 
                     variant="pill"
@@ -155,6 +156,7 @@ export default function DefaultsPage() {
                 </MorphPopoverTrigger>
                 <MorphPopoverContent align="end" sideOffset={0} radius={999} unstyled className="w-auto p-4 -mr-4">
                   <Tabs 
+                    id="first-day-tabs"
                     value={preferences.first_day_of_week} 
                     onValueChange={(v) => handleAutoSaveFirstDay(v as 'Monday'|'Sunday')} 
                     variant="pill"

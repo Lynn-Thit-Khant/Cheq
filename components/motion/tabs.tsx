@@ -5,9 +5,9 @@ import {
   createContext,
   useCallback,
   useContext,
-  useId,
   useMemo,
   useState,
+  useId,
   type ReactNode,
 } from "react";
 import { EASE_OUT } from "@/lib/ease";
@@ -53,9 +53,11 @@ export function Tabs({
   variant?: Variant;
   children: ReactNode;
   className?: string;
+  id?: string;
 }) {
   const [internal, setInternal] = useState(defaultValue ?? "");
-  const layoutId = useId();
+  const reactId = useId();
+  const layoutId = id ?? reactId;
   const reduce = useReducedMotion();
   const controlled = value !== undefined;
   const current = controlled ? value : internal;
