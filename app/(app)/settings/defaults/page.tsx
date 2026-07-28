@@ -138,7 +138,7 @@ export default function DefaultsPage() {
                     onValueChange={(v) => handleAutoSaveTimeFormat(v as '12h'|'24h')} 
                     variant="pill"
                   >
-                    <TabsList className="bg-card/90 backdrop-blur-xl border border-border/50 p-1 rounded-full h-11 shadow-2xl">
+                    <TabsList className="bg-card/90 backdrop-blur-xl border border-border/50 p-1 rounded-full h-12 shadow-2xl">
                       <TabsTrigger value="12h" className="px-5 h-full text-[14px] rounded-full" indicatorClassName="bg-black/10 dark:bg-white/10">12-Hour</TabsTrigger>
                       <TabsTrigger value="24h" className="px-5 h-full text-[14px] rounded-full" indicatorClassName="bg-black/10 dark:bg-white/10">24-Hour</TabsTrigger>
                     </TabsList>
@@ -159,7 +159,7 @@ export default function DefaultsPage() {
                     onValueChange={(v) => handleAutoSaveFirstDay(v as 'Monday'|'Sunday')} 
                     variant="pill"
                   >
-                    <TabsList className="bg-card/90 backdrop-blur-xl border border-border/50 p-1 rounded-full h-11 shadow-2xl">
+                    <TabsList className="bg-card/90 backdrop-blur-xl border border-border/50 p-1 rounded-full h-12 shadow-2xl">
                       <TabsTrigger value="Monday" className="px-5 h-full text-[14px] rounded-full" indicatorClassName="bg-black/10 dark:bg-white/10">Monday</TabsTrigger>
                       <TabsTrigger value="Sunday" className="px-5 h-full text-[14px] rounded-full" indicatorClassName="bg-black/10 dark:bg-white/10">Sunday</TabsTrigger>
                     </TabsList>
