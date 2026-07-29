@@ -24,3 +24,8 @@
   - **Trigger Styling**: Wrap the row inside `<MorphPopoverTrigger>`. The trigger button must elevate when opened: `className={isOpen ? 'z-[60] bg-card shadow-2xl scale-[1.02] ring-1 ring-border/50' : 'z-10 hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10'}`.
   - **Content Styling**: Pass `align="end" sideOffset={0} radius={999} unstyled className="w-auto p-4 -mr-4"` to `<MorphPopoverContent>`.
   - **Inner Menu Structure**: Use a squishy glass container inside the content: `<div className="rounded-[32px] bg-card/90 backdrop-blur-xl border border-border/50 overflow-hidden flex flex-col p-1.5 gap-0.5">`.
+- **UI Guidelines - Card with Rows (Settings/Accounts Style)**: When creating a list or menu of settings/options, use this exact structure for the card and rows to maintain a consistent squishy glass style:
+  - **Container**: Wrap the whole card in `<div className="flex flex-col w-full relative">`.
+  - **Background Layer**: Add an absolute background div inside the container: `<div className="absolute inset-0 bg-card/80 backdrop-blur-xl rounded-[28px] border border-border/40 pointer-events-none" />`.
+  - **Inner Wrapper**: Wrap the rows in `<div className="flex flex-col p-1">`.
+  - **Interactive Rows**: For standard clickable rows (e.g., opening a modal or navigating), use: `className="flex h-14 w-full items-center justify-between px-6 group transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 rounded-[28px] cursor-pointer relative z-10"`.
