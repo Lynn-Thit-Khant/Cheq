@@ -17,7 +17,7 @@ export async function getUserPreferences(): Promise<UserPreferences> {
     throw new Error("Unauthorized")
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await supabase 
     .from('user_preferences')
     .select('*')
     .eq('id', user.id)
