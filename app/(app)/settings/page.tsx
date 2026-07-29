@@ -35,7 +35,7 @@ export default function SettingsPage() {
       <div className="flex flex-col gap-6 w-full">
         {/* Account Cluster */}
         <div className="bg-card/80 backdrop-blur-xl rounded-[28px] overflow-hidden border border-border/40 p-1 flex flex-col">
-          <Link href="/settings/account" className="flex h-14 w-full items-center justify-between px-4 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[28px]">
+          <Link href="/settings/account" className="flex h-14 w-full items-center justify-between px-4 group transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 rounded-[28px]">
             <div className="flex items-center gap-4">
               <div className="grid h-7 w-7 place-items-center text-muted-foreground"><User className="size-5" /></div>
               <span className="text-[15px] font-medium text-foreground">Account</span>
@@ -46,7 +46,7 @@ export default function SettingsPage() {
 
         {/* Configuration Cluster */}
         <div className="bg-card/80 backdrop-blur-xl rounded-[28px] overflow-hidden border border-border/40 p-1 flex flex-col">
-          <Link href="/settings/templates" className="flex h-14 w-full items-center justify-between px-4 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[28px]">
+          <Link href="/settings/templates" className="flex h-14 w-full items-center justify-between px-4 group transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 rounded-[28px]">
             <div className="flex items-center gap-4">
               <div className="grid h-7 w-7 place-items-center text-muted-foreground"><LayoutTemplate className="size-5" /></div>
               <span className="text-[15px] font-medium text-foreground">Templates</span>
@@ -54,7 +54,7 @@ export default function SettingsPage() {
             <ChevronRight className="size-4 text-muted-foreground transition-colors" />
           </Link>
 
-          <Link href="/settings/defaults" className="flex h-14 w-full items-center justify-between px-4 group transition-colors active:bg-black/10 dark:active:bg-white/10 rounded-[28px]">
+          <Link href="/settings/defaults" className="flex h-14 w-full items-center justify-between px-4 group transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 rounded-[28px]">
             <div className="flex items-center gap-4">
               <div className="grid h-7 w-7 place-items-center text-muted-foreground"><SlidersHorizontal className="size-5" /></div>
               <span className="text-[15px] font-medium text-foreground">Defaults</span>
@@ -62,7 +62,7 @@ export default function SettingsPage() {
             <ChevronRight className="size-4 text-muted-foreground transition-colors" />
           </Link>
 
-          <div className="flex h-14 w-full items-center justify-between px-4 transition-colors active:bg-black/10 dark:active:bg-white/10 cursor-pointer rounded-[28px]">
+          <div className="flex h-14 w-full items-center justify-between px-4 transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 cursor-pointer rounded-[28px]">
             <div className="flex items-center gap-4">
               <div className="grid h-7 w-7 place-items-center text-muted-foreground"><Sparkles className="size-5" /></div>
               <span className="text-[15px] font-medium text-foreground">Agent</span>
@@ -70,7 +70,7 @@ export default function SettingsPage() {
             <span className="text-[13px] text-muted-foreground/60">Coming soon</span>
           </div>
 
-          <div className="flex h-14 w-full items-center justify-between px-4 transition-colors active:bg-black/10 dark:active:bg-white/10 cursor-pointer rounded-[28px]">
+          <div className="flex h-14 w-full items-center justify-between px-4 transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 cursor-pointer rounded-[28px]">
             <div className="flex items-center gap-4">
               <div className="grid h-7 w-7 place-items-center text-muted-foreground"><Plug className="size-5" /></div>
               <span className="text-[15px] font-medium text-foreground">Connectors</span>
@@ -79,7 +79,7 @@ export default function SettingsPage() {
           </div>
 
           <div 
-            className="flex h-14 w-full items-center justify-between px-4 transition-colors active:bg-black/10 dark:active:bg-white/10 cursor-pointer rounded-[28px]"
+            className="flex h-14 w-full items-center justify-between px-4 transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 cursor-pointer rounded-[28px]"
             onClick={toggle}
           >
             <div className="flex items-center gap-4">
