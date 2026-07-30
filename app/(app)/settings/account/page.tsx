@@ -4,8 +4,12 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { BackButton } from "@/components/back-button"
 import { useUser } from "@/components/user-provider"
-import { Pencil, Copy, ChevronRight, KeyRound, Lock } from "lucide-react"
+import { Pencil, Copy, ChevronRight, KeyRound, Lock, Trash2 } from "lucide-react"
+import { SettingsCard } from "@/components/settings-card"
+import { PopoverBackdrop } from "@/components/popover-backdrop"
+import { SettingsRow } from "@/components/settings-row"
 import Link from "next/link"
+import { cn } from "@/lib/utils"
 import {
   MorphPopover,
   MorphPopoverContent,
@@ -209,20 +213,14 @@ export default function AccountPage() {
 
   return (
     <>
-    {/* Full screen backdrop for Telegram effect */}
-    <div 
-      className={`fixed inset-0 z-[55] bg-black/60 backdrop-blur-lg transition-opacity duration-300 ${anyOpen ? 'opacity-100' : 'opacity-0'} ${backdropActive ? 'pointer-events-auto' : 'pointer-events-none'}`} 
-      onPointerDown={(e) => { 
-        e.preventDefault();
+    <PopoverBackdrop 
+      isVisible={anyOpen}
+      isActive={backdropActive}
+      onDismiss={() => {
         setNameOpen(false); 
         setEmailOpen(false); 
         setPasswordOpen(false); 
         setMfaPopoverOpen(false); 
-      }}
-      onTouchStart={(e) => e.preventDefault()}
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
       }}
     />
 
@@ -235,9 +233,7 @@ export default function AccountPage() {
 
       <div className="flex-1 flex flex-col justify-start w-full mt-6">
 
-      <div className="flex flex-col gap-4 w-full relative">
-        <div className="absolute inset-0 bg-card/80 backdrop-blur-xl rounded-[28px] border border-border/40 pointer-events-none" />
-        <div className="flex flex-col p-1">
+      <SettingsCard className="gap-4">
             <MorphPopover open={nameOpen} onOpenChange={setNameOpen}>
               <MorphPopoverTrigger>
                 <button type="button" className={`flex w-full items-center justify-between h-14 px-6 gap-3 group relative transition-[transform,box-shadow] duration-300 cursor-pointer rounded-[28px] outline-none ${nameOpen ? 'z-[60] bg-card shadow-2xl scale-[1.02] ring-1 ring-border/50' : 'z-10 hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10'}`}>
@@ -254,7 +250,7 @@ export default function AccountPage() {
                       setNameOpen(false)
                       setNameModalOpen(true)
                     }}
-                    className="w-full justify-start font-medium text-foreground h-12"
+                    className="w-full justify-start font-medium text-foreground h-12 text-[15px]"
                   >
                     <Pencil className="h-4 w-4" strokeWidth={1.5} />
                     Edit Name
@@ -280,7 +276,7 @@ export default function AccountPage() {
                       setEmailSuccess(false)
                       setEmailModalOpen(true)
                     }}
-                    className="w-full justify-start font-medium text-foreground rounded-[26px] h-12"
+                    className="w-full justify-start font-medium text-foreground rounded-[26px] h-12 text-[15px]"
                   >
                     <Pencil className="h-4 w-4" strokeWidth={1.5} />
                     Edit Email
@@ -299,17 +295,14 @@ export default function AccountPage() {
                         setCopyState("copy")
                       }, 2000)
                     }}
-                    className="w-full justify-start font-medium text-foreground rounded-[26px] h-12"
+                    className="w-full justify-start font-medium text-foreground rounded-[26px] h-12 text-[15px]"
                   />
                 </div>
               </MorphPopoverContent>
             </MorphPopover>
-        </div>
-      </div>
+      </SettingsCard>
 
-      <div className="flex flex-col gap-4 w-full relative mt-4">
-        <div className="absolute inset-0 bg-card/80 backdrop-blur-xl rounded-[28px] border border-border/40 pointer-events-none" />
-        <div className="flex flex-col p-1">
+      <SettingsCard className="gap-4 mt-4">
             <MorphPopover open={passwordOpen} onOpenChange={setPasswordOpen}>
               <MorphPopoverTrigger>
                 <button type="button" className={`flex w-full items-center justify-between h-14 px-6 gap-3 group relative transition-[transform,box-shadow] duration-300 cursor-pointer rounded-[28px] outline-none ${passwordOpen ? 'z-[60] bg-card shadow-2xl scale-[1.02] ring-1 ring-border/50' : 'z-10 hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10'}`}>
@@ -373,20 +366,28 @@ export default function AccountPage() {
                         setMfaRemoveModalOpen(true)
                       }
                     }}
-                    className="w-full justify-start font-medium text-foreground h-12"
+                    className={cn(
+                      "w-full justify-start font-medium h-12 text-[15px]",
+                      mfaEnabled 
+                        ? "text-destructive hover:text-destructive hover:bg-destructive/10"
+                        : "text-foreground"
+                    )}
                   >
-                    <Pencil className="h-4 w-4" strokeWidth={1.5} />
+                    {mfaEnabled ? (
+                      <Trash2 className="h-4 w-4" strokeWidth={1.5} />
+                    ) : (
+                      <Pencil className="h-4 w-4" strokeWidth={1.5} />
+                    )}
                     {mfaEnabled ? "Remove MFA" : "Setup MFA"}
                   </Button>
                 </div>
               </MorphPopoverContent>
             </MorphPopover>
-            <div className="flex w-full items-center justify-between px-6 py-3 gap-3 group relative transition-[transform,box-shadow] duration-300 cursor-pointer rounded-[28px] outline-none z-10 hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10">
+            <SettingsRow interactive={true} className="opacity-50 select-none">
               <span className="text-[15px] leading-6 text-muted-foreground shrink-0">Passkeys</span>
               <span className="text-[13px] text-muted-foreground/60">Coming soon</span>
-            </div>
-        </div>
-      </div>
+            </SettingsRow>
+      </SettingsCard>
       </div>
     </div>
 

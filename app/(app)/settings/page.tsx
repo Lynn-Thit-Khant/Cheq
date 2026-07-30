@@ -5,6 +5,8 @@ import { useTheme } from "next-themes"
 import { User, LayoutTemplate, SlidersHorizontal, Sparkles, Plug, Moon, ChevronRight } from "lucide-react"
 import { Switch } from "@/components/motion/switch"
 import { LogoutButton } from "@/components/logout-button"
+import { SettingsCard } from "@/components/settings-card"
+import { SettingsRow } from "@/components/settings-row"
 import Link from "next/link"
 import { useUser } from "@/components/user-provider"
 export default function SettingsPage() {
@@ -34,54 +36,51 @@ export default function SettingsPage() {
 
       <div className="flex flex-col gap-6 w-full">
         {/* Account Cluster */}
-        <div className="bg-card/80 backdrop-blur-xl rounded-[28px] overflow-hidden border border-border/40 p-1 flex flex-col">
-          <Link href="/settings/account" className="flex h-14 w-full items-center justify-between px-4 group transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 rounded-[28px]">
+        <SettingsCard>
+          <SettingsRow href="/settings/account">
             <div className="flex items-center gap-4">
               <div className="grid h-7 w-7 place-items-center text-muted-foreground"><User className="size-5" /></div>
               <span className="text-[15px] font-medium text-foreground">Account</span>
             </div>
             <ChevronRight className="size-4 text-muted-foreground transition-colors" />
-          </Link>
-        </div>
+          </SettingsRow>
+        </SettingsCard>
 
         {/* Configuration Cluster */}
-        <div className="bg-card/80 backdrop-blur-xl rounded-[28px] overflow-hidden border border-border/40 p-1 flex flex-col">
-          <Link href="/settings/templates" className="flex h-14 w-full items-center justify-between px-4 group transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 rounded-[28px]">
+        <SettingsCard>
+          <SettingsRow href="/settings/templates">
             <div className="flex items-center gap-4">
               <div className="grid h-7 w-7 place-items-center text-muted-foreground"><LayoutTemplate className="size-5" /></div>
               <span className="text-[15px] font-medium text-foreground">Templates</span>
             </div>
             <ChevronRight className="size-4 text-muted-foreground transition-colors" />
-          </Link>
+          </SettingsRow>
 
-          <Link href="/settings/defaults" className="flex h-14 w-full items-center justify-between px-4 group transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 rounded-[28px]">
+          <SettingsRow href="/settings/defaults">
             <div className="flex items-center gap-4">
               <div className="grid h-7 w-7 place-items-center text-muted-foreground"><SlidersHorizontal className="size-5" /></div>
               <span className="text-[15px] font-medium text-foreground">Defaults</span>
             </div>
             <ChevronRight className="size-4 text-muted-foreground transition-colors" />
-          </Link>
+          </SettingsRow>
 
-          <div className="flex h-14 w-full items-center justify-between px-4 transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 cursor-pointer rounded-[28px]">
+          <SettingsRow interactive={true}>
             <div className="flex items-center gap-4">
               <div className="grid h-7 w-7 place-items-center text-muted-foreground"><Sparkles className="size-5" /></div>
               <span className="text-[15px] font-medium text-foreground">Agent</span>
             </div>
             <span className="text-[13px] text-muted-foreground/60">Coming soon</span>
-          </div>
+          </SettingsRow>
 
-          <div className="flex h-14 w-full items-center justify-between px-4 transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 cursor-pointer rounded-[28px]">
+          <SettingsRow interactive={true}>
             <div className="flex items-center gap-4">
               <div className="grid h-7 w-7 place-items-center text-muted-foreground"><Plug className="size-5" /></div>
               <span className="text-[15px] font-medium text-foreground">Connectors</span>
             </div>
             <span className="text-[13px] text-muted-foreground/60">Coming soon</span>
-          </div>
+          </SettingsRow>
 
-          <div 
-            className="flex h-14 w-full items-center justify-between px-4 transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 cursor-pointer rounded-[28px]"
-            onClick={toggle}
-          >
+          <SettingsRow onClick={toggle} forceDiv={true}>
             <div className="flex items-center gap-4">
               <div className="grid h-7 w-7 place-items-center text-muted-foreground"><Moon className="size-5" /></div>
               <span className="text-[15px] font-medium text-foreground">Dark Mode</span>
@@ -92,8 +91,8 @@ export default function SettingsPage() {
               aria-label="Toggle dark mode"
               className="pointer-events-none"
             />
-          </div>
-        </div>
+          </SettingsRow>
+        </SettingsCard>
 
       </div>
 

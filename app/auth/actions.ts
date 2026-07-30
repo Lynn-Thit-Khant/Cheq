@@ -490,7 +490,7 @@ export async function verifyEmailChange(email: string, token: string) {
   })
 
   if (error) {
-    return { error: error.message }
+    return { error: getSafeErrorMessage(error) }
   }
 
   return { success: true }

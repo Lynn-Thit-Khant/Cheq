@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { BackButton } from "@/components/back-button"
-import { ChevronRight } from "lucide-react"
+import { ChevronRight, Pencil, Trash2 } from "lucide-react"
 import { getUserPreferences, updateUserPreferences, UserPreferences } from "./actions"
 import { 
   CenterMorphModal, 
@@ -17,6 +17,8 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/motion/tabs"
 import { Button } from "@/components/motion/button/base"
 import { Input } from "@/components/ui/input"
+import { SettingsCard } from "@/components/settings-card"
+import { PopoverBackdrop } from "@/components/popover-backdrop"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { cn } from "@/lib/utils"
 
@@ -40,7 +42,13 @@ export default function DefaultsPage() {
 
   const [isSaving, setIsSaving] = useState(false)
 
-  const anyOpen = timeFormatOpen || firstDayOpen;
+  // Ref to suppress popover reopening after a successful save
+  const justSavedRef = useRef(false)
+
+  const [ratePopoverOpen, setRatePopoverOpen] = useState(false)
+  const [breakPopoverOpen, setBreakPopoverOpen] = useState(false)
+
+  const anyOpen = timeFormatOpen || firstDayOpen || ratePopoverOpen || breakPopoverOpen;
   const [backdropActive, setBackdropActive] = useState(false);
 
   useEffect(() => {
@@ -76,6 +84,7 @@ export default function DefaultsPage() {
     try {
       await updateUserPreferences({ default_hourly_rate: tempHourlyRate })
       setPreferences(prev => ({ ...prev, default_hourly_rate: tempHourlyRate }))
+      justSavedRef.current = true
       setHourlyRateModal(false)
     } finally {
       setIsSaving(false)
@@ -87,7 +96,30 @@ export default function DefaultsPage() {
     try {
       await updateUserPreferences({ default_break_duration: tempBreakDuration })
       setPreferences(prev => ({ ...prev, default_break_duration: tempBreakDuration }))
+      justSavedRef.current = true
       setBreakDurationModal(false)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleRemoveHourlyRate = async () => {
+    setIsSaving(true)
+    try {
+      await updateUserPreferences({ default_hourly_rate: 0 })
+      setPreferences(prev => ({ ...prev, default_hourly_rate: 0 }))
+      setRatePopoverOpen(false)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleRemoveBreakDuration = async () => {
+    setIsSaving(true)
+    try {
+      await updateUserPreferences({ default_break_duration: 0 })
+      setPreferences(prev => ({ ...prev, default_break_duration: 0 }))
+      setBreakPopoverOpen(false)
     } finally {
       setIsSaving(false)
     }
@@ -95,17 +127,14 @@ export default function DefaultsPage() {
 
   return (
     <>
-      <div 
-        className={`fixed inset-0 z-[55] bg-black/60 backdrop-blur-lg transition-opacity duration-300 ${anyOpen ? 'opacity-100' : 'opacity-0'} ${backdropActive ? 'pointer-events-auto' : 'pointer-events-none'}`} 
-        onPointerDown={(e) => { 
-          e.preventDefault();
+      <PopoverBackdrop 
+        isVisible={anyOpen}
+        isActive={backdropActive}
+        onDismiss={() => {
           setTimeFormatOpen(false); 
-          setFirstDayOpen(false); 
-        }}
-        onTouchStart={(e) => e.preventDefault()}
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
+          setFirstDayOpen(false);
+          setRatePopoverOpen(false);
+          setBreakPopoverOpen(false);
         }}
       />
 
@@ -122,9 +151,7 @@ export default function DefaultsPage() {
           </div>
         ) : (
           <div className="flex-1 flex flex-col justify-start w-full gap-6 mt-6">
-            <div className="flex flex-col w-full relative">
-              <div className="absolute inset-0 bg-card/80 backdrop-blur-xl rounded-[28px] border border-border/40 pointer-events-none" />
-              <div className="flex flex-col p-1">
+            <SettingsCard>
               <MorphPopover open={timeFormatOpen} onOpenChange={setTimeFormatOpen}>
                 <MorphPopoverTrigger>
                   <button type="button" className={`flex h-14 w-full items-center justify-between px-6 gap-3 group relative transition-[transform,box-shadow] duration-300 cursor-pointer rounded-[28px] outline-none ${timeFormatOpen ? 'z-[60] bg-card shadow-2xl scale-[1.02] ring-1 ring-border/50' : 'z-10 hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10'}`}>
@@ -168,41 +195,129 @@ export default function DefaultsPage() {
                   </Tabs>
                 </MorphPopoverContent>
               </MorphPopover>
-              </div>
-            </div>
+            </SettingsCard>
               
-            <div className="flex flex-col w-full relative">
-              <div className="absolute inset-0 bg-card/80 backdrop-blur-xl rounded-[28px] border border-border/40 pointer-events-none" />
-              <div className="flex flex-col p-1">
-              <div 
-                onClick={() => {
-                  setTempHourlyRate(preferences.default_hourly_rate)
-                  setHourlyRateModal(true)
-                }}
-                className="flex h-14 w-full items-center justify-between px-6 group transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 rounded-[28px] cursor-pointer relative z-10"
-              >
-                <span className="text-[15px] leading-6 text-muted-foreground shrink-0">Default Hourly Rate</span>
-                <span className="text-[15px] font-medium text-foreground text-right">${preferences.default_hourly_rate.toFixed(2)}</span>
-              </div>
+            <SettingsCard>
+              <MorphPopover open={ratePopoverOpen} onOpenChange={setRatePopoverOpen}>
+                <MorphPopoverTrigger>
+                  <button 
+                    type="button" 
+                    className={`flex w-full items-center justify-between h-14 px-6 gap-3 group relative transition-[transform,box-shadow] duration-300 cursor-pointer rounded-[28px] outline-none ${ratePopoverOpen ? 'z-[60] bg-card shadow-2xl scale-[1.02] ring-1 ring-border/50' : 'z-10 hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10'}`}
+                  >
+                    <span className="text-[15px] leading-6 text-muted-foreground shrink-0">Default Hourly Rate</span>
+                    {preferences.default_hourly_rate > 0 ? (
+                      <span className="text-[15px] font-medium text-foreground text-right">${preferences.default_hourly_rate.toFixed(2)}</span>
+                    ) : (
+                      <span className="text-[13px] text-muted-foreground/60">Not setup</span>
+                    )}
+                  </button>
+                </MorphPopoverTrigger>
+                <MorphPopoverContent align="end" sideOffset={0} radius={999} unstyled className="w-auto p-4 -mr-4">
+                  <div className={cn(
+                    "bg-card/90 backdrop-blur-xl border border-border/50 overflow-hidden flex flex-col",
+                    preferences.default_hourly_rate > 0 ? "rounded-[32px] p-1.5 gap-0.5" : "rounded-full"
+                  )}>
+                    <Button
+                      variant="ghost"
+                      size="lg"
+                      onClick={() => {
+                        setTempHourlyRate(preferences.default_hourly_rate)
+                        setRatePopoverOpen(false)
+                        setHourlyRateModal(true)
+                      }}
+                      className={cn(
+                        "w-full justify-start font-medium text-foreground h-12 text-[15px]",
+                        preferences.default_hourly_rate > 0 ? "rounded-[26px]" : ""
+                      )}
+                    >
+                      <Pencil className="h-4 w-4" strokeWidth={1.5} />
+                      {preferences.default_hourly_rate > 0 ? "Edit Default Rate" : "Set up Default Rate"}
+                    </Button>
+                    {preferences.default_hourly_rate > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="lg"
+                        onClick={handleRemoveHourlyRate}
+                        disabled={isSaving}
+                        className="w-full justify-start font-medium text-destructive hover:text-destructive hover:bg-destructive/10 rounded-[26px] h-12 text-[15px]"
+                      >
+                        <Trash2 className="h-4 w-4" strokeWidth={1.5} />
+                        Remove Default Rate
+                      </Button>
+                    )}
+                  </div>
+                </MorphPopoverContent>
+              </MorphPopover>
 
-              <div 
-                onClick={() => {
-                  setTempBreakDuration(preferences.default_break_duration)
-                  setBreakDurationModal(true)
-                }}
-                className="flex h-14 w-full items-center justify-between px-6 group transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 rounded-[28px] cursor-pointer relative z-10"
-              >
-                <span className="text-[15px] leading-6 text-muted-foreground shrink-0">Default Break Duration</span>
-                <span className="text-[15px] font-medium text-foreground text-right">{preferences.default_break_duration} min</span>
-              </div>
-            </div>
-            </div>
+              <MorphPopover open={breakPopoverOpen} onOpenChange={setBreakPopoverOpen}>
+                <MorphPopoverTrigger>
+                  <button 
+                    type="button" 
+                    className={`flex w-full items-center justify-between h-14 px-6 gap-3 group relative transition-[transform,box-shadow] duration-300 cursor-pointer rounded-[28px] outline-none ${breakPopoverOpen ? 'z-[60] bg-card shadow-2xl scale-[1.02] ring-1 ring-border/50' : 'z-10 hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10'}`}
+                  >
+                    <span className="text-[15px] leading-6 text-muted-foreground shrink-0">Default Break Duration</span>
+                    {preferences.default_break_duration > 0 ? (
+                      <span className="text-[15px] font-medium text-foreground text-right">{preferences.default_break_duration} min</span>
+                    ) : (
+                      <span className="text-[13px] text-muted-foreground/60">Not setup</span>
+                    )}
+                  </button>
+                </MorphPopoverTrigger>
+                <MorphPopoverContent align="end" sideOffset={0} radius={999} unstyled className="w-auto p-4 -mr-4">
+                  <div className={cn(
+                    "bg-card/90 backdrop-blur-xl border border-border/50 overflow-hidden flex flex-col",
+                    preferences.default_break_duration > 0 ? "rounded-[32px] p-1.5 gap-0.5" : "rounded-full"
+                  )}>
+                    <Button
+                      variant="ghost"
+                      size="lg"
+                      onClick={() => {
+                        setTempBreakDuration(preferences.default_break_duration)
+                        setBreakPopoverOpen(false)
+                        setBreakDurationModal(true)
+                      }}
+                      className={cn(
+                        "w-full justify-start font-medium text-foreground h-12 text-[15px]",
+                        preferences.default_break_duration > 0 ? "rounded-[26px]" : ""
+                      )}
+                    >
+                      <Pencil className="h-4 w-4" strokeWidth={1.5} />
+                      {preferences.default_break_duration > 0 ? "Edit Default Break" : "Set up Default Break"}
+                    </Button>
+                    {preferences.default_break_duration > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="lg"
+                        onClick={handleRemoveBreakDuration}
+                        disabled={isSaving}
+                        className="w-full justify-start font-medium text-destructive hover:text-destructive hover:bg-destructive/10 rounded-[26px] h-12 text-[15px]"
+                      >
+                        <Trash2 className="h-4 w-4" strokeWidth={1.5} />
+                        Remove Default Break
+                      </Button>
+                    )}
+                  </div>
+                </MorphPopoverContent>
+              </MorphPopover>
+            </SettingsCard>
           </div>
         )}
       </div>
 
       {/* Hourly Rate Modal */}
-      <CenterMorphModal open={hourlyRateModal} onOpenChange={setHourlyRateModal}>
+      <CenterMorphModal 
+        open={hourlyRateModal} 
+        onOpenChange={(open) => {
+          setHourlyRateModal(open);
+          if (!open) {
+            if (justSavedRef.current) {
+              justSavedRef.current = false
+            } else {
+              setRatePopoverOpen(true)
+            }
+          }
+        }}
+      >
         <CenterMorphModalContent ariaLabel="Edit Hourly Rate" className="w-full max-w-sm bg-card p-6 border-border/50">
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-4 text-center">
@@ -239,7 +354,19 @@ export default function DefaultsPage() {
       </CenterMorphModal>
 
       {/* Break Duration Modal */}
-      <CenterMorphModal open={breakDurationModal} onOpenChange={setBreakDurationModal}>
+      <CenterMorphModal 
+        open={breakDurationModal} 
+        onOpenChange={(open) => {
+          setBreakDurationModal(open);
+          if (!open) {
+            if (justSavedRef.current) {
+              justSavedRef.current = false
+            } else {
+              setBreakPopoverOpen(true)
+            }
+          }
+        }}
+      >
         <CenterMorphModalContent ariaLabel="Edit Break Duration" className="w-full max-w-sm bg-card p-6 border-border/50">
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-4 text-center">

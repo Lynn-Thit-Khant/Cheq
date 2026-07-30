@@ -162,6 +162,7 @@ export interface CenterMorphModalContentProps {
   closeButtonLabel?: string;
   className?: string;
   backdropClassName?: string;
+  noMorph?: boolean;
 }
 
 const FOCUSABLE_SELECTOR = [
@@ -205,11 +206,12 @@ export function CenterMorphModalContent({
   children,
   ariaLabel,
   ariaDescribedBy,
-  dismissible = true,
+  dismissible = false,
   showCloseButton = true,
   closeButtonLabel = "Close modal",
   className,
   backdropClassName,
+  noMorph = false,
 }: CenterMorphModalContentProps) {
   const context = useCenterMorphModalContext("CenterMorphModalContent");
   const reduce = useReducedMotion() ?? false;
@@ -309,29 +311,32 @@ export function CenterMorphModalContent({
                 aria-describedby={ariaDescribedBy}
                 tabIndex={-1}
                 initial={
-                  reduce
-                    ? { opacity: 0, clipPath: CENTER_OPEN_CLIP }
-                    : { opacity: 1, clipPath: CENTER_FOLDED_CLIP }
+                  reduce || noMorph
+                    ? { opacity: 0, clipPath: CENTER_OPEN_CLIP, scale: 0.95 }
+                    : { opacity: 1, clipPath: CENTER_FOLDED_CLIP, scale: 1 }
                 }
                 animate={{
                   opacity: 1,
                   clipPath: CENTER_OPEN_CLIP,
+                  scale: 1
                 }}
                 exit={
-                  reduce
+                  reduce || noMorph
                     ? {
                         opacity: 0,
                         clipPath: CENTER_OPEN_CLIP,
+                        scale: 0.95
                       }
                     : {
                         opacity: 1,
                         clipPath: CENTER_FOLDED_CLIP,
+                        scale: 1
                       }
                 }
                 style={{ pointerEvents: isPresent ? "auto" : "none" }}
                 transition={
-                  reduce
-                    ? { duration: 0.14, ease: EASE_OUT }
+                  reduce || noMorph
+                    ? { duration: 0.15, ease: EASE_OUT }
                     : CENTER_UNFOLD_TRANSITION
                 }
                 className={cn(
