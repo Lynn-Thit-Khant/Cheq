@@ -221,8 +221,8 @@ export default function TemplatesPage() {
             isSaving={isSaving}
             timeFormat={preferences.time_format}
             defaultValues={{
-              hourly_rate: preferences.default_hourly_rate,
-              break_duration: preferences.default_break_duration,
+              hourly_rate: preferences.default_hourly_rate || undefined,
+              break_duration: preferences.default_break_duration || undefined,
             }}
           />
         </CenterMorphModalContent>

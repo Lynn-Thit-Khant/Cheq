@@ -49,8 +49,8 @@ export function TemplateForm({
       workplace_location: defaultValues?.workplace_location ?? "",
       start_time: defaultValues?.start_time ?? "",
       end_time: defaultValues?.end_time ?? "",
-      hourly_rate: defaultValues?.hourly_rate ?? 0,
-      break_duration: defaultValues?.break_duration ?? 0,
+      hourly_rate: defaultValues?.hourly_rate,
+      break_duration: defaultValues?.break_duration,
     },
   })
 
