@@ -131,22 +131,24 @@ export default function TemplatesPage() {
     <>
       <div className="flex flex-1 flex-col p-4 w-full max-w-md mx-auto mt-2 h-full relative">
         {/* Header */}
-        <div className="grid grid-cols-[3rem_1fr_auto] items-center w-full mb-2 shrink-0">
-          <BackButton href="/settings" />
+        <div className="relative flex items-center justify-center w-full mb-2 shrink-0 min-h-[3rem]">
+          <div className="absolute left-0">
+            <BackButton href="/settings" />
+          </div>
           <h1 className="text-2xl font-bold text-center">Templates</h1>
-          {hasTemplates && !isLoading && canCreate ? (
-            <motion.button
-              type="button"
-              whileTap={{ scale: 0.85, opacity: 0.7 }}
-              onClick={openCreate}
-              className="inline-flex items-center justify-center h-12 px-5 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[15px] font-medium text-muted-foreground hover:text-foreground hover:bg-card/90 transition-colors ml-auto"
-              aria-label="Create template"
-            >
-              Add
-            </motion.button>
-          ) : (
-            <div />
-          )}
+          <div className="absolute right-0">
+            {hasTemplates && !isLoading && canCreate && (
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.85, opacity: 0.7 }}
+                onClick={openCreate}
+                className="inline-flex items-center justify-center h-12 px-5 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[15px] font-medium text-foreground hover:bg-card/90 transition-colors"
+                aria-label="Create template"
+              >
+                Add
+              </motion.button>
+            )}
+          </div>
         </div>
 
         {isLoading ? (
