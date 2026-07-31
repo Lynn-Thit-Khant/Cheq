@@ -91,7 +91,7 @@ export default function TemplatesPage() {
     setIsSaving(true)
     try {
       const created = await createTemplate(data)
-      setTemplates((prev) => [created, ...prev])
+      setTemplates((prev) => [...prev, created])
       closeModal()
     } finally {
       setIsSaving(false)

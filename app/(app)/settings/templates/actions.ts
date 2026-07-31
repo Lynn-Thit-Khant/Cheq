@@ -16,7 +16,7 @@ export async function getTemplates(): Promise<ShiftTemplate[]> {
     .from('shift_templates')
     .select('*')
     .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
+    .order('created_at', { ascending: true })
 
   if (error) {
     console.error("Error fetching templates:", error)
