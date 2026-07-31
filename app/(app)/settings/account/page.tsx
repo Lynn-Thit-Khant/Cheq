@@ -1,6 +1,6 @@
  "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { BackButton } from "@/components/back-button"
 import { useUser } from "@/components/user-provider"
@@ -32,7 +32,6 @@ import {
 import { createClient } from "@/lib/client"
 import { MFAEnrollModal } from "@/components/auth/mfa-enroll-modal"
 import { MFARemoveModal } from "@/components/auth/mfa-remove-modal"
-import { useMemo } from "react"
 
 export default function AccountPage() {
   const { user } = useUser()
@@ -50,6 +49,8 @@ export default function AccountPage() {
   const [mfaRemoveModalOpen, setMfaRemoveModalOpen] = useState(false)
   const [mfaEnabled, setMfaEnabled] = useState(false)
   const [enrolledFactorId, setEnrolledFactorId] = useState<string | null>(null)
+  
+  const justSavedRef = useRef(false)
   
   const anyOpen = nameOpen || emailOpen || passwordOpen || mfaPopoverOpen;
   const [backdropActive, setBackdropActive] = useState(false);
@@ -125,6 +126,7 @@ export default function AccountPage() {
     if ('error' in res) {
 
     } else {
+      justSavedRef.current = true
       setNameModalOpen(false)
       router.refresh()
     }
@@ -394,6 +396,13 @@ export default function AccountPage() {
     <CenterMorphModal open={nameModalOpen} onOpenChange={(open) => {
       setNameModalOpen(open)
       if (open) setNewName(userName)
+      if (!open) {
+        if (justSavedRef.current) {
+          justSavedRef.current = false
+        } else {
+          setNameOpen(true)
+        }
+      }
     }}>
       <CenterMorphModalContent ariaLabel="Edit Name" className="w-full max-w-sm bg-card p-6 border-border/50">
         <div className="flex flex-col gap-6">
@@ -437,6 +446,12 @@ export default function AccountPage() {
           setEmailOtpCode('')
           setEmailOtpStatus('idle')
           setEmailOtpError('')
+          
+          if (justSavedRef.current) {
+            justSavedRef.current = false
+          } else {
+            setEmailOpen(true)
+          }
         }
       }}
     >
@@ -553,6 +568,12 @@ export default function AccountPage() {
           setCurrentPassword('')
           setNewPassword('')
           setConfirmPassword('')
+          
+          if (justSavedRef.current) {
+            justSavedRef.current = false
+          } else {
+            setPasswordOpen(true)
+          }
         }
       }}
     >
@@ -641,8 +662,18 @@ export default function AccountPage() {
 
     <MFAEnrollModal 
       open={mfaModalOpen} 
-      onOpenChange={setMfaModalOpen} 
+      onOpenChange={(open) => {
+        setMfaModalOpen(open)
+        if (!open) {
+          if (justSavedRef.current) {
+            justSavedRef.current = false
+          } else {
+            setMfaPopoverOpen(true)
+          }
+        }
+      }} 
       onEnrolled={(id: string) => {
+        justSavedRef.current = true
         setMfaEnabled(true)
         setEnrolledFactorId(id)
       }} 
@@ -650,9 +681,19 @@ export default function AccountPage() {
 
     <MFARemoveModal
       open={mfaRemoveModalOpen}
-      onOpenChange={setMfaRemoveModalOpen}
+      onOpenChange={(open) => {
+        setMfaRemoveModalOpen(open)
+        if (!open) {
+          if (justSavedRef.current) {
+            justSavedRef.current = false
+          } else {
+            setMfaPopoverOpen(true)
+          }
+        }
+      }}
       factorId={enrolledFactorId}
       onRemoved={() => {
+        justSavedRef.current = true
         setMfaEnabled(false)
         setEnrolledFactorId(null)
       }}
