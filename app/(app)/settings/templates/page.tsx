@@ -178,17 +178,17 @@ export default function TemplatesPage() {
                   key={template.id}
                   onClick={() => openView(template)}
                 >
-                  <div className="flex items-center gap-3 text-left">
+                  <div className="flex items-center gap-3 text-left min-w-0 flex-1 pr-4">
                     <div className="w-1 h-5 rounded-full bg-primary/80 shrink-0" />
-                    <span className="text-[15px] font-medium text-foreground tracking-tight">
+                    <span className="text-[15px] font-medium text-foreground tracking-tight truncate">
                       {template.name}
                     </span>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 shrink-0">
                     <span className="text-[13px] text-muted-foreground font-medium">
                       {formatDisplayTime(template.start_time, preferences.time_format)} – {formatDisplayTime(template.end_time, preferences.time_format)}
                     </span>
-                    <svg width="7" height="12" viewBox="0 0 7 12" fill="none" className="text-muted-foreground">
+                    <svg width="7" height="12" viewBox="0 0 7 12" fill="none" className="text-muted-foreground shrink-0">
                       <path d="M1 1L6 6L1 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </div>
@@ -238,21 +238,21 @@ export default function TemplatesPage() {
           {selected && (
             <div className="flex flex-col gap-6">
               {/* Header */}
-              <div className="flex flex-col gap-1 text-center">
-                <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">
+              <div className="flex flex-col gap-1 text-center px-8">
+                <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground truncate">
                   {selected.name}
                 </h2>
               </div>
 
               {/* Details */}
               <div className="flex flex-col mt-2">
-                <div className="flex items-center justify-between text-[15px] py-3.5 border-b border-border/40">
-                  <span className="text-muted-foreground">Workplace</span>
-                  <span className="text-foreground font-medium">{selected.workplace_name}</span>
+                <div className="flex items-center justify-between text-[15px] py-3.5 border-b border-border/40 gap-4">
+                  <span className="text-muted-foreground shrink-0">Workplace</span>
+                  <span className="text-foreground font-medium truncate max-w-[60%] text-right">{selected.workplace_name}</span>
                 </div>
-                <div className="flex items-center justify-between text-[15px] py-3.5 border-b border-border/40">
-                  <span className="text-muted-foreground">Location</span>
-                  <span className="text-foreground font-medium">{selected.workplace_location}</span>
+                <div className="flex items-center justify-between text-[15px] py-3.5 border-b border-border/40 gap-4">
+                  <span className="text-muted-foreground shrink-0">Location</span>
+                  <span className="text-foreground font-medium truncate max-w-[60%] text-right">{selected.workplace_location}</span>
                 </div>
 
                 <div className="flex items-center justify-between text-[15px] py-3.5 border-b border-border/40">

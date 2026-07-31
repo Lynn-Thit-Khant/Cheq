@@ -240,7 +240,7 @@ export default function AccountPage() {
               <MorphPopoverTrigger>
                 <button type="button" className={`flex w-full items-center justify-between h-14 px-6 gap-3 group relative transition-[transform,box-shadow] duration-300 cursor-pointer rounded-[28px] outline-none ${nameOpen ? 'z-[60] bg-card shadow-2xl scale-[1.02] ring-1 ring-border/50' : 'z-10 hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10'}`}>
                   <span className="text-[15px] leading-6 text-muted-foreground shrink-0">Name</span>
-                  <span className="text-[15px] font-medium text-foreground text-right">{userName}</span>
+                  <span className="text-[15px] font-medium text-foreground text-right truncate max-w-[60%]">{userName}</span>
                 </button>
               </MorphPopoverTrigger>
               <MorphPopoverContent align="end" sideOffset={0} radius={999} unstyled className="w-auto p-4 -mr-4">
@@ -265,7 +265,7 @@ export default function AccountPage() {
               <MorphPopoverTrigger>
                 <button type="button" className={`flex w-full items-center justify-between h-14 px-6 gap-3 group relative transition-[transform,box-shadow] duration-300 cursor-pointer rounded-[28px] outline-none ${emailOpen ? 'z-[60] bg-card shadow-2xl scale-[1.02] ring-1 ring-border/50' : 'z-10 hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10'}`}>
                   <span className="text-[15px] leading-6 text-muted-foreground shrink-0">Email</span>
-                  <span className="text-[15px] font-medium text-foreground text-right break-all">{userEmail}</span>
+                  <span className="text-[15px] font-medium text-foreground text-right truncate max-w-[70%]">{userEmail}</span>
                 </button>
               </MorphPopoverTrigger>
               <MorphPopoverContent align="end" sideOffset={0} radius={999} unstyled className="w-auto p-4 -mr-4">

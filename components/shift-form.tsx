@@ -101,7 +101,7 @@ export function ShiftForm({
       ? formatTime12(startHour, startMin, startAmpm)
       : formatTime24(startHour, startMin)
     form.setValue("start_time", val, { shouldValidate: form.formState.isSubmitted })
-  }, [startHour, startMin, startAmpm, timeFormat, form])
+  }, [startHour, startMin, startAmpm, timeFormat, form, startPicked])
 
   // ── End time picker state ──────────────────────────────────
   const initEnd = timeFormat === "12h"
@@ -120,7 +120,7 @@ export function ShiftForm({
       ? formatTime12(endHour, endMin, endAmpm)
       : formatTime24(endHour, endMin)
     form.setValue("end_time", val, { shouldValidate: form.formState.isSubmitted })
-  }, [endHour, endMin, endAmpm, timeFormat, form])
+  }, [endHour, endMin, endAmpm, timeFormat, form, endPicked])
 
   const handleFormSubmit = form.handleSubmit(async (data) => {
     await onSubmit(data)
@@ -128,10 +128,10 @@ export function ShiftForm({
 
   // Display values
   const dateDisplay = selectedDate ? formatDisplayDate(dateToString(selectedDate)) : "Pick a date"
-  const startDisplay = !startPicked ? "Pick time" : (timeFormat === "12h"
+  const startDisplay = !startPicked ? "--:--" : (timeFormat === "12h"
     ? displayTime12(startHour, startMin, startAmpm)
     : displayTime24(startHour, startMin))
-  const endDisplay = !endPicked ? "Pick time" : (timeFormat === "12h"
+  const endDisplay = !endPicked ? "--:--" : (timeFormat === "12h"
     ? displayTime12(endHour, endMin, endAmpm)
     : displayTime24(endHour, endMin))
 
@@ -156,7 +156,7 @@ export function ShiftForm({
                   {...field}
                   type="text"
                   placeholder="Template Name"
-                  className="w-full bg-transparent text-center text-lg font-semibold leading-none tracking-tight text-foreground placeholder:text-muted-foreground/50 outline-none border-none focus:outline-none"
+                  className="w-full bg-transparent text-center text-lg font-semibold leading-none tracking-tight text-foreground placeholder:text-muted-foreground/50 outline-none border-none focus:outline-none px-8 truncate"
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
