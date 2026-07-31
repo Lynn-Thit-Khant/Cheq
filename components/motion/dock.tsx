@@ -65,7 +65,7 @@ export function DockItem({
   const pill = active ? (
     <motion.span
       layoutId={pillLayoutId}
-      transition={reduce ? { duration: 0 } : SPRING_LAYOUT}
+      transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 170, damping: 24, mass: 1.2 }}
       className="absolute inset-0.5 -z-10 rounded-full bg-black/5 dark:bg-white/10"
     />
   ) : null;
