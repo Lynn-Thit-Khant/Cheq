@@ -2,17 +2,15 @@
 
 import { useEffect, useState } from "react"
 import { BackButton } from "@/components/back-button"
-import { Briefcase, Plus, MapPin, Clock, DollarSign, Coffee, Calendar } from "lucide-react"
+import { Briefcase, ChevronRight } from "lucide-react"
 import { motion } from "motion/react"
 import {
   CenterMorphModal,
   CenterMorphModalContent,
-  CenterMorphModalClose,
 } from "@/components/motion/center-morph-modal"
 import { Button } from "@/components/motion/button/base"
 import { TemplateForm } from "@/components/template-form"
-import type { ShiftTemplate } from "@/lib/schemas/shift-form-schema"
-import type { TemplateFormValues } from "@/lib/schemas/shift-form-schema"
+import type { ShiftTemplate, TemplateFormValues } from "@/lib/schemas/shift-form-schema"
 import { getUserPreferences, type UserPreferences } from "../defaults/actions"
 import {
   getTemplates,
@@ -44,11 +42,10 @@ type ModalMode = "idle" | "create" | "view" | "edit"
 export default function TemplatesPage() {
   const [templates, setTemplates] = useState<ShiftTemplate[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
-
   const [modalMode, setModalMode] = useState<ModalMode>("idle")
   const [selected, setSelected] = useState<ShiftTemplate | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const [preferences, setPreferences] = useState<UserPreferences>({
     time_format: "12h",
@@ -57,24 +54,33 @@ export default function TemplatesPage() {
     default_break_duration: 0,
   })
 
-  // Load templates + preferences
+  // Load templates & preferences on mount
   useEffect(() => {
-    Promise.all([getTemplates(), getUserPreferences()]).then(
-      ([temps, prefs]) => {
-        setTemplates(temps)
+    async function loadData() {
+      try {
+        const [prefs, userTemplates] = await Promise.all([
+          getUserPreferences(),
+          getTemplates(),
+        ])
         setPreferences(prefs)
+        setTemplates(userTemplates)
+      } catch (err) {
+        console.error("Error loading templates page:", err)
+      } finally {
         setIsLoading(false)
-      },
-    )
+      }
+    }
+    loadData()
   }, [])
 
+  // ── Modal handlers ──────────────────────────────────────────
   const openCreate = () => {
     setSelected(null)
     setModalMode("create")
   }
 
-  const openView = (t: ShiftTemplate) => {
-    setSelected(t)
+  const openView = (template: ShiftTemplate) => {
+    setSelected(template)
     setModalMode("view")
   }
 
@@ -87,10 +93,11 @@ export default function TemplatesPage() {
     setSelected(null)
   }
 
-  const handleCreate = async (data: TemplateFormValues) => {
+  // ── CRUD Handlers ───────────────────────────────────────────
+  const handleCreate = async (values: TemplateFormValues) => {
     setIsSaving(true)
     try {
-      const created = await createTemplate(data)
+      const created = await createTemplate(values)
       setTemplates((prev) => [...prev, created])
       closeModal()
     } finally {
@@ -98,15 +105,14 @@ export default function TemplatesPage() {
     }
   }
 
-  const handleUpdate = async (data: TemplateFormValues) => {
+  const handleUpdate = async (values: TemplateFormValues) => {
     if (!selected) return
     setIsSaving(true)
     try {
-      const updated = await updateTemplate(selected.id, data)
-      setTemplates((prev) =>
-        prev.map((t) => (t.id === updated.id ? updated : t)),
-      )
-      closeModal()
+      const updated = await updateTemplate(selected.id, values)
+      setTemplates((prev) => prev.map((t) => (t.id === updated.id ? updated : t)))
+      setSelected(updated)
+      setModalMode("view")
     } finally {
       setIsSaving(false)
     }
@@ -158,14 +164,20 @@ export default function TemplatesPage() {
         ) : !hasTemplates ? (
           /* ── Empty state ─────────────────────────────── */
           <div className="flex-1 flex flex-col items-center justify-center gap-4 px-8 text-center">
-            <p className="text-sm text-muted-foreground">
-              Create templates to quickly log recurring shifts.
-            </p>
-            <motion.div whileTap={{ scale: 0.85, opacity: 0.7 }}>
+            <div className="size-16 rounded-full bg-card/80 backdrop-blur-xl border border-border/40 flex items-center justify-center text-muted-foreground shadow-sm">
+              <Briefcase className="size-7 stroke-[1.5]" />
+            </div>
+            <div className="flex flex-col gap-1.5 max-w-xs">
+              <p className="text-[17px] font-semibold text-foreground">No templates yet</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Save your regular shifts as templates so you can add them with a single tap.
+              </p>
+            </div>
+            <motion.div whileTap={{ scale: 0.85, opacity: 0.7 }} className="mt-2">
               <button
                 type="button"
                 onClick={openCreate}
-                className="rounded-full border border-border bg-card shadow-sm transition-colors hover:bg-card/90 text-foreground px-6 h-12 text-sm font-medium inline-flex items-center justify-center"
+                className="inline-flex items-center justify-center h-12 px-6 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[15px] font-medium text-foreground hover:bg-card/90 transition-colors shadow-sm"
               >
                 Create Template
               </button>
@@ -182,7 +194,7 @@ export default function TemplatesPage() {
                 >
                   <div className="flex items-center gap-3 text-left min-w-0 flex-1 pr-4">
                     <div className="w-1 h-5 rounded-full bg-primary/80 shrink-0" />
-                    <span className="text-[15px] font-medium text-foreground tracking-tight truncate">
+                    <span className="text-[15px] font-medium text-foreground truncate">
                       {template.name}
                     </span>
                   </div>
@@ -190,14 +202,12 @@ export default function TemplatesPage() {
                     <span className="text-[13px] text-muted-foreground font-medium">
                       {formatDisplayTime(template.start_time, preferences.time_format)} – {formatDisplayTime(template.end_time, preferences.time_format)}
                     </span>
-                    <svg width="7" height="12" viewBox="0 0 7 12" fill="none" className="text-muted-foreground shrink-0">
-                      <path d="M1 1L6 6L1 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                    <ChevronRight className="size-4 text-muted-foreground shrink-0" />
                   </div>
                 </SettingsRow>
               ))}
             </SettingsCard>
-            
+
             {!canCreate && (
               <p className="text-center text-[13px] text-muted-foreground mt-2">
                 You've reached the maximum limit of 3 templates.
@@ -241,20 +251,24 @@ export default function TemplatesPage() {
             <div className="flex flex-col gap-6">
               {/* Header */}
               <div className="flex flex-col gap-1 text-center px-8">
-                <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground truncate">
+                <h2 className="text-lg font-semibold leading-none text-foreground truncate">
                   {selected.name}
                 </h2>
               </div>
 
               {/* Details */}
-              <div className="flex flex-col mt-2">
+              <div className="flex flex-col">
                 <div className="flex items-center justify-between text-[15px] py-3.5 border-b border-border/40 gap-4">
                   <span className="text-muted-foreground shrink-0">Workplace</span>
-                  <span className="text-foreground font-medium truncate max-w-[60%] text-right">{selected.workplace_name}</span>
+                  <span className="text-foreground font-medium truncate max-w-[60%] text-right">
+                    {selected.workplace_name}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between text-[15px] py-3.5 border-b border-border/40 gap-4">
                   <span className="text-muted-foreground shrink-0">Location</span>
-                  <span className="text-foreground font-medium truncate max-w-[60%] text-right">{selected.workplace_location}</span>
+                  <span className="text-foreground font-medium truncate max-w-[60%] text-right">
+                    {selected.workplace_location}
+                  </span>
                 </div>
 
                 <div className="flex items-center justify-between text-[15px] py-3.5 border-b border-border/40">
@@ -267,11 +281,15 @@ export default function TemplatesPage() {
                 </div>
                 <div className="flex items-center justify-between text-[15px] py-3.5 border-b border-border/40">
                   <span className="text-muted-foreground">Rate</span>
-                  <span className="text-foreground font-medium">${Number(selected.hourly_rate).toFixed(2)} / hr</span>
+                  <span className="text-foreground font-medium">
+                    ${Number(selected.hourly_rate).toFixed(2)} / hr
+                  </span>
                 </div>
                 <div className="flex items-center justify-between text-[15px] py-3.5">
                   <span className="text-muted-foreground">Break</span>
-                  <span className="text-foreground font-medium">{selected.break_duration} min</span>
+                  <span className="text-foreground font-medium">
+                    {selected.break_duration} min
+                  </span>
                 </div>
               </div>
 
@@ -285,10 +303,7 @@ export default function TemplatesPage() {
                 >
                   {isDeleting ? "Deleting" : "Delete"}
                 </Button>
-                <Button
-                  onClick={openEdit}
-                  disabled={isDeleting}
-                >
+                <Button onClick={openEdit} disabled={isDeleting}>
                   Edit
                 </Button>
               </div>

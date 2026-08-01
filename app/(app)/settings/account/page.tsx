@@ -407,7 +407,7 @@ export default function AccountPage() {
       <CenterMorphModalContent ariaLabel="Edit Name" className="w-full max-w-sm bg-card p-6 border-border/50">
         <div className="flex flex-col gap-6">
           <div className="flex flex-col text-center">
-            <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Edit Name</h2>
+            <h2 className="text-lg font-semibold leading-none text-foreground">Edit Name</h2>
           </div>
           <FieldGroup>
             <Field>
@@ -464,7 +464,7 @@ export default function AccountPage() {
         {emailSuccess ? (
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-4 text-center">
-              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Email updated successfully</h2>
+              <h2 className="text-lg font-semibold leading-none text-foreground">Email updated successfully</h2>
               <p className="text-sm text-muted-foreground">
                 For security reasons, please sign in again with your new email address.
               </p>
@@ -478,7 +478,7 @@ export default function AccountPage() {
         ) : emailStep === 'input' ? (
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-2 text-center mb-4">
-              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Edit Email</h2>
+              <h2 className="text-lg font-semibold leading-none text-foreground">Edit Email</h2>
             </div>
             <FieldGroup>
               <Field>
@@ -527,7 +527,7 @@ export default function AccountPage() {
         ) : emailStep === 'verify' ? (
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-4 text-center">
-              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Verify new email</h2>
+              <h2 className="text-lg font-semibold leading-none text-foreground">Verify new email</h2>
               <p className="text-sm text-muted-foreground">
                 Please enter the 6-digit code sent to your new email address.
               </p>
@@ -586,7 +586,7 @@ export default function AccountPage() {
         {passwordSuccess ? (
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-4 text-center">
-              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Password updated successfully</h2>
+              <h2 className="text-lg font-semibold leading-none text-foreground">Password updated successfully</h2>
               <p className="text-sm text-muted-foreground">
                 For security reasons, please sign in again with your new password.
               </p>
@@ -600,7 +600,7 @@ export default function AccountPage() {
         ) : (
           <div className="flex flex-col gap-6">
             <div className="flex flex-col text-center">
-              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Edit Password</h2>
+              <h2 className="text-lg font-semibold leading-none text-foreground">Edit Password</h2>
             </div>
             {passwordError && (
               <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md border border-destructive/20 text-center">

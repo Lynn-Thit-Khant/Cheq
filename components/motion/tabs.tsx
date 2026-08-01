@@ -108,11 +108,15 @@ export function TabsTrigger({
   children,
   className,
   indicatorClassName,
+  buttonClassName,
+  "aria-label": ariaLabel,
 }: {
   value: string;
   children: ReactNode;
   className?: string;
   indicatorClassName?: string;
+  buttonClassName?: string;
+  "aria-label"?: string;
 }) {
   const { value: current, setValue, layoutId, variant } = useTabs();
   const active = current === value;
@@ -122,12 +126,14 @@ export function TabsTrigger({
       <button
         type="button"
         role="tab"
+        aria-label={ariaLabel}
         aria-selected={active}
         onClick={() => setValue(value)}
         className={cn(
           "relative isolate px-3 pb-2.5 pt-1 -mb-px text-sm font-medium transition-colors min-h-[44px] inline-flex items-center",
           active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
           className,
+          buttonClassName,
         )}
       >
         {children}
@@ -162,6 +168,7 @@ export function TabsTrigger({
       <button
         type="button"
         role="tab"
+        aria-label={ariaLabel}
         aria-selected={active}
         onClick={() => setValue(value)}
         className={cn(
@@ -171,6 +178,7 @@ export function TabsTrigger({
             ? "text-foreground"
             : "text-muted-foreground hover:text-foreground",
           radius,
+          buttonClassName,
         )}
       >
         {children}

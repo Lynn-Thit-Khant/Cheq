@@ -26,7 +26,7 @@ export default function SettingsPage() {
         <div className="h-[84px] w-[84px] rounded-full bg-primary text-primary-foreground flex items-center justify-center text-4xl font-bold mb-3">
           {userName ? userName.charAt(0).toUpperCase() : (userEmail ? userEmail.charAt(0).toUpperCase() : "U")}
         </div>
-        <span className="text-[22px] font-bold text-foreground tracking-tight">
+        <span className="text-[22px] font-bold text-foreground">
           {userName || "Name"}
         </span>
         <span className="text-[15px] text-muted-foreground">

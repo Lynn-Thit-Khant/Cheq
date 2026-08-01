@@ -28,6 +28,17 @@ export function formatDisplayDate(dateStr: string) {
   return `${MONTHS_SHORT[parseInt(m, 10) - 1]} ${parseInt(d, 10)}, ${y}`
 }
 
+export function formatShiftDisplayDate(dateStr: string) {
+  if (!dateStr) return ""
+  const [y, m, d] = dateStr.split("-").map(Number)
+  const date = new Date(y, m - 1, d)
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  })
+}
+
 // ── Time parsing ──────────────────────────────────────────────
 export function parseTime12(timeStr: string) {
   if (!timeStr) return { hour: "12", minute: "00", ampm: "AM" }
@@ -67,7 +78,7 @@ export function displayTime24(hour: string, minute: string) {
 }
 
 // ── Display time from raw HH:MM string ────────────────────────
-export function formatDisplayTime(timeStr: string, format: "12h" | "24h") {
+export function formatDisplayTime(timeStr: string, format: "12h" | "24h" = "12h") {
   if (!timeStr) return ""
   const [hh, mm] = timeStr.split(":")
   if (format === "24h") return `${hh}:${mm}`
@@ -77,3 +88,45 @@ export function formatDisplayTime(timeStr: string, format: "12h" | "24h") {
   else if (h > 12) h -= 12
   return `${h}:${mm} ${ampm}`
 }
+
+// ── Shift duration & income calculations ───────────────────────
+export function calculateShiftDurationHours(
+  startTime: string,
+  endTime: string,
+  breakMinutes: number = 0
+): number {
+  if (!startTime || !endTime) return 0
+  const [sh, sm] = startTime.split(":").map(Number)
+  const [eh, em] = endTime.split(":").map(Number)
+
+  let startTotalMin = sh * 60 + (sm || 0)
+  let endTotalMin = eh * 60 + (em || 0)
+
+  // Handle overnight shifts crossing midnight
+  if (endTotalMin <= startTotalMin) {
+    endTotalMin += 24 * 60
+  }
+
+  const workedMinutes = Math.max(0, endTotalMin - startTotalMin - (breakMinutes || 0))
+  return workedMinutes / 60
+}
+
+export function calculateShiftIncome(
+  startTime: string,
+  endTime: string,
+  hourlyRate: number = 0,
+  breakMinutes: number = 0
+): number {
+  const hours = calculateShiftDurationHours(startTime, endTime, breakMinutes)
+  return hours * (hourlyRate || 0)
+}
+
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount)
+}
+

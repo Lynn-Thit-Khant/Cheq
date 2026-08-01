@@ -321,7 +321,7 @@ export default function DefaultsPage() {
         <CenterMorphModalContent ariaLabel="Edit Hourly Rate" className="w-full max-w-sm bg-card p-6 border-border/50">
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-4 text-center">
-              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Default Hourly Rate</h2>
+              <h2 className="text-lg font-semibold leading-none text-foreground">Default Hourly Rate</h2>
               <p className="text-sm text-muted-foreground">Enter your standard pay rate per hour.</p>
             </div>
             
@@ -370,7 +370,7 @@ export default function DefaultsPage() {
         <CenterMorphModalContent ariaLabel="Edit Break Duration" className="w-full max-w-sm bg-card p-6 border-border/50">
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-4 text-center">
-              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">Default Break Duration</h2>
+              <h2 className="text-lg font-semibold leading-none text-foreground">Default Break Duration</h2>
               <p className="text-sm text-muted-foreground">Enter your standard unpaid break time.</p>
             </div>
             

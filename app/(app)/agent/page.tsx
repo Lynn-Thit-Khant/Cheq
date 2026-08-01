@@ -20,7 +20,7 @@ export default function AgentPage() {
         stagger={0.15}
         delay={0.2}
         blur={8}
-        className="text-2xl font-bold tracking-tight"
+        className="text-2xl font-bold"
       />
 
       <TextReveal
