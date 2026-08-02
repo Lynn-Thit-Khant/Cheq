@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { Dock, DockItem } from "@/components/motion/dock"
-import { Home, Wallet, Settings, Sparkles } from "lucide-react"
+import { Home, TrendingUp, Settings, Sparkles } from "lucide-react"
 
 export function BottomNav() {
   const pathname = usePathname()
@@ -11,7 +11,7 @@ export function BottomNav() {
 
   const tabs = [
     { name: "Home", href: "/home", icon: Home },
-    { name: "Earnings", href: "/earnings", icon: Wallet },
+    { name: "Analytics", href: "/analytics", icon: TrendingUp },
     { name: "Settings", href: "/settings", icon: Settings },
     { name: "Agent", href: "/agent", icon: Sparkles },
   ]

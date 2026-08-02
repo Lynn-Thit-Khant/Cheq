@@ -1,14 +1,17 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { BackButton } from "@/components/back-button"
-import { Briefcase, ChevronRight } from "lucide-react"
-import { motion } from "motion/react"
+import { Briefcase, ChevronRight, Check, Trash2, Plus } from "lucide-react"
+import { motion, AnimatePresence } from "motion/react"
+import { ConfirmModal } from "@/components/confirm-modal"
 import {
   CenterMorphModal,
   CenterMorphModalContent,
+  CenterMorphModalClose,
 } from "@/components/motion/center-morph-modal"
 import { Button } from "@/components/motion/button/base"
+import { Loader } from "@/components/motion/loader"
 import { TemplateForm } from "@/components/template-form"
 import type { ShiftTemplate, TemplateFormValues } from "@/lib/schemas/shift-form-schema"
 import { getUserPreferences, type UserPreferences } from "../defaults/actions"
@@ -23,6 +26,7 @@ import {
 import { SettingsCard } from "@/components/settings-card"
 import { SettingsRow } from "@/components/settings-row"
 import { formatDisplayTime } from "@/lib/time-utils"
+import { cn } from "@/lib/utils"
 
 function templateToTemplateFormValues(t: ShiftTemplate): TemplateFormValues {
   return {
@@ -46,6 +50,13 @@ export default function TemplatesPage() {
   const [selected, setSelected] = useState<ShiftTemplate | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isSelectMode, setIsSelectMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [isDeletingBulk, setIsDeletingBulk] = useState(false)
+  const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false)
+  const [singleDeleteConfirmOpen, setSingleDeleteConfirmOpen] = useState(false)
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isLongPressRef = useRef(false)
 
   const [preferences, setPreferences] = useState<UserPreferences>({
     time_format: "12h",
@@ -124,56 +135,177 @@ export default function TemplatesPage() {
     try {
       await deleteTemplate(selected.id)
       setTemplates((prev) => prev.filter((t) => t.id !== selected.id))
+      setSingleDeleteConfirmOpen(false)
       closeModal()
+    } catch (err) {
+      console.error("Failed to delete template:", err)
     } finally {
       setIsDeleting(false)
     }
   }
 
+  // ── Select Mode Handlers ────────────────────────────────────
+  const enterSelectMode = (templateId: string) => {
+    setIsSelectMode(true)
+    setSelectedIds(new Set([templateId]))
+  }
+
+  const exitSelectMode = () => {
+    setIsSelectMode(false)
+    setSelectedIds(new Set())
+  }
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  const handleLongPressStart = (templateId: string) => {
+    isLongPressRef.current = false
+    longPressTimerRef.current = setTimeout(() => {
+      isLongPressRef.current = true
+      enterSelectMode(templateId)
+    }, 500)
+  }
+
+  const handleLongPressEnd = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current)
+      longPressTimerRef.current = null
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    setIsDeletingBulk(true)
+    try {
+      await Promise.all([...selectedIds].map((id) => deleteTemplate(id)))
+      setTemplates((prev) => prev.filter((t) => !selectedIds.has(t.id)))
+      setBulkDeleteConfirmOpen(false)
+      exitSelectMode()
+    } catch (err) {
+      console.error("Failed to bulk delete templates:", err)
+    } finally {
+      setIsDeletingBulk(false)
+    }
+  }
+
+  const handleSelectAll = () => {
+    setSelectedIds(new Set(templates.map((t) => t.id)))
+  }
+
+  const handleDeselectAll = () => {
+    setSelectedIds(new Set())
+  }
+
   const hasTemplates = templates.length > 0
-  const canCreate = templates.length < 3
+  const canCreate = templates.length < 5
 
   return (
     <>
       <div className="flex flex-1 flex-col p-4 w-full max-w-md mx-auto mt-2 h-full relative">
         {/* Header */}
-        <div className="relative flex items-center justify-center w-full mb-2 shrink-0 min-h-[3rem]">
-          <div className="absolute left-0">
-            <BackButton href="/settings" />
-          </div>
-          <h1 className="text-2xl font-bold text-center">Templates</h1>
-          <div className="absolute right-0">
-            {hasTemplates && !isLoading && canCreate && (
-              <motion.button
-                type="button"
-                whileTap={{ scale: 0.85, opacity: 0.7 }}
-                onClick={openCreate}
-                className="inline-flex items-center justify-center h-12 px-5 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[15px] font-medium text-foreground hover:bg-card/90 transition-colors shadow-sm"
-                aria-label="Create template"
+        <div className="relative flex items-center justify-between w-full mb-2 shrink-0 min-h-[3rem]">
+          <AnimatePresence mode="wait" initial={false}>
+            {isSelectMode ? (
+              <motion.div
+                key="select-toolbar"
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                className="relative flex items-center w-full"
               >
-                Add
-              </motion.button>
+                {/* Cancel — left */}
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: 0.85, opacity: 0.7 }}
+                  onClick={exitSelectMode}
+                  className="inline-flex items-center justify-center h-12 px-5 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[15px] font-medium text-foreground hover:bg-card/90 transition-colors focus:outline-none shrink-0 shadow-sm cursor-pointer z-10"
+                  aria-label="Cancel selection"
+                >
+                  Cancel
+                </motion.button>
+
+                {/* Select All / Deselect All — centered text button */}
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: 0.93, opacity: 0.7 }}
+                  onClick={selectedIds.size === templates.length ? handleDeselectAll : handleSelectAll}
+                  className="absolute inset-0 flex items-center justify-center text-[15px] font-medium text-foreground hover:text-foreground/70 transition-colors focus:outline-none cursor-pointer"
+                  aria-label={selectedIds.size === templates.length ? "Deselect all templates" : "Select all templates"}
+                >
+                  {selectedIds.size === templates.length ? "Deselect All" : "Select All"}
+                </motion.button>
+
+                {/* Spacer */}
+                <div className="flex-1" />
+
+                {/* Delete N — right, destructive */}
+                <Button
+                  variant={selectedIds.size > 0 ? "destructive" : "secondary"}
+                  size="lg"
+                  onClick={() => selectedIds.size > 0 && setBulkDeleteConfirmOpen(true)}
+                  disabled={selectedIds.size === 0}
+                  className={cn(
+                    "h-12 px-5 text-[15px] font-medium z-10 shadow-sm rounded-full",
+                    selectedIds.size === 0 && "opacity-40 text-muted-foreground/60 cursor-not-allowed bg-card/80 backdrop-blur-xl border border-border"
+                  )}
+                  aria-label="Delete selected templates"
+                >
+                  {selectedIds.size > 0 ? `Delete ${selectedIds.size}` : "Delete"}
+                </Button>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="normal-toolbar"
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                className="relative flex items-center justify-center w-full min-h-[3rem]"
+              >
+                <div className="absolute left-0">
+                  <BackButton href="/settings" />
+                </div>
+                <h1 className="text-2xl font-bold text-center">Templates</h1>
+                <div className="absolute right-0">
+                  {hasTemplates && !isLoading && canCreate && (
+                    <motion.button
+                      type="button"
+                      whileTap={{ scale: 0.85, opacity: 0.7 }}
+                      onClick={openCreate}
+                      className="inline-flex items-center justify-center h-12 px-5 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[15px] font-medium text-foreground hover:bg-card/90 transition-colors shadow-sm"
+                      aria-label="Create template"
+                    >
+                      Add
+                    </motion.button>
+                  )}
+                </div>
+              </motion.div>
             )}
-          </div>
+          </AnimatePresence>
         </div>
 
         {isLoading ? (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="size-6 border-2 border-foreground/20 border-t-foreground rounded-full animate-spin" />
+          <div className="flex-1 flex items-center justify-center py-16">
+            <Loader variant="ascii-braille" size={28} className="text-muted-foreground" />
           </div>
         ) : !hasTemplates ? (
-          /* ── Empty state ─────────────────────────────── */
-          <div className="flex-1 flex flex-col items-center justify-center gap-4 px-8 text-center">
-            <div className="size-16 rounded-full bg-card/80 backdrop-blur-xl border border-border/40 flex items-center justify-center text-muted-foreground shadow-sm">
-              <Briefcase className="size-7 stroke-[1.5]" />
-            </div>
+          /* ── Clean Empty state: Title + Text + Content-Fit Button ── */
+          <div className="flex-1 flex flex-col items-center justify-center text-center px-6 py-8 my-auto select-none">
             <div className="flex flex-col gap-1.5 max-w-xs">
-              <p className="text-[17px] font-semibold text-foreground">No templates yet</p>
+              <h3 className="text-[19px] font-semibold text-foreground tracking-tight">
+                No templates yet
+              </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Save your regular shifts as templates so you can add them with a single tap.
               </p>
             </div>
-            <motion.div whileTap={{ scale: 0.85, opacity: 0.7 }} className="mt-2">
+
+            <motion.div whileTap={{ scale: 0.94 }} className="mt-6">
               <button
                 type="button"
                 onClick={openCreate}
@@ -187,30 +319,93 @@ export default function TemplatesPage() {
           /* ── Template list ───────────────────────────── */
           <div className="flex-1 flex flex-col justify-start w-full gap-6 mt-6">
             <SettingsCard>
-              {templates.map((template) => (
-                <SettingsRow
-                  key={template.id}
-                  onClick={() => openView(template)}
-                >
-                  <div className="flex items-center gap-3 text-left min-w-0 flex-1 pr-4">
-                    <div className="w-1 h-5 rounded-full bg-primary/80 shrink-0" />
-                    <span className="text-[15px] font-medium text-foreground truncate">
-                      {template.name}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span className="text-[13px] text-muted-foreground font-medium">
-                      {formatDisplayTime(template.start_time, preferences.time_format)} – {formatDisplayTime(template.end_time, preferences.time_format)}
-                    </span>
-                    <ChevronRight className="size-4 text-muted-foreground shrink-0" />
-                  </div>
-                </SettingsRow>
-              ))}
+              {templates.map((template) => {
+                const isSelected = selectedIds.has(template.id)
+                return (
+                  <SettingsRow
+                    key={template.id}
+                    onClick={() => {
+                      if (isLongPressRef.current) {
+                        isLongPressRef.current = false
+                        return
+                      }
+                      if (isSelectMode) {
+                        toggleSelect(template.id)
+                      } else {
+                        openView(template)
+                      }
+                    }}
+                    onPointerDown={() => {
+                      if (!isSelectMode) handleLongPressStart(template.id)
+                    }}
+                    onPointerUp={handleLongPressEnd}
+                    onPointerLeave={handleLongPressEnd}
+                    onContextMenu={(e) => e.preventDefault()}
+                  >
+                    <div className="flex items-center gap-3 text-left min-w-0 flex-1 pr-4">
+                      <AnimatePresence mode="wait" initial={false}>
+                        {isSelectMode ? (
+                          <motion.div
+                            key="checkbox"
+                            initial={{ scale: 0.6, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.6, opacity: 0 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 28 }}
+                            className={cn(
+                              "flex size-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+                              isSelected
+                                ? "bg-foreground border-foreground"
+                                : "bg-transparent border-border/60"
+                            )}
+                          >
+                            <AnimatePresence>
+                              {isSelected && (
+                                <motion.div
+                                  key="check"
+                                  initial={{ scale: 0, opacity: 0 }}
+                                  animate={{ scale: 1, opacity: 1 }}
+                                  exit={{ scale: 0, opacity: 0 }}
+                                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                >
+                                  <Check className="size-3.5 text-background stroke-[2.5]" />
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </motion.div>
+                        ) : (
+                          <div className="w-1 h-5 rounded-full bg-primary/80 shrink-0" />
+                        )}
+                      </AnimatePresence>
+                      <span className="text-[15px] font-medium text-foreground truncate">
+                        {template.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className="text-[13px] text-muted-foreground font-medium">
+                        {formatDisplayTime(template.start_time, preferences.time_format)} – {formatDisplayTime(template.end_time, preferences.time_format)}
+                      </span>
+                      <AnimatePresence>
+                        {!isSelectMode && (
+                          <motion.div
+                            key="chevron"
+                            initial={{ opacity: 0, x: -4 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -4 }}
+                            transition={{ duration: 0.15 }}
+                          >
+                            <ChevronRight className="size-4 text-muted-foreground shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </SettingsRow>
+                )
+              })}
             </SettingsCard>
 
             {!canCreate && (
               <p className="text-center text-[13px] text-muted-foreground mt-2">
-                You've reached the maximum limit of 3 templates.
+                You've reached the maximum limit of 5 templates.
               </p>
             )}
           </div>
@@ -297,11 +492,10 @@ export default function TemplatesPage() {
               <div className="mt-2 flex justify-end gap-3">
                 <Button
                   variant="destructive"
-                  onClick={handleDelete}
-                  isLoading={isDeleting}
+                  onClick={() => setSingleDeleteConfirmOpen(true)}
                   disabled={isDeleting}
                 >
-                  {isDeleting ? "Deleting" : "Delete"}
+                  Delete
                 </Button>
                 <Button onClick={openEdit} disabled={isDeleting}>
                   Edit
@@ -332,6 +526,28 @@ export default function TemplatesPage() {
           )}
         </CenterMorphModalContent>
       </CenterMorphModal>
+
+      {/* ── Single Template Delete Confirm Modal ─────────── */}
+      <ConfirmModal
+        open={singleDeleteConfirmOpen}
+        onOpenChange={setSingleDeleteConfirmOpen}
+        title="Delete template?"
+        description="This will permanently remove this shift template."
+        confirmText="Delete"
+        isLoading={isDeleting}
+        onConfirm={handleDelete}
+      />
+
+      {/* ── Bulk Delete Confirm Modal ─────────────────────── */}
+      <ConfirmModal
+        open={bulkDeleteConfirmOpen}
+        onOpenChange={setBulkDeleteConfirmOpen}
+        title={selectedIds.size === 1 ? "Delete 1 template?" : `Delete ${selectedIds.size} templates?`}
+        description="This will permanently remove the selected templates."
+        confirmText="Delete"
+        isLoading={isDeletingBulk}
+        onConfirm={handleBulkDelete}
+      />
     </>
   )
 }

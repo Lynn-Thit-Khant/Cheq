@@ -6,6 +6,7 @@ import { useMemo } from "react"
 
 import { OTPInput, type OTPStatus } from "@/components/motion/otp-input"
 import { Button } from "@/components/motion/button/base"
+import { Loader } from "@/components/motion/loader"
 import {
   CenterMorphModal,
   CenterMorphModalContent,
@@ -107,23 +108,23 @@ export function MFAEnrollModal({
           </div>
 
           <div className="flex justify-center">
-            <div className="bg-white rounded-3xl p-4 shadow-sm border border-black/5">
+            <div className="bg-white rounded-2xl p-2.5 shadow-sm border border-black/5 overflow-hidden">
               {qr ? (
                 <img 
                   src={qr} 
                   alt="Authenticator QR Code" 
-                  width={192}
-                  height={192}
-                  className="object-contain" 
+                  width={216}
+                  height={216}
+                  className="size-52 object-cover scale-[1.10]" 
                 />
               ) : errorMsg && !qr ? (
-                <div className="w-48 h-48 flex items-center justify-center text-center p-2">
+                <div className="size-52 flex items-center justify-center text-center p-2">
                   <span className="text-sm text-destructive">{errorMsg}</span>
                 </div>
               ) : (
-                <div className="w-48 h-48 flex flex-col items-center justify-center gap-3">
-                  <div className="animate-spin h-6 w-6 border-2 border-primary border-t-transparent rounded-full" />
-                  <span className="text-sm text-muted-foreground animate-pulse">Loading QR...</span>
+                <div className="size-52 flex flex-col items-center justify-center gap-3">
+                  <Loader variant="ascii-braille" size={24} className="text-foreground" />
+                  <span className="text-sm text-muted-foreground font-mono animate-pulse">Loading QR...</span>
                 </div>
               )}
             </div>

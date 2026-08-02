@@ -278,7 +278,7 @@ export default function AccountPage() {
                       setEmailSuccess(false)
                       setEmailModalOpen(true)
                     }}
-                    className="w-full justify-start font-medium text-foreground rounded-[26px] h-12 text-[15px]"
+                    className="w-full justify-start font-medium text-foreground rounded-full h-12 text-[15px]"
                   >
                     <Pencil className="h-4 w-4" strokeWidth={1.5} />
                     Edit Email
@@ -297,7 +297,7 @@ export default function AccountPage() {
                         setCopyState("copy")
                       }, 2000)
                     }}
-                    className="w-full justify-start font-medium text-foreground rounded-[26px] h-12 text-[15px]"
+                    className="w-full justify-start font-medium text-foreground rounded-full h-12 text-[15px]"
                   />
                 </div>
               </MorphPopoverContent>
@@ -322,7 +322,7 @@ export default function AccountPage() {
                       setPasswordSuccess(false)
                       setPasswordModalOpen(true)
                     }}
-                    className="w-full justify-start font-medium text-foreground rounded-[26px] h-12"
+                    className="w-full justify-start font-medium text-foreground rounded-full h-12"
                   >
                     <Lock className="h-4 w-4" strokeWidth={1.5} />
                     Edit Password
@@ -333,7 +333,7 @@ export default function AccountPage() {
                     onClick={() => {
                       router.push('/auth/forgot-password')
                     }}
-                    className="w-full justify-start font-medium text-foreground rounded-[26px] h-12"
+                    className="w-full justify-start font-medium text-foreground rounded-full h-12"
                   >
                     <KeyRound className="h-4 w-4" strokeWidth={1.5} />
                     Forgot password
@@ -385,7 +385,7 @@ export default function AccountPage() {
                 </div>
               </MorphPopoverContent>
             </MorphPopover>
-            <SettingsRow interactive={true} className="opacity-50 select-none">
+            <SettingsRow interactive={true}>
               <span className="text-[15px] leading-6 text-muted-foreground shrink-0">Passkeys</span>
               <span className="text-[13px] text-muted-foreground/60">Coming soon</span>
             </SettingsRow>
@@ -416,7 +416,7 @@ export default function AccountPage() {
                 value={newName} 
                 onChange={(e) => setNewName(e.target.value)} 
                 placeholder="Your name"
-                className="w-full bg-card"
+                className="w-full bg-card rounded-full h-12 px-5"
               />
             </Field>
           </FieldGroup>
@@ -488,7 +488,7 @@ export default function AccountPage() {
                   onChange={(e) => setNewEmail(e.target.value)} 
                   placeholder="you@example.com"
                   type="email"
-                  className="w-full bg-card"
+                  className="w-full bg-card rounded-full h-12 px-5"
                 />
               </Field>
               <Field data-invalid={!!emailPasswordError}>

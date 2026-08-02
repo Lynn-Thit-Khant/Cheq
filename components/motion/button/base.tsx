@@ -45,7 +45,7 @@ const VARIANT_CLASS: Record<ButtonVariant, string> = {
   outline:
     "border border-border bg-transparent text-foreground hover:bg-black/5 dark:hover:bg-white/10 active:bg-black/10 dark:active:bg-white/20",
   destructive:
-    "bg-destructive/10 text-destructive hover:bg-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30",
+    "border border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20 dark:border-destructive/40 dark:bg-destructive/20 dark:hover:bg-destructive/30",
 };
 
 const SIZE_CLASS: Record<ButtonSize, string> = {

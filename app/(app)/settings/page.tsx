@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { useTheme } from "next-themes"
 
 import { User, LayoutTemplate, SlidersHorizontal, Sparkles, Plug, Moon, ChevronRight } from "lucide-react"
@@ -9,12 +10,19 @@ import { SettingsCard } from "@/components/settings-card"
 import { SettingsRow } from "@/components/settings-row"
 import Link from "next/link"
 import { useUser } from "@/components/user-provider"
+
 export default function SettingsPage() {
   const { setTheme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const { user } = useUser()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const userEmail = user?.email || ""
   const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || ""
-  const isDark = resolvedTheme === "dark"
+  const isDark = mounted && resolvedTheme === "dark"
 
   const toggle = () => {
     setTheme(isDark ? "light" : "dark")

@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
+import { ShieldAlert } from "lucide-react"
 import { createClient } from "@/lib/client"
-import { useMemo } from "react"
 import { OTPInput, type OTPStatus } from "@/components/motion/otp-input"
 import { Button } from "@/components/motion/button/base"
+import { ConfirmModal } from "@/components/confirm-modal"
 import {
   CenterMorphModal,
   CenterMorphModalContent,
@@ -27,10 +28,9 @@ export function MFARemoveModal({
   const [errorMsg, setErrorMsg] = useState('')
   const [isVerifying, setIsVerifying] = useState(false)
   const [isRemoving, setIsRemoving] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   const supabase = useMemo(() => createClient(), [])
-
-
 
   const handleVerify = async (code: string) => {
     if (!factorId) return
@@ -69,6 +69,7 @@ export function MFARemoveModal({
       if (unenroll.error) throw unenroll.error
 
       onRemoved()
+      setConfirmOpen(false)
       onOpenChange(false)
       setIsRemoving(false)
     } catch (err: any) {
@@ -78,54 +79,66 @@ export function MFARemoveModal({
   }
 
   return (
-    <CenterMorphModal open={open} onOpenChange={(val) => {
-      onOpenChange(val)
-      if (!val) {
-        setVerifyCode('')
-        setStatus('idle')
-        setErrorMsg('')
-      }
-    }}>
-      <CenterMorphModalContent ariaLabel="Remove MFA" className="w-full max-w-sm bg-card p-6 border-border/50">
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-4 text-center">
-            <h2 className="text-lg font-semibold leading-none text-foreground">Remove Authenticator</h2>
-            <p className="text-sm text-muted-foreground">
-              Please enter the 6-digit code from your authenticator app to verify it&apos;s you.
-            </p>
-          </div>
+    <>
+      <CenterMorphModal open={open} onOpenChange={(val) => {
+        onOpenChange(val)
+        if (!val) {
+          setVerifyCode('')
+          setStatus('idle')
+          setErrorMsg('')
+        }
+      }}>
+        <CenterMorphModalContent ariaLabel="Remove MFA" className="w-full max-w-sm bg-card p-6 border-border/50">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4 text-center">
+              <h2 className="text-lg font-semibold leading-none text-foreground">Remove Authenticator</h2>
+              <p className="text-sm text-muted-foreground">
+                Please enter the 6-digit code from your authenticator app to verify it&apos;s you.
+              </p>
+            </div>
 
-          <div className="flex justify-center w-full">
-            <OTPInput
-              label="Verification Code"
-              successMessage="Verification successful."
-              errorMessage={errorMsg}
-              value={verifyCode}
-              status={status}
-              disabled={isVerifying || isRemoving || !factorId}
-              onChange={(v) => {
-                setVerifyCode(v)
-                if (status !== "idle") setStatus("idle")
-              }}
-              onComplete={handleVerify}
-            />
-          </div>
+            <div className="flex justify-center w-full">
+              <OTPInput
+                label="Verification Code"
+                successMessage="Verification successful."
+                errorMessage={errorMsg}
+                value={verifyCode}
+                status={status}
+                disabled={isVerifying || isRemoving || !factorId}
+                onChange={(v) => {
+                  setVerifyCode(v)
+                  if (status !== "idle") setStatus("idle")
+                }}
+                onComplete={handleVerify}
+              />
+            </div>
 
-          <div className="mt-2 flex justify-end gap-3">
-            <CenterMorphModalClose>
-              <Button variant="ghost" disabled={isRemoving}>Cancel</Button>
-            </CenterMorphModalClose>
-            <Button 
-              variant="destructive"
-              disabled={isRemoving || status !== 'success'}
-              isLoading={isRemoving}
-              onClick={handleRemove}
-            >
-              {isRemoving ? "Removing" : "Remove"}
-            </Button>
+            <div className="mt-2 flex justify-end gap-3">
+              <CenterMorphModalClose>
+                <Button variant="ghost" disabled={isRemoving}>Cancel</Button>
+              </CenterMorphModalClose>
+              <Button 
+                variant="destructive"
+                disabled={isRemoving || status !== 'success'}
+                isLoading={isRemoving}
+                onClick={() => setConfirmOpen(true)}
+              >
+                Remove
+              </Button>
+            </div>
           </div>
-        </div>
-      </CenterMorphModalContent>
-    </CenterMorphModal>
+        </CenterMorphModalContent>
+      </CenterMorphModal>
+
+      <ConfirmModal
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Remove authenticator?"
+        description="This will disable two-factor authentication on your account."
+        confirmText="Remove"
+        isLoading={isRemoving}
+        onConfirm={handleRemove}
+      />
+    </>
   ) 
 }

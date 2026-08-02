@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { motion, AnimatePresence } from "motion/react"
-import { List, Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, Clock, Check } from "lucide-react"
+import { List, Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, Clock, Check, Trash2 } from "lucide-react"
+import { ConfirmModal } from "@/components/confirm-modal"
 import { Tabs, TabsList, TabsTrigger } from "@/components/motion/tabs"
 import { AnimatedNumber } from "@/components/motion/animated-number"
 import {
@@ -16,8 +17,10 @@ import { ShiftForm } from "@/components/shift-form"
 import { Calendar } from "@/components/ui/calendar"
 import { WheelPicker } from "@/components/motion/wheel-picker"
 import type { Shift, ShiftFormValues } from "@/lib/schemas/shift-form-schema"
+import { Loader } from "@/components/motion/loader"
 import { getUserPreferences, type UserPreferences } from "@/app/(app)/settings/defaults/actions"
 import { getShifts, createShift, updateShift, deleteShift } from "@/app/(app)/home/actions"
+import { cn } from "@/lib/utils"
 import {
   dateToString,
   formatDisplayDate,
@@ -189,7 +192,9 @@ export default function HomePage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [isDeletingBulk, setIsDeletingBulk] = useState(false)
   const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false)
+  const [singleDeleteConfirmOpen, setSingleDeleteConfirmOpen] = useState(false)
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isLongPressRef = useRef(false)
 
   const [preferences, setPreferences] = useState<UserPreferences>({
     time_format: "12h",
@@ -217,8 +222,17 @@ export default function HomePage() {
     loadData()
   }, [])
 
+  const [createDefaultDate, setCreateDefaultDate] = useState<Date | null>(null)
+
   // ── Modal handlers ──────────────────────────────────────────
   const openCreate = () => {
+    setCreateDefaultDate(null)
+    setSelectedShift(null)
+    setModalMode("create")
+  }
+
+  const openCreateWithDate = (date: Date) => {
+    setCreateDefaultDate(date)
     setSelectedShift(null)
     setModalMode("create")
   }
@@ -273,6 +287,7 @@ export default function HomePage() {
     try {
       await deleteShift(selectedShift.id)
       setShifts((prev) => prev.filter((s) => s.id !== selectedShift.id))
+      setSingleDeleteConfirmOpen(false)
       closeModal()
     } catch (err) {
       console.error("Failed to delete shift:", err)
@@ -301,7 +316,9 @@ export default function HomePage() {
   }
 
   const handleLongPressStart = (shiftId: string) => {
+    isLongPressRef.current = false
     longPressTimerRef.current = setTimeout(() => {
+      isLongPressRef.current = true
       enterSelectMode(shiftId)
     }, 500)
   }
@@ -446,6 +463,13 @@ export default function HomePage() {
       })
     : ""
 
+  const shortSelectedDayLabel = selectedCalendarDate
+    ? selectedCalendarDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      })
+    : ""
+
   const renderShiftList = (shiftList: Shift[]) => (
     <SettingsCard>
       {shiftList.map((shift, index) => {
@@ -473,6 +497,10 @@ export default function HomePage() {
             <button
               type="button"
               onClick={() => {
+                if (isLongPressRef.current) {
+                  isLongPressRef.current = false
+                  return
+                }
                 if (isSelectMode) {
                   toggleSelect(shift.id)
                 } else {
@@ -617,21 +645,19 @@ export default function HomePage() {
                 <div className="flex-1" />
 
                 {/* Delete N — right, destructive */}
-                <motion.button
-                  type="button"
-                  whileTap={{ scale: 0.85, opacity: 0.7 }}
+                <Button
+                  variant={selectedIds.size > 0 ? "destructive" : "secondary"}
+                  size="lg"
                   onClick={() => selectedIds.size > 0 && setBulkDeleteConfirmOpen(true)}
-                  className={[
-                    "inline-flex items-center justify-center h-12 px-5 rounded-full border transition-colors focus:outline-none shrink-0 shadow-sm text-[15px] font-medium z-10",
-                    selectedIds.size > 0
-                      ? "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20 cursor-pointer"
-                      : "border-border bg-card/80 backdrop-blur-xl text-muted-foreground/40 cursor-not-allowed",
-                  ].join(" ")}
-                  aria-label="Delete selected shifts"
                   disabled={selectedIds.size === 0}
+                  className={cn(
+                    "h-12 px-5 text-[15px] font-medium z-10 shadow-sm rounded-full",
+                    selectedIds.size === 0 && "opacity-40 text-muted-foreground/60 cursor-not-allowed bg-card/80 backdrop-blur-xl border border-border"
+                  )}
+                  aria-label="Delete selected shifts"
                 >
                   {selectedIds.size > 0 ? `Delete ${selectedIds.size}` : "Delete"}
-                </motion.button>
+                </Button>
               </motion.div>
             ) : (
               /* ── Normal Toolbar ── */
@@ -687,8 +713,8 @@ export default function HomePage() {
 
         {/* ── View Content (List vs Calendar) ────────────────── */}
         {isLoading ? (
-          <div className="flex-1 flex items-center justify-center py-12">
-            <div className="size-6 border-2 border-foreground/20 border-t-foreground rounded-full animate-spin" />
+          <div className="flex-1 flex items-center justify-center py-16">
+            <Loader variant="ascii-braille" size={28} className="text-muted-foreground" />
           </div>
         ) : viewMode === "list" ? (
           /* ── List View with Hero Section & Weekly Grouped Activity ── */
@@ -741,11 +767,25 @@ export default function HomePage() {
             </div>
 
             {!hasMonthlyShifts ? (
-              <div className="flex-1 flex flex-col items-center justify-center gap-3 px-8 text-center py-10">
-                <div className="size-14 rounded-full bg-card/80 backdrop-blur-xl border border-border/40 flex items-center justify-center text-muted-foreground shadow-sm">
-                  <Clock className="size-6 stroke-[1.5]" />
+              <div className="flex-1 flex flex-col items-center justify-center text-center px-6 py-10 my-auto select-none">
+                <div className="flex flex-col gap-1.5 max-w-xs">
+                  <h3 className="text-[19px] font-semibold text-foreground tracking-tight">
+                    No shifts in {listMonthLabel}
+                  </h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    You haven&apos;t logged any shifts for this month yet.
+                  </p>
                 </div>
-                <p className="text-[15px] font-semibold text-foreground">No shifts in {listMonthLabel}</p>
+
+                <motion.div whileTap={{ scale: 0.94 }} className="mt-6">
+                  <button
+                    type="button"
+                    onClick={openCreate}
+                    className="inline-flex items-center justify-center h-12 px-6 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[15px] font-medium text-foreground hover:bg-card/90 transition-colors shadow-sm cursor-pointer"
+                  >
+                    Add Shift
+                  </button>
+                </motion.div>
               </div>
             ) : (
               <div className="flex flex-col gap-6">
@@ -846,13 +886,25 @@ export default function HomePage() {
               {selectedDayShifts.length > 0 ? (
                 renderShiftList(selectedDayShifts)
               ) : (
-                <div className="bg-card/80 backdrop-blur-xl rounded-[28px] border border-border/40 p-6 flex flex-col items-center justify-center text-center gap-1 shadow-sm">
-                  <p className="text-[15px] font-semibold text-foreground">
-                    No shifts scheduled
-                  </p>
-                  <p className="text-[13px] text-muted-foreground">
-                    Select another date or tap Add to log hours.
-                  </p>
+                <div className="flex flex-col items-center justify-center text-center py-6 gap-2 select-none">
+                  <div className="flex flex-col gap-1 max-w-xs">
+                    <h3 className="text-[17px] font-semibold text-foreground tracking-tight">
+                      No shifts scheduled
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Select another date or tap below to log hours.
+                    </p>
+                  </div>
+
+                  <motion.div whileTap={{ scale: 0.94 }} className="mt-3">
+                    <button
+                      type="button"
+                      onClick={() => openCreateWithDate(selectedCalendarDate || new Date())}
+                      className="inline-flex items-center justify-center h-11 px-5 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[14px] font-medium text-foreground hover:bg-card/90 transition-colors shadow-sm cursor-pointer"
+                    >
+                      Add Shift for {shortSelectedDayLabel}
+                    </button>
+                  </motion.div>
                 </div>
               )}
             </div>
@@ -919,6 +971,7 @@ export default function HomePage() {
             timeFormat={preferences.time_format}
             firstDayOfWeek={preferences.first_day_of_week}
             defaultValues={{
+              shift_date: createDefaultDate ? dateToString(createDefaultDate) : undefined,
               hourly_rate: preferences.default_hourly_rate || undefined,
               break_duration: preferences.default_break_duration || undefined,
             }}
@@ -1012,11 +1065,10 @@ export default function HomePage() {
               <div className="mt-2 flex justify-end gap-3">
                 <Button
                   variant="destructive"
-                  onClick={handleDelete}
-                  isLoading={isDeleting}
+                  onClick={() => setSingleDeleteConfirmOpen(true)}
                   disabled={isDeleting}
                 >
-                  {isDeleting ? "Deleting" : "Delete"}
+                  Delete
                 </Button>
                 <Button onClick={openEdit} disabled={isDeleting}>
                   Edit
@@ -1050,45 +1102,27 @@ export default function HomePage() {
         </CenterMorphModalContent>
       </CenterMorphModal>
 
+      {/* ── Single Shift Delete Confirm Modal ───────────── */}
+      <ConfirmModal
+        open={singleDeleteConfirmOpen}
+        onOpenChange={setSingleDeleteConfirmOpen}
+        title="Delete shift?"
+        description="This will permanently remove this shift log."
+        confirmText="Delete"
+        isLoading={isDeleting}
+        onConfirm={handleDelete}
+      />
+
       {/* ── Bulk Delete Confirm Modal ─────────────────────── */}
-      <CenterMorphModal
+      <ConfirmModal
         open={bulkDeleteConfirmOpen}
-        onOpenChange={(open) => !open && setBulkDeleteConfirmOpen(false)}
-      >
-        <CenterMorphModalContent
-          ariaLabel="Confirm delete"
-          className="w-full max-w-sm bg-card p-6 border-border/50"
-        >
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-2 text-center">
-              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">
-                Delete {selectedIds.size === 1 ? "1 shift" : `${selectedIds.size} shifts`}?
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                This action cannot be undone.
-              </p>
-            </div>
-            <div className="mt-2 flex justify-end gap-3">
-              <CenterMorphModalClose>
-                <Button
-                  variant="ghost"
-                  className="rounded-full h-11 px-5 text-foreground"
-                >
-                  Cancel
-                </Button>
-              </CenterMorphModalClose>
-              <Button
-                variant="destructive"
-                className="rounded-full h-11 px-5"
-                onClick={handleBulkDelete}
-                disabled={isDeletingBulk}
-              >
-                {isDeletingBulk ? "Deleting…" : "Delete"}
-              </Button>
-            </div>
-          </div>
-        </CenterMorphModalContent>
-      </CenterMorphModal>
+        onOpenChange={setBulkDeleteConfirmOpen}
+        title={selectedIds.size === 1 ? "Delete 1 shift?" : `Delete ${selectedIds.size} shifts?`}
+        description="This will permanently remove the selected shift logs."
+        confirmText="Delete"
+        isLoading={isDeletingBulk}
+        onConfirm={handleBulkDelete}
+      />
     </>
   )
 }

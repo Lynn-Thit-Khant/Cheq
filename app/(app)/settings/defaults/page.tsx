@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react"
 import { BackButton } from "@/components/back-button"
-import { ChevronRight, Pencil, Trash2 } from "lucide-react"
+import { ChevronRight, Pencil, Trash2, AlertTriangle } from "lucide-react"
+import { ConfirmModal } from "@/components/confirm-modal"
 import { getUserPreferences, updateUserPreferences, UserPreferences } from "./actions"
 import { 
   CenterMorphModal, 
@@ -16,6 +17,7 @@ import {
 } from "@/components/motion/popover-morph"
 import { Tabs, TabsList, TabsTrigger } from "@/components/motion/tabs"
 import { Button } from "@/components/motion/button/base"
+import { Loader } from "@/components/motion/loader"
 import { Input } from "@/components/ui/input"
 import { SettingsCard } from "@/components/settings-card"
 import { PopoverBackdrop } from "@/components/popover-backdrop"
@@ -47,6 +49,9 @@ export default function DefaultsPage() {
 
   const [ratePopoverOpen, setRatePopoverOpen] = useState(false)
   const [breakPopoverOpen, setBreakPopoverOpen] = useState(false)
+
+  const [removeRateConfirmOpen, setRemoveRateConfirmOpen] = useState(false)
+  const [removeBreakConfirmOpen, setRemoveBreakConfirmOpen] = useState(false)
 
   const anyOpen = timeFormatOpen || firstDayOpen || ratePopoverOpen || breakPopoverOpen;
   const [backdropActive, setBackdropActive] = useState(false);
@@ -146,8 +151,8 @@ export default function DefaultsPage() {
         </div>
         
         {isLoading ? (
-          <div className="flex-1 flex items-center justify-center">
-             <div className="size-6 border-2 border-foreground/20 border-t-foreground rounded-full animate-spin" />
+          <div className="flex-1 flex items-center justify-center py-16">
+            <Loader variant="ascii-braille" size={28} className="text-muted-foreground" />
           </div>
         ) : (
           <div className="flex-1 flex flex-col justify-start w-full gap-6 mt-6">
@@ -237,7 +242,10 @@ export default function DefaultsPage() {
                       <Button
                         variant="ghost"
                         size="lg"
-                        onClick={handleRemoveHourlyRate}
+                        onClick={() => {
+                          setRatePopoverOpen(false)
+                          setRemoveRateConfirmOpen(true)
+                        }}
                         disabled={isSaving}
                         className="w-full justify-start font-medium text-destructive hover:text-destructive hover:bg-destructive/10 rounded-[26px] h-12 text-[15px]"
                       >
@@ -288,7 +296,10 @@ export default function DefaultsPage() {
                       <Button
                         variant="ghost"
                         size="lg"
-                        onClick={handleRemoveBreakDuration}
+                        onClick={() => {
+                          setBreakPopoverOpen(false)
+                          setRemoveBreakConfirmOpen(true)
+                        }}
                         disabled={isSaving}
                         className="w-full justify-start font-medium text-destructive hover:text-destructive hover:bg-destructive/10 rounded-[26px] h-12 text-[15px]"
                       >
@@ -336,7 +347,7 @@ export default function DefaultsPage() {
                   value={tempHourlyRate || ''}
                   onChange={(e) => setTempHourlyRate(parseFloat(e.target.value) || 0)}
                   placeholder="0.00"
-                  className="w-full bg-card [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className="w-full bg-card rounded-full h-12 px-5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
               </Field>
             </FieldGroup>
@@ -386,7 +397,7 @@ export default function DefaultsPage() {
                   value={tempBreakDuration || ''}
                   onChange={(e) => setTempBreakDuration(parseInt(e.target.value) || 0)}
                   placeholder="30"
-                  className="w-full bg-card [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className="w-full bg-card rounded-full h-12 px-5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
               </Field>
             </FieldGroup>
@@ -402,6 +413,34 @@ export default function DefaultsPage() {
           </div>
         </CenterMorphModalContent>
       </CenterMorphModal>
+
+      {/* Remove Rate Confirm Modal */}
+      <ConfirmModal
+        open={removeRateConfirmOpen}
+        onOpenChange={setRemoveRateConfirmOpen}
+        title="Remove default rate?"
+        description="Your default hourly rate will be reset to $0.00."
+        confirmText="Remove"
+        isLoading={isSaving}
+        onConfirm={async () => {
+          await handleRemoveHourlyRate()
+          setRemoveRateConfirmOpen(false)
+        }}
+      />
+
+      {/* Remove Break Confirm Modal */}
+      <ConfirmModal
+        open={removeBreakConfirmOpen}
+        onOpenChange={setRemoveBreakConfirmOpen}
+        title="Remove default break?"
+        description="Your default break duration will be reset to 0 min."
+        confirmText="Remove"
+        isLoading={isSaving}
+        onConfirm={async () => {
+          await handleRemoveBreakDuration()
+          setRemoveBreakConfirmOpen(false)
+        }}
+      />
     </>
   )
 }

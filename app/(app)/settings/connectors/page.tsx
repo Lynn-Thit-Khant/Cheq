@@ -1,4 +1,5 @@
 import { BackButton } from "@/components/back-button"
+import { SettingsCard } from "@/components/settings-card"
 
 export default function ConnectorsPage() {
   return (
@@ -10,10 +11,16 @@ export default function ConnectorsPage() {
       </div>
 
       <div className="flex-1 flex flex-col justify-start w-full gap-6 mt-6">
-
-      <div className="bg-card/80 backdrop-blur-xl rounded-[28px] overflow-hidden border border-border/40 p-6 text-center shadow-sm">
-        <p className="text-muted-foreground">Manage integrations with third-party APIs, bank feeds, and external data services here.</p>
-      </div>
+        <SettingsCard>
+          <div className="flex flex-col items-center justify-center text-center p-6 gap-2 select-none">
+            <h3 className="text-[17px] font-semibold text-foreground tracking-tight">
+              Connectors Coming Soon
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Integrations with bank feeds, external calendar apps, and payroll software will appear here.
+            </p>
+          </div>
+        </SettingsCard>
       </div>
     </div>
   )
