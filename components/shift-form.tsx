@@ -34,6 +34,7 @@ export interface ShiftFormProps {
   title?: string
   defaultValues?: Partial<ShiftFormValues>
   timeFormat?: "12h" | "24h"
+  firstDayOfWeek?: "Monday" | "Sunday"
   onSubmit: (data: ShiftFormValues) => Promise<void> | void
   isSaving?: boolean
 }
@@ -42,6 +43,7 @@ export function ShiftForm({
   title = "New Shift",
   defaultValues,
   timeFormat = "12h",
+  firstDayOfWeek = "Monday",
   onSubmit,
   isSaving = false,
 }: ShiftFormProps) {
@@ -203,6 +205,7 @@ export function ShiftForm({
                 <Calendar
                   mode="single"
                   className="bg-transparent"
+                  weekStartsOn={firstDayOfWeek === "Sunday" ? 0 : 1}
                   selected={selectedDate}
                   onSelect={(date) => {
                     setSelectedDate(date)

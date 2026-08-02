@@ -728,6 +728,7 @@ export default function HomePage() {
             onSubmit={handleCreate}
             isSaving={isSaving}
             timeFormat={preferences.time_format}
+            firstDayOfWeek={preferences.first_day_of_week}
             defaultValues={{
               hourly_rate: preferences.default_hourly_rate || undefined,
               break_duration: preferences.default_break_duration || undefined,
@@ -853,6 +854,7 @@ export default function HomePage() {
               onSubmit={handleUpdate}
               isSaving={isSaving}
               timeFormat={preferences.time_format}
+              firstDayOfWeek={preferences.first_day_of_week}
               defaultValues={shiftToShiftFormValues(selectedShift)}
             />
           )}
