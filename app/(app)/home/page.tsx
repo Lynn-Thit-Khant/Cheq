@@ -49,6 +49,119 @@ const YEAR_OPTIONS = Array.from({ length: 21 }, (_, i) => {
   return { label: y, value: y }
 })
 
+interface ShiftWeekGroup {
+  weekKey: string
+  label: string
+  startDate: Date
+  endDate: Date
+  shifts: Shift[]
+  totalEarned: number
+}
+
+function getWeekRangeLabel(startDate: Date, endDate: Date): string {
+  const startMonth = startDate.toLocaleDateString("en-US", { month: "short" }).toUpperCase()
+  const startDay = startDate.getDate()
+  const endMonth = endDate.toLocaleDateString("en-US", { month: "short" }).toUpperCase()
+  const endDay = endDate.getDate()
+
+  if (startMonth === endMonth) {
+    return `${startMonth} ${startDay} – ${endDay}`
+  }
+  return `${startMonth} ${startDay} – ${endMonth} ${endDay}`
+}
+
+function groupShiftsByWeek(
+  shifts: Shift[],
+  year: number,
+  month: number,
+  firstDayOfWeek: "Sunday" | "Monday"
+): ShiftWeekGroup[] {
+  if (shifts.length === 0) return []
+
+  const targetDayOfWeek = firstDayOfWeek === "Sunday" ? 0 : 1
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+
+  const groupsMap = new Map<string, { startDate: Date; endDate: Date; shifts: Shift[] }>()
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const d = new Date(year, month, day)
+    const currentDayOfWeek = d.getDay()
+    let diffToStart = currentDayOfWeek - targetDayOfWeek
+    if (diffToStart < 0) diffToStart += 7
+
+    const weekStart = new Date(year, month, day - diffToStart)
+    const weekEnd = new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 6)
+
+    const clampedStart = weekStart.getMonth() === month ? weekStart : new Date(year, month, 1)
+    const clampedEnd = weekEnd.getMonth() === month ? weekEnd : new Date(year, month, daysInMonth)
+
+    const weekKey = `${clampedStart.getFullYear()}-${clampedStart.getMonth()}-${clampedStart.getDate()}`
+
+    if (!groupsMap.has(weekKey)) {
+      groupsMap.set(weekKey, {
+        startDate: clampedStart,
+        endDate: clampedEnd,
+        shifts: [],
+      })
+    }
+  }
+
+  for (const shift of shifts) {
+    if (!shift.shift_date) continue
+    const [y, m, d] = shift.shift_date.split("-").map(Number)
+    const shiftDate = new Date(y, m - 1, d)
+
+    const currentDayOfWeek = shiftDate.getDay()
+    let diffToStart = currentDayOfWeek - targetDayOfWeek
+    if (diffToStart < 0) diffToStart += 7
+
+    const weekStart = new Date(y, m - 1, d - diffToStart)
+    const clampedStart = weekStart.getMonth() === month ? weekStart : new Date(year, month, 1)
+    const weekKey = `${clampedStart.getFullYear()}-${clampedStart.getMonth()}-${clampedStart.getDate()}`
+
+    const group = groupsMap.get(weekKey)
+    if (group) {
+      group.shifts.push(shift)
+    }
+  }
+
+  const result: ShiftWeekGroup[] = []
+
+  for (const [weekKey, group] of groupsMap.entries()) {
+    if (group.shifts.length === 0) continue
+
+    group.shifts.sort((a, b) => {
+      if (a.shift_date !== b.shift_date) {
+        return b.shift_date.localeCompare(a.shift_date)
+      }
+      return b.start_time.localeCompare(a.start_time)
+    })
+
+    const totalEarned = group.shifts.reduce((sum, s) => {
+      const income =
+        s.total_earned !== undefined && s.total_earned !== null
+          ? Number(s.total_earned)
+          : s.estimated_income !== undefined && s.estimated_income !== null
+          ? Number(s.estimated_income)
+          : calculateShiftIncome(s.start_time, s.end_time, s.hourly_rate, s.break_duration)
+      return sum + income
+    }, 0)
+
+    result.push({
+      weekKey,
+      label: getWeekRangeLabel(group.startDate, group.endDate),
+      startDate: group.startDate,
+      endDate: group.endDate,
+      shifts: group.shifts,
+      totalEarned,
+    })
+  }
+
+  result.sort((a, b) => b.startDate.getTime() - a.startDate.getTime())
+
+  return result
+}
+
 function shiftToShiftFormValues(shift: Shift): ShiftFormValues {
   return {
     workplace_name: shift.workplace_name,
@@ -205,6 +318,15 @@ export default function HomePage() {
     return y === currentYear && m === currentMonth + 1
   })
 
+  const groupedWeeklyShifts = useMemo(() => {
+    return groupShiftsByWeek(
+      monthlyShifts,
+      currentYear,
+      currentMonth,
+      preferences.first_day_of_week
+    )
+  }, [monthlyShifts, currentYear, currentMonth, preferences.first_day_of_week])
+
   const totalMonthlyEarned = monthlyShifts.reduce((sum, shift) => {
     const income =
       shift.total_earned !== undefined && shift.total_earned !== null
@@ -287,7 +409,7 @@ export default function HomePage() {
 
         return (
           <div key={shift.id}>
-            {index > 0 && <div className="h-[1px] bg-border/40 mx-4" />}
+            {index > 0 && <div className="h-[1px] bg-border/60 mx-4" />}
             <button
               type="button"
               onClick={() => openView(shift)}
@@ -296,7 +418,7 @@ export default function HomePage() {
               {/* Left: Circular Date Badge + (Workplace & Time) */}
               <div className="flex items-center gap-3.5 min-w-0 flex-1">
                 {/* Circular Glass Calendar Badge */}
-                <div className="flex size-11 shrink-0 flex-col items-center justify-center rounded-full bg-card/90 backdrop-blur-xl border border-border/60 text-center select-none shadow-sm">
+                <div className="flex size-12 shrink-0 flex-col items-center justify-center rounded-full bg-card/90 backdrop-blur-xl border border-border/60 text-center select-none shadow-sm">
                   <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase leading-none">
                     {weekday}
                   </span>
@@ -317,7 +439,7 @@ export default function HomePage() {
               </div>
 
               {/* Right: Income + Chevron */}
-              <div className="flex items-center gap-2.5 shrink-0">
+              <div className="flex items-center gap-4 shrink-0">
                 <span className="text-[15px] font-semibold text-foreground">
                   {formatCurrency(income)}
                 </span>
@@ -380,9 +502,9 @@ export default function HomePage() {
             <div className="size-6 border-2 border-foreground/20 border-t-foreground rounded-full animate-spin" />
           </div>
         ) : viewMode === "list" ? (
-          /* ── Original List View with Hero Section ── */
-          <div className="flex flex-col flex-1 pb-24">
-            {/* Hero Section: Total Earned + Month Navigation */}
+          /* ── List View with Hero Section & Weekly Grouped Activity ── */
+          <div className="flex flex-col flex-1 pb-32">
+            {/* Hero Section: Total Earned */}
             <div className="flex flex-col items-center justify-center text-center gap-1 my-4 mb-6">
               <span className="text-[13px] font-medium text-muted-foreground">
                 Total earned
@@ -394,23 +516,23 @@ export default function HomePage() {
                 />
               </div>
 
-              {/* Month Pagination (Frameless Typography Centered) */}
-              <div className="w-full flex items-center justify-center gap-1.5 mt-2">
+              {/* Month Navigation Directly Below Total Earned */}
+              <div className="flex items-center gap-1 mt-1">
                 <motion.button
                   type="button"
                   whileTap={{ scale: 0.85 }}
                   onClick={prevMonth}
-                  className="inline-flex size-8 items-center justify-center rounded-full transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground cursor-pointer"
+                  className="inline-flex size-8 items-center justify-center rounded-full transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-foreground cursor-pointer"
                   aria-label="Previous month"
                 >
-                  <ChevronLeft className="size-4" />
+                  <ChevronLeft className="size-4 text-muted-foreground" />
                 </motion.button>
 
                 <motion.button
                   type="button"
                   whileTap={{ scale: 0.96 }}
                   onClick={() => setMonthYearPickerOpen(true)}
-                  className="inline-flex items-center justify-center gap-1.5 px-2 py-1 rounded-full text-[14px] font-medium text-foreground hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer select-none text-center"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-semibold text-foreground hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer select-none"
                   aria-label="Select month and year"
                 >
                   <span>{calendarMonthYearLabel}</span>
@@ -421,75 +543,73 @@ export default function HomePage() {
                   type="button"
                   whileTap={{ scale: 0.85 }}
                   onClick={nextMonth}
-                  className="inline-flex size-8 items-center justify-center rounded-full transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground cursor-pointer"
+                  className="inline-flex size-8 items-center justify-center rounded-full transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-foreground cursor-pointer"
                   aria-label="Next month"
                 >
-                  <ChevronRight className="size-4" />
+                  <ChevronRight className="size-4 text-muted-foreground" />
                 </motion.button>
               </div>
             </div>
 
-            {/* Activity Section */}
-            <div className="px-2 mb-3">
-              <h2 className="text-xl font-bold text-foreground">
-                Activity
-              </h2>
-            </div>
-
             {!hasMonthlyShifts ? (
-              <div className="flex-1 flex flex-col items-center justify-center gap-4 px-8 text-center py-10">
-                <div className="size-16 rounded-full bg-card/80 backdrop-blur-xl border border-border/40 flex items-center justify-center text-muted-foreground shadow-sm">
-                  <Clock className="size-7 stroke-[1.5]" />
+              <div className="flex-1 flex flex-col items-center justify-center gap-3 px-8 text-center py-10">
+                <div className="size-14 rounded-full bg-card/80 backdrop-blur-xl border border-border/40 flex items-center justify-center text-muted-foreground shadow-sm">
+                  <Clock className="size-6 stroke-[1.5]" />
                 </div>
-                <div className="flex flex-col gap-1.5 max-w-xs">
-                  <p className="text-[17px] font-semibold text-foreground">No shifts in {listMonthLabel}</p>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    Tap Add in the top right to record your shift and track your estimated earnings.
-                  </p>
-                </div>
+                <p className="text-[15px] font-semibold text-foreground">No shifts in {listMonthLabel}</p>
               </div>
             ) : (
-              <div className="flex flex-col gap-3">
-                {renderShiftList(monthlyShifts)}
+              <div className="flex flex-col gap-6">
+                {groupedWeeklyShifts.map((group) => (
+                  <div key={group.weekKey} className="flex flex-col gap-2">
+                    {/* Weekly Subheader: Range */}
+                    <div className="px-3 flex items-center justify-between">
+                      <span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">
+                        {group.label}
+                      </span>
+                    </div>
+                    {renderShiftList(group.shifts)}
+                  </div>
+                ))}
               </div>
             )}
           </div>
         ) : (
           /* ── Calendar View ── */
-          <div className="flex flex-col flex-1 pb-24 mt-2">
+          <div className="flex flex-col flex-1 pb-32 mt-2">
             {/* Frameless Calendar Grid Container */}
             <div className="flex flex-col items-center w-full mx-auto mb-6">
-              {/* Calendar Header with < Month/Year Dropdown > Layout */}
-              <div className="w-full flex items-center justify-center gap-1.5 mb-2">
+              {/* Calendar Header with Centered Month/Year & Frameless Buttons */}
+              <div className="w-full flex items-center justify-center gap-2.5 mb-3">
                 <motion.button
                   type="button"
                   whileTap={{ scale: 0.85 }}
                   onClick={prevMonth}
-                  className="inline-flex size-8 items-center justify-center rounded-full transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground cursor-pointer"
+                  className="inline-flex size-8 items-center justify-center rounded-full transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-foreground cursor-pointer"
                   aria-label="Previous month"
                 >
-                  <ChevronLeft className="size-4" />
+                  <ChevronLeft className="size-4 text-muted-foreground" />
                 </motion.button>
 
                 <motion.button
                   type="button"
                   whileTap={{ scale: 0.96 }}
                   onClick={() => setMonthYearPickerOpen(true)}
-                  className="inline-flex items-center justify-center gap-1.5 px-2 py-1 rounded-full text-[14px] font-medium text-foreground hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer select-none text-center"
+                  className="inline-flex items-center justify-center gap-2 px-2.5 py-1 rounded-full text-lg font-bold text-foreground hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer select-none text-center"
                   aria-label="Select month and year"
                 >
                   <span>{calendarMonthYearLabel}</span>
-                  <ChevronDown className="size-3.5 text-muted-foreground" />
+                  <ChevronDown className="size-4 text-muted-foreground" />
                 </motion.button>
 
                 <motion.button
                   type="button"
                   whileTap={{ scale: 0.85 }}
                   onClick={nextMonth}
-                  className="inline-flex size-8 items-center justify-center rounded-full transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground cursor-pointer"
+                  className="inline-flex size-8 items-center justify-center rounded-full transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-foreground cursor-pointer"
                   aria-label="Next month"
                 >
-                  <ChevronRight className="size-4" />
+                  <ChevronRight className="size-4 text-muted-foreground" />
                 </motion.button>
               </div>
 
@@ -497,6 +617,7 @@ export default function HomePage() {
               <Calendar
                 mode="single"
                 month={currentDate}
+                weekStartsOn={preferences.first_day_of_week === "Sunday" ? 0 : 1}
                 onMonthChange={(newMonth) => {
                   changeMonth(newMonth.getFullYear(), newMonth.getMonth())
                 }}
@@ -533,26 +654,15 @@ export default function HomePage() {
 
             {/* Selected Day Activity Section */}
             <div className="flex flex-col gap-3">
-              <div className="px-2 flex items-center justify-between">
-                <h2 className="text-xl font-bold text-foreground">
-                  Activity
-                </h2>
-                {selectedDayLabel && (
-                  <span className="text-[13px] font-medium text-muted-foreground">
-                    {selectedDayLabel}
-                  </span>
-                )}
-              </div>
-
               {selectedDayShifts.length > 0 ? (
                 renderShiftList(selectedDayShifts)
               ) : (
-                <div className="flex flex-col items-center justify-center p-8 text-center bg-card/80 backdrop-blur-xl rounded-[28px] border border-border/40 shadow-sm gap-2">
-                  <p className="text-[15px] font-medium text-foreground">
-                    No shifts on this day
+                <div className="bg-card/80 backdrop-blur-xl rounded-[28px] border border-border/40 p-6 flex flex-col items-center justify-center text-center gap-1 shadow-sm">
+                  <p className="text-[15px] font-semibold text-foreground">
+                    No shifts scheduled
                   </p>
                   <p className="text-[13px] text-muted-foreground">
-                    Tap Add in the top right to record a shift for {selectedDayLabel || "this date"}.
+                    Select another date or tap Add to log hours.
                   </p>
                 </div>
               )}
