@@ -240,6 +240,23 @@ export default function HomePage() {
     return shifts.filter((s) => s.shift_date === selectedDateStr)
   }, [shifts, selectedDateStr])
 
+  const selectedDayEarned = useMemo(() => {
+    return selectedDayShifts.reduce((sum, shift) => {
+      const income =
+        shift.total_earned !== undefined && shift.total_earned !== null
+          ? Number(shift.total_earned)
+          : shift.estimated_income !== undefined && shift.estimated_income !== null
+          ? Number(shift.estimated_income)
+          : calculateShiftIncome(
+              shift.start_time,
+              shift.end_time,
+              shift.hourly_rate,
+              shift.break_duration
+            )
+      return sum + income
+    }, 0)
+  }, [selectedDayShifts])
+
   const selectedDayLabel = selectedCalendarDate
     ? selectedCalendarDate.toLocaleDateString("en-US", {
         weekday: "short",
@@ -377,13 +394,13 @@ export default function HomePage() {
                 />
               </div>
 
-              {/* Month Pagination with Dropdown Pill */}
-              <div className="flex items-center justify-center gap-2 mt-2">
+              {/* Month Pagination (Frameless Typography Centered) */}
+              <div className="w-full flex items-center justify-center gap-1.5 mt-2">
                 <motion.button
                   type="button"
-                  whileTap={{ scale: 0.85, opacity: 0.7 }}
+                  whileTap={{ scale: 0.85 }}
                   onClick={prevMonth}
-                  className="inline-flex size-8 items-center justify-center rounded-full border border-border/60 bg-card/90 backdrop-blur-xl transition-colors hover:bg-card text-foreground cursor-pointer shadow-sm"
+                  className="inline-flex size-8 items-center justify-center rounded-full transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground cursor-pointer"
                   aria-label="Previous month"
                 >
                   <ChevronLeft className="size-4" />
@@ -391,9 +408,9 @@ export default function HomePage() {
 
                 <motion.button
                   type="button"
-                  whileTap={{ scale: 0.95 }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={() => setMonthYearPickerOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-border/60 bg-card/90 backdrop-blur-xl text-sm font-semibold text-foreground hover:bg-card transition-colors shadow-sm cursor-pointer select-none"
+                  className="inline-flex items-center justify-center gap-1.5 px-2 py-1 rounded-full text-[14px] font-medium text-foreground hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer select-none text-center"
                   aria-label="Select month and year"
                 >
                   <span>{calendarMonthYearLabel}</span>
@@ -402,9 +419,9 @@ export default function HomePage() {
 
                 <motion.button
                   type="button"
-                  whileTap={{ scale: 0.85, opacity: 0.7 }}
+                  whileTap={{ scale: 0.85 }}
                   onClick={nextMonth}
-                  className="inline-flex size-8 items-center justify-center rounded-full border border-border/60 bg-card/90 backdrop-blur-xl transition-colors hover:bg-card text-foreground cursor-pointer shadow-sm"
+                  className="inline-flex size-8 items-center justify-center rounded-full transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground cursor-pointer"
                   aria-label="Next month"
                 >
                   <ChevronRight className="size-4" />
@@ -439,84 +456,79 @@ export default function HomePage() {
           </div>
         ) : (
           /* ── Calendar View ── */
-          <div className="flex flex-col flex-1 gap-5 pb-24">
-            {/* Calendar Card (snug fit like our date picker) */}
-            <div className="relative flex flex-col w-fit mx-auto">
-              <div className="absolute inset-0 bg-card/80 backdrop-blur-xl rounded-[28px] border border-border/40 pointer-events-none shadow-sm" />
-              <div className="flex flex-col p-3.5 sm:p-4 relative items-center">
-                {/* Calendar Header with Month/Year Dropdown & Left/Right Arrows */}
-                <div className="flex items-center justify-between w-full px-0.5 mb-2.5 gap-4">
-                  <motion.button
-                    type="button"
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setMonthYearPickerOpen(true)}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-border/60 bg-card/90 backdrop-blur-xl text-sm font-semibold text-foreground hover:bg-card transition-colors shadow-sm cursor-pointer select-none"
-                    aria-label="Select month and year"
-                  >
-                    <span>{calendarMonthYearLabel}</span>
-                    <ChevronDown className="size-3.5 text-muted-foreground" />
-                  </motion.button>
+          <div className="flex flex-col flex-1 pb-24 mt-2">
+            {/* Frameless Calendar Grid Container */}
+            <div className="flex flex-col items-center w-full mx-auto mb-6">
+              {/* Calendar Header with < Month/Year Dropdown > Layout */}
+              <div className="w-full flex items-center justify-center gap-1.5 mb-2">
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: 0.85 }}
+                  onClick={prevMonth}
+                  className="inline-flex size-8 items-center justify-center rounded-full transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground cursor-pointer"
+                  aria-label="Previous month"
+                >
+                  <ChevronLeft className="size-4" />
+                </motion.button>
 
-                  <div className="flex items-center gap-1">
-                    <motion.button
-                      type="button"
-                      whileTap={{ scale: 0.85, opacity: 0.7 }}
-                      onClick={prevMonth}
-                      className="inline-flex size-7.5 items-center justify-center rounded-full border border-border/60 bg-card/90 backdrop-blur-xl transition-colors hover:bg-card text-foreground cursor-pointer shadow-sm"
-                      aria-label="Previous month"
-                    >
-                      <ChevronLeft className="size-3.5" />
-                    </motion.button>
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => setMonthYearPickerOpen(true)}
+                  className="inline-flex items-center justify-center gap-1.5 px-2 py-1 rounded-full text-[14px] font-medium text-foreground hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer select-none text-center"
+                  aria-label="Select month and year"
+                >
+                  <span>{calendarMonthYearLabel}</span>
+                  <ChevronDown className="size-3.5 text-muted-foreground" />
+                </motion.button>
 
-                    <motion.button
-                      type="button"
-                      whileTap={{ scale: 0.85, opacity: 0.7 }}
-                      onClick={nextMonth}
-                      className="inline-flex size-7.5 items-center justify-center rounded-full border border-border/60 bg-card/90 backdrop-blur-xl transition-colors hover:bg-card text-foreground cursor-pointer shadow-sm"
-                      aria-label="Next month"
-                    >
-                      <ChevronRight className="size-3.5" />
-                    </motion.button>
-                  </div>
-                </div>
-
-                {/* Calendar Component */}
-                <Calendar
-                  mode="single"
-                  month={currentDate}
-                  onMonthChange={(newMonth) => {
-                    changeMonth(newMonth.getFullYear(), newMonth.getMonth())
-                  }}
-                  selected={selectedCalendarDate}
-                  onSelect={(date) => {
-                    if (date) {
-                      setSelectedCalendarDate(date)
-                      if (
-                        date.getMonth() !== currentDate.getMonth() ||
-                        date.getFullYear() !== currentDate.getFullYear()
-                      ) {
-                        setCurrentDate(new Date(date.getFullYear(), date.getMonth(), 1))
-                      }
-                    }
-                  }}
-                  modifiers={{
-                    hasShift: shiftDates,
-                  }}
-                  className="bg-transparent p-0"
-                  classNames={{
-                    root: "w-fit",
-                    months: "flex flex-col gap-2",
-                    month: "flex flex-col gap-2",
-                    nav: "hidden",
-                    month_caption: "hidden",
-                    month_grid: "w-fit border-collapse",
-                    weekdays: "flex justify-between gap-1",
-                    weekday: "size-8 text-[11px] font-medium text-muted-foreground/70 select-none flex items-center justify-center uppercase tracking-wider",
-                    week: "mt-1 flex w-fit justify-between gap-1",
-                    day: "group/day relative size-8 p-0 text-center select-none flex items-center justify-center",
-                  }}
-                />
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: 0.85 }}
+                  onClick={nextMonth}
+                  className="inline-flex size-8 items-center justify-center rounded-full transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground cursor-pointer"
+                  aria-label="Next month"
+                >
+                  <ChevronRight className="size-4" />
+                </motion.button>
               </div>
+
+              {/* Native Frameless Calendar Component */}
+              <Calendar
+                mode="single"
+                month={currentDate}
+                onMonthChange={(newMonth) => {
+                  changeMonth(newMonth.getFullYear(), newMonth.getMonth())
+                }}
+                selected={selectedCalendarDate}
+                onSelect={(date) => {
+                  if (date) {
+                    setSelectedCalendarDate(date)
+                    if (
+                      date.getMonth() !== currentDate.getMonth() ||
+                      date.getFullYear() !== currentDate.getFullYear()
+                    ) {
+                      setCurrentDate(new Date(date.getFullYear(), date.getMonth(), 1))
+                    }
+                  }
+                }}
+                modifiers={{
+                  hasShift: shiftDates,
+                }}
+                className="bg-transparent p-0"
+                classNames={{
+                  root: "w-fit",
+                  months: "flex flex-col gap-2",
+                  month: "flex flex-col gap-2",
+                  nav: "hidden",
+                  month_caption: "hidden",
+                  month_grid: "w-fit border-collapse",
+                  weekdays: "flex justify-between gap-1.5",
+                  weekday: "size-9 text-[11px] font-medium text-muted-foreground/70 select-none flex items-center justify-center uppercase tracking-wider",
+                  week: "mt-1 flex w-fit justify-between gap-1.5",
+                  day: "group/day relative size-9 p-0 text-center select-none flex items-center justify-center",
+                }}
+              />
             </div>
 
             {/* Selected Day Activity Section */}
