@@ -263,12 +263,6 @@ export default function HomePage() {
                 shift.break_duration
               )
 
-        const duration = calculateShiftDurationHours(
-          shift.start_time,
-          shift.end_time,
-          shift.break_duration
-        )
-
         const [y, m, d] = (shift.shift_date || "").split("-").map(Number)
         const shiftDate = y && m && d ? new Date(y, m - 1, d) : new Date()
         const weekday = shiftDate.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase()
@@ -282,14 +276,14 @@ export default function HomePage() {
               onClick={() => openView(shift)}
               className="flex h-[72px] w-full items-center justify-between px-4 sm:px-5 transition-colors rounded-full group relative cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 text-left gap-3"
             >
-              {/* Left: Date Badge + (Workplace & Time) */}
+              {/* Left: Circular Date Badge + (Workplace & Time) */}
               <div className="flex items-center gap-3.5 min-w-0 flex-1">
                 {/* Circular Glass Calendar Badge */}
-                <div className="flex size-12 shrink-0 flex-col items-center justify-center rounded-full bg-card/90 backdrop-blur-xl border border-border/60 text-center select-none shadow-sm">
-                  <span className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase leading-none">
+                <div className="flex size-11 shrink-0 flex-col items-center justify-center rounded-full bg-card/90 backdrop-blur-xl border border-border/60 text-center select-none shadow-sm">
+                  <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase leading-none">
                     {weekday}
                   </span>
-                  <span className="text-[16px] font-bold text-foreground leading-none mt-0.5">
+                  <span className="text-[15px] font-bold text-foreground leading-none mt-0.5">
                     {dayNumber}
                   </span>
                 </div>
@@ -305,16 +299,11 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Right: Income & Duration */}
-              <div className="flex items-center gap-3 shrink-0">
-                <div className="flex flex-col items-end gap-0.5">
-                  <span className="text-[15px] font-semibold text-foreground tabular-nums">
-                    {formatCurrency(income)}
-                  </span>
-                  <span className="text-[12px] text-muted-foreground font-medium tabular-nums">
-                    {duration.toFixed(1)} hrs
-                  </span>
-                </div>
+              {/* Right: Income + Chevron */}
+              <div className="flex items-center gap-2.5 shrink-0">
+                <span className="text-[15px] font-semibold text-foreground">
+                  {formatCurrency(income)}
+                </span>
                 <ChevronRight className="size-4 text-muted-foreground shrink-0 group-hover:translate-x-0.5 transition-transform" />
               </div>
             </button>
