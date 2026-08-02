@@ -15,7 +15,7 @@ export interface SettingsRowProps {
 
 export function SettingsRow({ children, className, href, onClick, forceDiv, interactive }: SettingsRowProps) {
   const baseClasses = cn(
-    "flex h-14 w-full items-center justify-between px-6 transition-colors rounded-[28px] group relative",
+    "flex h-14 w-full items-center justify-between px-6 transition-colors rounded-full group relative",
     (href || onClick || interactive) && "cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10",
     className
   )

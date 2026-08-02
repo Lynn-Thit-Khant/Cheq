@@ -26,6 +26,6 @@
   - **Inner Menu Structure**: Use a squishy glass container inside the content: `<div className="rounded-[32px] bg-card/90 backdrop-blur-xl border border-border/50 overflow-hidden flex flex-col p-1.5 gap-0.5">`.
 - **UI Guidelines - Card with Rows (Settings/Accounts Style)**: When creating a list or menu of settings/options, use this exact structure for the card and rows to maintain a consistent squishy glass style:
   - **Container**: Wrap the whole card in `<div className="flex flex-col w-full relative">`.
-  - **Background Layer**: Add an absolute background div inside the container: `<div className="absolute inset-0 bg-card/80 backdrop-blur-xl rounded-[28px] border border-border/40 pointer-events-none" />`.
+  - **Background Layer**: Add an absolute background div inside the container: `<div className="absolute inset-0 bg-card/80 backdrop-blur-xl rounded-[28px] border border-border/40 pointer-events-none shadow-sm" />`.
   - **Inner Wrapper**: Wrap the rows in `<div className="flex flex-col p-1">`.
-  - **Interactive Rows**: For standard clickable rows (e.g., opening a modal or navigating), use: `className="flex h-14 w-full items-center justify-between px-6 group transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 rounded-[28px] cursor-pointer relative z-10"`.
+  - **Interactive Rows**: For standard clickable rows (e.g., opening a modal or navigating), use: `className="flex h-14 w-full items-center justify-between px-6 group transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 rounded-full cursor-pointer relative z-10"`.

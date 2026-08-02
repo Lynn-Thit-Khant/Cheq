@@ -100,7 +100,7 @@ function Calendar({
           defaultClassNames.week_number
         ),
         day: cn(
-          "group/day relative aspect-square h-full w-full p-0 text-center select-none flex items-center justify-center",
+          "group/day relative size-8 p-0 text-center select-none flex items-center justify-center",
           defaultClassNames.day
         ),
         range_start: cn(
@@ -117,7 +117,7 @@ function Calendar({
           defaultClassNames.today
         ),
         outside: cn(
-          "text-muted-foreground/40 aria-selected:text-muted-foreground/40",
+          "text-muted-foreground/30 aria-selected:text-muted-foreground/30",
           defaultClassNames.outside
         ),
         disabled: cn(
@@ -179,6 +179,7 @@ function CalendarDayButton({
   day,
   modifiers,
   locale,
+  children,
   ...props
 }: React.ComponentProps<typeof DayButton> & { locale?: Partial<Locale> }) {
   const ref = React.useRef<HTMLButtonElement>(null)
@@ -189,6 +190,7 @@ function CalendarDayButton({
   const isSelected = modifiers.selected
   const isToday = modifiers.today
   const isRange = modifiers.range_start || modifiers.range_end || modifiers.range_middle
+  const hasShift = modifiers.hasShift || modifiers.has_shift
 
   return (
     <Button
@@ -203,12 +205,12 @@ function CalendarDayButton({
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
       className={cn(
-        "relative isolate z-10 flex aspect-square size-8 w-8 items-center justify-center border-0 leading-none font-normal rounded-full transition-colors",
-        "group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-[3px] group-data-[focused=true]/day:ring-ring/50",
+        "relative isolate z-10 flex aspect-square size-8 w-8 items-center justify-center border-0 leading-none text-sm font-normal rounded-full transition-colors cursor-pointer",
+        "group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-[2px] group-data-[focused=true]/day:ring-ring/50",
         // Today styling (when not selected)
-        isToday && !isSelected && "bg-muted text-foreground font-medium rounded-full",
+        isToday && !isSelected && "bg-black/10 dark:bg-white/10 text-foreground font-semibold rounded-full",
         // Single selected day
-        isSelected && !isRange && "bg-primary text-primary-foreground font-semibold rounded-full hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+        isSelected && !isRange && "bg-primary text-primary-foreground font-semibold rounded-full hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground shadow-sm",
         // Range styling
         modifiers.range_start && "rounded-l-full rounded-r-none bg-primary text-primary-foreground",
         modifiers.range_middle && "rounded-none bg-muted text-foreground",
@@ -217,7 +219,17 @@ function CalendarDayButton({
         className
       )}
       {...props}
-    />
+    >
+      {children}
+      {hasShift && (
+        <span
+          className={cn(
+            "absolute bottom-1 size-1 rounded-full pointer-events-none transition-colors",
+            isSelected ? "bg-primary-foreground" : "bg-primary"
+          )}
+        />
+      )}
+    </Button>
   )
 }
 

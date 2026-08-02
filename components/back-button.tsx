@@ -26,7 +26,7 @@ export function BackButton({ href, className }: BackButtonProps) {
     <motion.div whileTap={{ scale: isMobile ? 0.5 : 0.85, opacity: 0.7 }} className={cn("inline-flex", className)}>
       <Link
         href={href}
-        className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card/80 backdrop-blur-xl transition-colors hover:bg-card/90 text-foreground"
+        className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card/80 backdrop-blur-xl transition-colors hover:bg-card/90 text-foreground shadow-sm"
       >
         <ChevronLeft className="size-5" />
       </Link>

@@ -11,7 +11,7 @@ export default function AgentPage() {
 
       <div className="flex-1 flex flex-col justify-start w-full gap-6 mt-6">
 
-      <div className="bg-card/80 backdrop-blur-xl rounded-[28px] overflow-hidden border border-border/40 p-6 text-center">
+      <div className="bg-card/80 backdrop-blur-xl rounded-[28px] overflow-hidden border border-border/40 p-6 text-center shadow-sm">
         <p className="text-muted-foreground">Configure AI agent behavior, custom prompts, and automated intelligence parameters here.</p>
       </div>
       </div>

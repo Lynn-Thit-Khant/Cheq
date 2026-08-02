@@ -148,7 +148,7 @@ export default function TemplatesPage() {
                 type="button"
                 whileTap={{ scale: 0.85, opacity: 0.7 }}
                 onClick={openCreate}
-                className="inline-flex items-center justify-center h-12 px-5 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[15px] font-medium text-foreground hover:bg-card/90 transition-colors"
+                className="inline-flex items-center justify-center h-12 px-5 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[15px] font-medium text-foreground hover:bg-card/90 transition-colors shadow-sm"
                 aria-label="Create template"
               >
                 Add
