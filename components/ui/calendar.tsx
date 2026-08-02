@@ -215,6 +215,8 @@ function CalendarDayButton({
         modifiers.range_start && "rounded-l-full rounded-r-none bg-primary text-primary-foreground",
         modifiers.range_middle && "rounded-none bg-muted text-foreground",
         modifiers.range_end && "rounded-r-full rounded-l-none bg-primary text-primary-foreground",
+        // Has shift: subtle background tint (only when not selected/today)
+        hasShift && !isSelected && !isToday && "bg-foreground/[0.07]",
         "dark:hover:text-foreground [&>span]:text-xs [&>span]:opacity-70",
         className
       )}
@@ -225,7 +227,7 @@ function CalendarDayButton({
         <span
           className={cn(
             "absolute bottom-1 size-1 rounded-full pointer-events-none transition-colors",
-            isSelected ? "bg-primary-foreground" : "bg-primary"
+            isSelected ? "bg-background" : "bg-foreground"
           )}
         />
       )}

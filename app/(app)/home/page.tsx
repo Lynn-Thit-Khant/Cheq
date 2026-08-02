@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
-import { motion } from "motion/react"
-import { List, Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, Clock, Plus } from "lucide-react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { motion, AnimatePresence } from "motion/react"
+import { List, Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, Clock, Check } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/motion/tabs"
 import { AnimatedNumber } from "@/components/motion/animated-number"
 import {
@@ -185,6 +185,11 @@ export default function HomePage() {
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isSelectMode, setIsSelectMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [isDeletingBulk, setIsDeletingBulk] = useState(false)
+  const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false)
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [preferences, setPreferences] = useState<UserPreferences>({
     time_format: "12h",
@@ -274,6 +279,60 @@ export default function HomePage() {
     } finally {
       setIsDeleting(false)
     }
+  }
+
+  // ── Select Mode Handlers ────────────────────────────────────
+  const enterSelectMode = (shiftId: string) => {
+    setIsSelectMode(true)
+    setSelectedIds(new Set([shiftId]))
+  }
+
+  const exitSelectMode = () => {
+    setIsSelectMode(false)
+    setSelectedIds(new Set())
+  }
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  const handleLongPressStart = (shiftId: string) => {
+    longPressTimerRef.current = setTimeout(() => {
+      enterSelectMode(shiftId)
+    }, 500)
+  }
+
+  const handleLongPressEnd = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current)
+      longPressTimerRef.current = null
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    setIsDeletingBulk(true)
+    try {
+      await Promise.all([...selectedIds].map((id) => deleteShift(id)))
+      setShifts((prev) => prev.filter((s) => !selectedIds.has(s.id)))
+      setBulkDeleteConfirmOpen(false)
+      exitSelectMode()
+    } catch (err) {
+      console.error("Failed to bulk delete shifts:", err)
+    } finally {
+      setIsDeletingBulk(false)
+    }
+  }
+
+  const handleSelectAll = () => {
+    setSelectedIds(new Set(monthlyShifts.map((s) => s.id)))
+  }
+
+  const handleDeselectAll = () => {
+    setSelectedIds(new Set())
   }
 
   const changeMonth = (targetYear: number, targetMonth: number) => {
@@ -406,26 +465,78 @@ export default function HomePage() {
         const shiftDate = y && m && d ? new Date(y, m - 1, d) : new Date()
         const weekday = shiftDate.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase()
         const dayNumber = shiftDate.getDate()
+        const isSelected = selectedIds.has(shift.id)
 
         return (
           <div key={shift.id}>
             {index > 0 && <div className="h-[1px] bg-border/60 mx-4" />}
             <button
               type="button"
-              onClick={() => openView(shift)}
-              className="flex h-[72px] w-full items-center justify-between px-4 sm:px-5 transition-colors rounded-full group relative cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 text-left gap-3"
+              onClick={() => {
+                if (isSelectMode) {
+                  toggleSelect(shift.id)
+                } else {
+                  openView(shift)
+                }
+              }}
+              onPointerDown={() => {
+                if (!isSelectMode) handleLongPressStart(shift.id)
+              }}
+              onPointerUp={handleLongPressEnd}
+              onPointerLeave={handleLongPressEnd}
+              onContextMenu={(e) => e.preventDefault()}
+              className="flex h-[72px] w-full items-center justify-between px-4 sm:px-5 transition-colors rounded-full group relative cursor-pointer hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 text-left gap-3 select-none"
             >
-              {/* Left: Circular Date Badge + (Workplace & Time) */}
+              {/* Left: Badge (Date or Checkbox) + Workplace & Time */}
               <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                {/* Circular Glass Calendar Badge */}
-                <div className="flex size-12 shrink-0 flex-col items-center justify-center rounded-full bg-card/90 backdrop-blur-xl border border-border/60 text-center select-none shadow-sm">
-                  <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase leading-none">
-                    {weekday}
-                  </span>
-                  <span className="text-[15px] font-bold text-foreground leading-none mt-0.5">
-                    {dayNumber}
-                  </span>
-                </div>
+                {/* Badge: animates between date and checkbox */}
+                <AnimatePresence mode="wait" initial={false}>
+                  {isSelectMode ? (
+                    <motion.div
+                      key="checkbox"
+                      initial={{ scale: 0.6, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.6, opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 28 }}
+                      className={[
+                        "flex size-12 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+                        isSelected
+                          ? "bg-foreground border-foreground"
+                          : "bg-transparent border-border/60",
+                      ].join(" ")}
+                    >
+                      <AnimatePresence>
+                        {isSelected && (
+                          <motion.div
+                            key="check"
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0, opacity: 0 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                          >
+                            <Check className="size-5 text-background stroke-[2.5]" />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="date-badge"
+                      initial={{ scale: 0.6, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.6, opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 28 }}
+                      className="flex size-12 shrink-0 flex-col items-center justify-center rounded-full bg-card/90 backdrop-blur-xl border border-border/60 text-center select-none shadow-sm"
+                    >
+                      <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase leading-none">
+                        {weekday}
+                      </span>
+                      <span className="text-[15px] font-bold text-foreground leading-none mt-0.5">
+                        {dayNumber}
+                      </span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 {/* Workplace & Time Range */}
                 <div className="flex flex-col gap-0.5 min-w-0 flex-1">
@@ -438,12 +549,24 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Right: Income + Chevron */}
+              {/* Right: Income + Chevron (chevron hidden in select mode) */}
               <div className="flex items-center gap-4 shrink-0">
                 <span className="text-[15px] font-semibold text-foreground">
                   {formatCurrency(income)}
                 </span>
-                <ChevronRight className="size-4 text-muted-foreground shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                <AnimatePresence>
+                  {!isSelectMode && (
+                    <motion.div
+                      key="chevron"
+                      initial={{ opacity: 0, x: -4 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -4 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <ChevronRight className="size-4 text-muted-foreground shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </button>
           </div>
@@ -457,43 +580,109 @@ export default function HomePage() {
       <div className="flex flex-1 flex-col p-4 w-full max-w-md mx-auto mt-2 h-full relative">
         {/* Header */}
         <div className="relative flex items-center justify-between w-full mb-4 shrink-0 min-h-[3rem] gap-4">
-          <Tabs
-            id="home-view-mode-tabs"
-            value={viewMode}
-            onValueChange={setViewMode}
-            variant="pill"
-          >
-            <TabsList className="bg-card/80 backdrop-blur-xl border border-border p-1 rounded-full h-12 flex items-center gap-1 shadow-sm">
-              <TabsTrigger
-                value="list"
-                aria-label="List view"
-                className="h-full aspect-square rounded-full flex items-center justify-center"
-                buttonClassName="px-0"
-                indicatorClassName="bg-black/10 dark:bg-white/10"
+          <AnimatePresence mode="wait" initial={false}>
+            {isSelectMode ? (
+              /* ── Select Mode Toolbar ── */
+              <motion.div
+                key="select-toolbar"
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                className="relative flex items-center w-full"
               >
-                <List className="size-5" />
-              </TabsTrigger>
-              <TabsTrigger
-                value="calendar"
-                aria-label="Calendar view"
-                className="h-full aspect-square rounded-full flex items-center justify-center"
-                buttonClassName="px-0"
-                indicatorClassName="bg-black/10 dark:bg-white/10"
-              >
-                <CalendarIcon className="size-5" />
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+                {/* Cancel — left */}
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: 0.85, opacity: 0.7 }}
+                  onClick={exitSelectMode}
+                  className="inline-flex items-center justify-center h-12 px-5 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[15px] font-medium text-foreground hover:bg-card/90 transition-colors focus:outline-none shrink-0 shadow-sm cursor-pointer z-10"
+                  aria-label="Cancel selection"
+                >
+                  Cancel
+                </motion.button>
 
-          <motion.button
-            type="button"
-            whileTap={{ scale: 0.85, opacity: 0.7 }}
-            onClick={openCreate}
-            className="inline-flex items-center justify-center h-12 px-5 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[15px] font-medium text-foreground hover:bg-card/90 transition-colors focus:outline-none shrink-0 shadow-sm cursor-pointer"
-            aria-label="Add Shift"
-          >
-            Add
-          </motion.button>
+                {/* Select All / Deselect All — absolutely centered text button */}
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: 0.93, opacity: 0.7 }}
+                  onClick={selectedIds.size === monthlyShifts.length ? handleDeselectAll : handleSelectAll}
+                  className="absolute inset-0 flex items-center justify-center text-[15px] font-medium text-foreground hover:text-foreground/70 transition-colors focus:outline-none cursor-pointer"
+                  aria-label={selectedIds.size === monthlyShifts.length ? "Deselect all shifts" : "Select all shifts"}
+                >
+                  {selectedIds.size === monthlyShifts.length ? "Deselect All" : "Select All"}
+                </motion.button>
+
+                {/* Spacer */}
+                <div className="flex-1" />
+
+                {/* Delete N — right, destructive */}
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: 0.85, opacity: 0.7 }}
+                  onClick={() => selectedIds.size > 0 && setBulkDeleteConfirmOpen(true)}
+                  className={[
+                    "inline-flex items-center justify-center h-12 px-5 rounded-full border transition-colors focus:outline-none shrink-0 shadow-sm text-[15px] font-medium z-10",
+                    selectedIds.size > 0
+                      ? "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20 cursor-pointer"
+                      : "border-border bg-card/80 backdrop-blur-xl text-muted-foreground/40 cursor-not-allowed",
+                  ].join(" ")}
+                  aria-label="Delete selected shifts"
+                  disabled={selectedIds.size === 0}
+                >
+                  {selectedIds.size > 0 ? `Delete ${selectedIds.size}` : "Delete"}
+                </motion.button>
+              </motion.div>
+            ) : (
+              /* ── Normal Toolbar ── */
+              <motion.div
+                key="normal-toolbar"
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                className="flex items-center justify-between w-full gap-4"
+              >
+                <Tabs
+                  id="home-view-mode-tabs"
+                  value={viewMode}
+                  onValueChange={setViewMode}
+                  variant="pill"
+                >
+                  <TabsList className="bg-card/80 backdrop-blur-xl border border-border p-1 rounded-full h-12 flex items-center gap-1 shadow-sm">
+                    <TabsTrigger
+                      value="list"
+                      aria-label="List view"
+                      className="h-full aspect-square rounded-full flex items-center justify-center"
+                      buttonClassName="px-0"
+                      indicatorClassName="bg-black/10 dark:bg-white/10"
+                    >
+                      <List className="size-5" />
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="calendar"
+                      aria-label="Calendar view"
+                      className="h-full aspect-square rounded-full flex items-center justify-center"
+                      buttonClassName="px-0"
+                      indicatorClassName="bg-black/10 dark:bg-white/10"
+                    >
+                      <CalendarIcon className="size-5" />
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+
+                <motion.button
+                  type="button"
+                  whileTap={{ scale: 0.85, opacity: 0.7 }}
+                  onClick={openCreate}
+                  className="inline-flex items-center justify-center h-12 px-5 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[15px] font-medium text-foreground hover:bg-card/90 transition-colors focus:outline-none shrink-0 shadow-sm cursor-pointer"
+                  aria-label="Add Shift"
+                >
+                  Add
+                </motion.button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* ── View Content (List vs Calendar) ────────────────── */}
@@ -644,10 +833,10 @@ export default function HomePage() {
                   nav: "hidden",
                   month_caption: "hidden",
                   month_grid: "w-fit border-collapse",
-                  weekdays: "flex justify-between gap-1.5",
-                  weekday: "size-9 text-[11px] font-medium text-muted-foreground/70 select-none flex items-center justify-center uppercase tracking-wider",
-                  week: "mt-1 flex w-fit justify-between gap-1.5",
-                  day: "group/day relative size-9 p-0 text-center select-none flex items-center justify-center",
+                  weekdays: "flex justify-between gap-1",
+                  weekday: "size-10 text-[11px] font-medium text-muted-foreground/70 select-none flex items-center justify-center uppercase tracking-wider",
+                  week: "mt-1 flex w-fit justify-between gap-1",
+                  day: "group/day relative size-10 p-0 text-center select-none flex items-center justify-center",
                 }}
               />
             </div>
@@ -858,6 +1047,46 @@ export default function HomePage() {
               defaultValues={shiftToShiftFormValues(selectedShift)}
             />
           )}
+        </CenterMorphModalContent>
+      </CenterMorphModal>
+
+      {/* ── Bulk Delete Confirm Modal ─────────────────────── */}
+      <CenterMorphModal
+        open={bulkDeleteConfirmOpen}
+        onOpenChange={(open) => !open && setBulkDeleteConfirmOpen(false)}
+      >
+        <CenterMorphModalContent
+          ariaLabel="Confirm delete"
+          className="w-full max-w-sm bg-card p-6 border-border/50"
+        >
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2 text-center">
+              <h2 className="text-lg font-semibold leading-none tracking-tight text-foreground">
+                Delete {selectedIds.size === 1 ? "1 shift" : `${selectedIds.size} shifts`}?
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                This action cannot be undone.
+              </p>
+            </div>
+            <div className="mt-2 flex justify-end gap-3">
+              <CenterMorphModalClose>
+                <Button
+                  variant="ghost"
+                  className="rounded-full h-11 px-5 text-foreground"
+                >
+                  Cancel
+                </Button>
+              </CenterMorphModalClose>
+              <Button
+                variant="destructive"
+                className="rounded-full h-11 px-5"
+                onClick={handleBulkDelete}
+                disabled={isDeletingBulk}
+              >
+                {isDeletingBulk ? "Deleting…" : "Delete"}
+              </Button>
+            </div>
+          </div>
         </CenterMorphModalContent>
       </CenterMorphModal>
     </>
