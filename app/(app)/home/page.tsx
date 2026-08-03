@@ -1124,7 +1124,7 @@ export default function HomePage() {
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-foreground">Smart Add</span>
                     <span className="inline-flex items-center rounded-full border border-border/60 bg-card/80 backdrop-blur-xl px-2 py-0.5 text-[10px] font-medium text-foreground shadow-sm">
-                      Don't tokenmaxx
+                      Stop Tokenmaxxing
                     </span>
                   </div>
                 </div>
