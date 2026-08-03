@@ -352,11 +352,13 @@ export default function DefaultsPage() {
               </Field>
             </FieldGroup>
 
-            <div className="mt-2 flex justify-end gap-3">
+            <div className="grid grid-cols-2 gap-3 pt-2 w-full">
               <CenterMorphModalClose>
-                <Button variant="ghost" disabled={isSaving}>Cancel</Button>
+                <Button type="button" variant="outline" disabled={isSaving} className="h-11 rounded-full text-sm font-medium w-full border-border/60 cursor-pointer">
+                  Cancel
+                </Button>
               </CenterMorphModalClose>
-              <Button onClick={handleSaveHourlyRate} isLoading={isSaving} disabled={isSaving || tempHourlyRate < 0}>
+              <Button onClick={handleSaveHourlyRate} isLoading={isSaving} disabled={isSaving || tempHourlyRate < 0} className="h-11 rounded-full text-sm font-medium w-full cursor-pointer">
                 {isSaving ? "Saving" : "Save"}
               </Button>
             </div>
@@ -402,11 +404,13 @@ export default function DefaultsPage() {
               </Field>
             </FieldGroup>
 
-            <div className="mt-2 flex justify-end gap-3">
+            <div className="grid grid-cols-2 gap-3 pt-2 w-full">
               <CenterMorphModalClose>
-                <Button variant="ghost" disabled={isSaving}>Cancel</Button>
+                <Button type="button" variant="outline" disabled={isSaving} className="h-11 rounded-full text-sm font-medium w-full border-border/60 cursor-pointer">
+                  Cancel
+                </Button>
               </CenterMorphModalClose>
-              <Button onClick={handleSaveBreakDuration} isLoading={isSaving} disabled={isSaving || tempBreakDuration < 0}>
+              <Button onClick={handleSaveBreakDuration} isLoading={isSaving} disabled={isSaving || tempBreakDuration < 0} className="h-11 rounded-full text-sm font-medium w-full cursor-pointer">
                 {isSaving ? "Saving" : "Save"}
               </Button>
             </div>

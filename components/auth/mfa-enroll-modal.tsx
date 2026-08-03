@@ -146,17 +146,21 @@ export function MFAEnrollModal({
             />
           </div>
 
-          <div className="mt-2 flex justify-end gap-3 w-full">
+          <div className="grid grid-cols-2 gap-3 pt-2 w-full">
             <CenterMorphModalClose>
-              <Button variant="ghost" disabled={isVerifying}>Cancel</Button>
+              <Button type="button" variant="outline" disabled={isVerifying} className="h-11 rounded-full text-sm font-medium w-full border-border/60 cursor-pointer">
+                Cancel
+              </Button>
             </CenterMorphModalClose>
             <Button 
+              type="button"
               variant="primary"
               disabled={status !== 'success'}
               onClick={() => {
                 onEnrolled(factorId)
                 onOpenChange(false)
               }}
+              className="h-11 rounded-full text-sm font-medium w-full cursor-pointer"
             >
               Add
             </Button>

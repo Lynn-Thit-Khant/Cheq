@@ -209,6 +209,9 @@ export default function HomePage() {
   const [isDeletingBulk, setIsDeletingBulk] = useState(false)
   const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false)
   const [singleDeleteConfirmOpen, setSingleDeleteConfirmOpen] = useState(false)
+  const [duplicateResolutionOpen, setDuplicateResolutionOpen] = useState(false)
+  const [duplicateShiftsList, setDuplicateShiftsList] = useState<ExtractedShift[]>([])
+  const [nonDuplicateShiftsList, setNonDuplicateShiftsList] = useState<ExtractedShift[]>([])
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isLongPressRef = useRef(false)
 
@@ -364,10 +367,69 @@ export default function HomePage() {
     }
 
     setExtractedShiftErrors({})
+
+    // Check for duplicate shifts against existing database schedule & within batch
+    const duplicates: ExtractedShift[] = []
+    const nonDuplicates: ExtractedShift[] = []
+    const seenBatchKeys = new Set<string>()
+
+    extractedShifts.forEach((extracted) => {
+      const extName = (extracted.workplace_name || "").trim().toLowerCase()
+      const extDate = extracted.shift_date
+      const extStart = (extracted.start_time || "").slice(0, 5)
+      const extEnd = (extracted.end_time || "").slice(0, 5)
+
+      const key = `${extName}|${extDate}|${extStart}|${extEnd}`
+
+      const existingMatch = shifts.find((s) => {
+        const existName = (s.workplace_name || "").trim().toLowerCase()
+        const existDate = s.shift_date
+        const existStart = (s.start_time || "").slice(0, 5)
+        const existEnd = (s.end_time || "").slice(0, 5)
+
+        return (
+          existName === extName &&
+          existDate === extDate &&
+          existStart === extStart &&
+          existEnd === extEnd
+        )
+      })
+
+      const isBatchDuplicate = seenBatchKeys.has(key)
+      seenBatchKeys.add(key)
+
+      if (existingMatch || isBatchDuplicate) {
+        const enrichedShift = {
+          ...extracted,
+          workplace_location: extracted.workplace_location || existingMatch?.workplace_location || "",
+        }
+        duplicates.push(enrichedShift)
+      } else {
+        nonDuplicates.push(extracted)
+      }
+    })
+
+    if (duplicates.length > 0) {
+      setDuplicateShiftsList(duplicates)
+      setNonDuplicateShiftsList(nonDuplicates)
+      setDuplicateResolutionOpen(true)
+      return
+    }
+
+    await executeBulkSave(extractedShifts)
+  }
+
+  const executeBulkSave = async (shiftsToSave: ExtractedShift[]) => {
+    if (shiftsToSave.length === 0) {
+      setDuplicateResolutionOpen(false)
+      closeModal()
+      return
+    }
+
     setIsSaving(true)
     try {
       const created = await bulkCreateShifts(
-        extractedShifts.map((s) => ({
+        shiftsToSave.map((s) => ({
           workplace_name: s.workplace_name,
           workplace_location: s.workplace_location,
           shift_date: s.shift_date,
@@ -378,6 +440,7 @@ export default function HomePage() {
         }))
       )
       setShifts((prev) => [...created, ...prev])
+      setDuplicateResolutionOpen(false)
       closeModal()
     } catch (err) {
       console.error("Failed to save extracted shifts:", err)
@@ -1123,9 +1186,6 @@ export default function HomePage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-foreground">Smart Add</span>
-                    <span className="inline-flex items-center rounded-full border border-border/60 bg-card/80 backdrop-blur-xl px-2 py-0.5 text-[10px] font-medium text-foreground shadow-sm">
-                      Stop Tokenmaxxing
-                    </span>
                   </div>
                 </div>
                 <ChevronRight className="size-4 text-muted-foreground transition-colors" />
@@ -1249,9 +1309,9 @@ export default function HomePage() {
             </Field>
 
             {/* Footer Buttons */}
-            <div className="mt-2 flex justify-end gap-3">
+            <div className="grid grid-cols-2 gap-3 pt-2 w-full">
               <CenterMorphModalClose>
-                <Button variant="ghost" disabled={isExtracting}>
+                <Button type="button" variant="outline" disabled={isExtracting} className="h-11 rounded-full text-sm font-medium w-full border-border/60 cursor-pointer">
                   Cancel
                 </Button>
               </CenterMorphModalClose>
@@ -1260,6 +1320,7 @@ export default function HomePage() {
                 disabled={!pastedText.trim() || isExtracting}
                 isLoading={isExtracting}
                 onClick={handleExtractShifts}
+                className="h-11 rounded-full text-sm font-medium w-full cursor-pointer"
               >
                 Extract Shifts
               </Button>
@@ -1312,9 +1373,9 @@ export default function HomePage() {
             </div>
 
             {/* Footer Action Buttons */}
-            <div className="mt-2 flex justify-end gap-3">
+            <div className="grid grid-cols-2 gap-3 pt-2 w-full">
               <CenterMorphModalClose>
-                <Button variant="ghost" disabled={isSaving}>
+                <Button type="button" variant="outline" disabled={isSaving} className="h-11 rounded-full text-sm font-medium w-full border-border/60 cursor-pointer">
                   Cancel
                 </Button>
               </CenterMorphModalClose>
@@ -1323,8 +1384,117 @@ export default function HomePage() {
                 isLoading={isSaving}
                 disabled={isSaving || extractedShifts.length === 0}
                 onClick={handleSaveExtractedShifts}
+                className="h-11 rounded-full text-sm font-medium w-full cursor-pointer"
               >
                 Save All ({extractedShifts.length})
+              </Button>
+            </div>
+          </div>
+        </CenterMorphModalContent>
+      </CenterMorphModal>
+
+      {/* ── Duplicate Shift Conflict Resolution Modal (Option 3) ── */}
+      <CenterMorphModal
+        open={duplicateResolutionOpen}
+        onOpenChange={setDuplicateResolutionOpen}
+      >
+        <CenterMorphModalContent
+          ariaLabel="Duplicate Shift Detected"
+          dismissible={true}
+          className="w-full max-w-sm bg-card p-6 border-border/50"
+        >
+          <div className="flex flex-col gap-5">
+            {/* Header */}
+            <div className="flex flex-col gap-1 text-center">
+              <h2 className="text-base font-semibold leading-normal text-foreground">
+                Duplicate Shift{duplicateShiftsList.length > 1 ? "s" : ""} Detected
+              </h2>
+              <p className="text-[13px] text-muted-foreground leading-relaxed">
+                {duplicateShiftsList.length} shift{duplicateShiftsList.length > 1 ? "s" : ""} already exist{duplicateShiftsList.length === 1 ? "s" : ""} in your schedule:
+              </p>
+            </div>
+
+            {/* List of Duplicate Shifts (Matching Main Shift Card View) */}
+            <SettingsCard>
+              {duplicateShiftsList.map((shift, idx) => {
+                let weekday = "DAY"
+                let dayNumber = "1"
+                if (shift.shift_date) {
+                  const [y, m, d] = shift.shift_date.split("-").map(Number)
+                  const dateObj = new Date(y, m - 1, d)
+                  if (!isNaN(dateObj.getTime())) {
+                    weekday = dateObj.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase()
+                    dayNumber = String(dateObj.getDate())
+                  }
+                }
+
+                const startDisplay = formatDisplayTime(shift.start_time, preferences.time_format)
+                const endDisplay = formatDisplayTime(shift.end_time, preferences.time_format)
+                const income = calculateShiftIncome(
+                  shift.start_time,
+                  shift.end_time,
+                  shift.hourly_rate ?? preferences.default_hourly_rate ?? 0,
+                  shift.break_duration ?? preferences.default_break_duration ?? 0
+                )
+
+                return (
+                  <div key={idx}>
+                    {idx > 0 && <div className="h-[1px] bg-border/60 mx-4" />}
+                    <div className="flex h-[72px] w-full items-center justify-between px-4 sm:px-5 gap-3 select-none">
+                      {/* Left: Date Circle Badge + Workplace Name & Time */}
+                      <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                        <div className="flex size-12 shrink-0 flex-col items-center justify-center rounded-full bg-card/90 backdrop-blur-xl border border-border/60 text-center select-none shadow-sm">
+                          <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase leading-none">
+                            {weekday}
+                          </span>
+                          <span className="text-[15px] font-bold text-foreground leading-none mt-0.5">
+                            {dayNumber}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                          <span className="text-[15px] font-medium text-foreground truncate">
+                            {shift.workplace_name}
+                          </span>
+                          <span className="text-[13px] text-muted-foreground truncate">
+                            {startDisplay} – {endDisplay}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Right: Income Amount */}
+                      <div className="flex items-center shrink-0">
+                        <span className="text-[15px] font-semibold text-foreground">
+                          {formatCurrency(income)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </SettingsCard>
+
+            {/* Action Buttons (Full-Width Side-by-Side) */}
+            <div className="grid grid-cols-2 gap-3 pt-2 w-full">
+              <Button
+                type="button"
+                variant="outline"
+                isLoading={isSaving}
+                disabled={isSaving}
+                onClick={() => executeBulkSave(extractedShifts)}
+                className="h-11 rounded-full text-sm font-medium w-full border-border/60 cursor-pointer"
+              >
+                Save Anyway
+              </Button>
+
+              <Button
+                type="button"
+                isLoading={isSaving}
+                disabled={isSaving}
+                onClick={() => executeBulkSave(nonDuplicateShiftsList)}
+                className="h-11 rounded-full text-sm font-medium w-full cursor-pointer"
+              >
+                Skip Duplicate
               </Button>
             </div>
           </div>
@@ -1601,16 +1771,23 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Actions: Delete + Edit (Right-Aligned) */}
-              <div className="mt-1 flex justify-end gap-3">
+              {/* Actions: Delete + Edit (Full-Width Side-by-Side) */}
+              <div className="grid grid-cols-2 gap-3 pt-2 w-full">
                 <Button
+                  type="button"
                   variant="destructive"
                   onClick={() => setSingleDeleteConfirmOpen(true)}
                   disabled={isDeleting}
+                  className="h-11 rounded-full text-sm font-medium w-full cursor-pointer"
                 >
                   Delete
                 </Button>
-                <Button onClick={openEdit} disabled={isDeleting}>
+                <Button
+                  type="button"
+                  onClick={openEdit}
+                  disabled={isDeleting}
+                  className="h-11 rounded-full text-sm font-medium w-full cursor-pointer"
+                >
                   Edit
                 </Button>
               </div>

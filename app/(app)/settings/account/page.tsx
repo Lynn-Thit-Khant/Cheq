@@ -244,7 +244,7 @@ export default function AccountPage() {
                 </button>
               </MorphPopoverTrigger>
               <MorphPopoverContent align="end" sideOffset={0} radius={999} unstyled className="w-auto p-4 -mr-4">
-                <div className="rounded-full bg-card/90 backdrop-blur-xl border border-border/50 overflow-hidden">
+                <div className="rounded-[32px] bg-card/90 backdrop-blur-xl border border-border/50 overflow-hidden flex flex-col p-1.5 gap-0.5">
                   <Button
                     variant="ghost"
                     size="lg"
@@ -252,7 +252,7 @@ export default function AccountPage() {
                       setNameOpen(false)
                       setNameModalOpen(true)
                     }}
-                    className="w-full justify-start font-medium text-foreground h-12 text-[15px]"
+                    className="w-full justify-start font-medium text-foreground rounded-full h-12 text-[15px]"
                   >
                     <Pencil className="h-4 w-4" strokeWidth={1.5} />
                     Edit Name
@@ -356,7 +356,7 @@ export default function AccountPage() {
                 </button>
               </MorphPopoverTrigger>
               <MorphPopoverContent align="end" sideOffset={0} radius={999} unstyled className="w-auto p-4 -mr-4">
-                <div className="rounded-full bg-card/90 backdrop-blur-xl border border-border/50 overflow-hidden">
+                <div className="rounded-[32px] bg-card/90 backdrop-blur-xl border border-border/50 overflow-hidden flex flex-col p-1.5 gap-0.5">
                   <Button
                     variant="ghost"
                     size="lg"
@@ -369,7 +369,7 @@ export default function AccountPage() {
                       }
                     }}
                     className={cn(
-                      "w-full justify-start font-medium h-12 text-[15px]",
+                      "w-full justify-start font-medium rounded-full h-12 text-[15px]",
                       mfaEnabled 
                         ? "text-destructive hover:text-destructive hover:bg-destructive/10"
                         : "text-foreground"
@@ -420,11 +420,13 @@ export default function AccountPage() {
               />
             </Field>
           </FieldGroup>
-          <div className="flex justify-end gap-3">
+          <div className="grid grid-cols-2 gap-3 pt-2 w-full">
             <CenterMorphModalClose>
-              <Button variant="ghost" disabled={isSaving}>Cancel</Button>
+              <Button type="button" variant="outline" disabled={isSaving} className="h-11 rounded-full text-sm font-medium w-full border-border/60 cursor-pointer">
+                Cancel
+              </Button>
             </CenterMorphModalClose>
-            <Button onClick={handleSaveName} isLoading={isSaving} disabled={isSaving || !newName.trim()}>
+            <Button onClick={handleSaveName} isLoading={isSaving} disabled={isSaving || !newName.trim()} className="h-11 rounded-full text-sm font-medium w-full cursor-pointer">
               {isSaving ? "Saving" : "Save"}
             </Button>
           </div>
@@ -470,7 +472,7 @@ export default function AccountPage() {
               </p>
             </div>
             <div className="flex justify-center w-full">
-              <Button onClick={handleSignOut} isLoading={isSigningOut} className="w-full">
+              <Button onClick={handleSignOut} isLoading={isSigningOut} className="w-full h-11 rounded-full text-sm font-medium cursor-pointer">
                 {isSigningOut ? "Signing out" : "Sign in again"}
               </Button>
             </div>
@@ -515,11 +517,13 @@ export default function AccountPage() {
                 )}
               </Field>
             </FieldGroup>
-            <div className="flex justify-end gap-3">
+            <div className="grid grid-cols-2 gap-3 pt-2 w-full">
               <CenterMorphModalClose>
-                <Button variant="ghost" disabled={isSavingEmail}>Cancel</Button>
+                <Button type="button" variant="outline" disabled={isSavingEmail} className="h-11 rounded-full text-sm font-medium w-full border-border/60 cursor-pointer">
+                  Cancel
+                </Button>
               </CenterMorphModalClose>
-              <Button onClick={handleNextEmail} isLoading={isSavingEmail} disabled={isSavingEmail || !newEmail.trim() || newEmail === userEmail || !emailCurrentPassword}>
+              <Button onClick={handleNextEmail} isLoading={isSavingEmail} disabled={isSavingEmail || !newEmail.trim() || newEmail === userEmail || !emailCurrentPassword} className="h-11 rounded-full text-sm font-medium w-full cursor-pointer">
                 {isSavingEmail ? "Processing" : "Next"}
               </Button>
             </div>
@@ -547,9 +551,11 @@ export default function AccountPage() {
                   onComplete={() => {}}
                 />
             </div>
-            <div className="mt-2 flex justify-end gap-3">
-              <Button variant="ghost" disabled={isSavingEmail} onClick={() => setEmailStep('input')}>Back</Button>
-              <Button onClick={handleVerifyEmail} isLoading={isSavingEmail} disabled={isSavingEmail || !emailCurrentPassword || emailOtpCode.length !== 6}>
+            <div className="grid grid-cols-2 gap-3 pt-2 w-full">
+              <Button type="button" variant="outline" disabled={isSavingEmail} onClick={() => setEmailStep('input')} className="h-11 rounded-full text-sm font-medium w-full border-border/60 cursor-pointer">
+                Back
+              </Button>
+              <Button onClick={handleVerifyEmail} isLoading={isSavingEmail} disabled={isSavingEmail || !emailCurrentPassword || emailOtpCode.length !== 6} className="h-11 rounded-full text-sm font-medium w-full cursor-pointer">
                 {isSavingEmail ? "Updating" : "Update"}
               </Button>
             </div>
@@ -592,7 +598,7 @@ export default function AccountPage() {
               </p>
             </div>
             <div className="flex justify-center w-full">
-              <Button onClick={handleSignOut} isLoading={isSigningOut} className="w-full">
+              <Button onClick={handleSignOut} isLoading={isSigningOut} className="w-full h-11 rounded-full text-sm font-medium cursor-pointer">
                 {isSigningOut ? "Signing out" : "Sign in again"}
               </Button>
             </div>
@@ -647,11 +653,13 @@ export default function AccountPage() {
                 />
               </Field>
             </FieldGroup>
-            <div className="flex justify-end gap-3">
+            <div className="grid grid-cols-2 gap-3 pt-2 w-full">
               <CenterMorphModalClose>
-                <Button variant="ghost" disabled={isSavingPassword}>Cancel</Button>
+                <Button type="button" variant="outline" disabled={isSavingPassword} className="h-11 rounded-full text-sm font-medium w-full border-border/60 cursor-pointer">
+                  Cancel
+                </Button>
               </CenterMorphModalClose>
-              <Button onClick={handleSavePassword} isLoading={isSavingPassword} disabled={isSavingPassword || !currentPassword || !newPassword || newPassword !== confirmPassword}>
+              <Button onClick={handleSavePassword} isLoading={isSavingPassword} disabled={isSavingPassword || !currentPassword || !newPassword || newPassword !== confirmPassword} className="h-11 rounded-full text-sm font-medium w-full cursor-pointer">
                 {isSavingPassword ? "Updating" : "Update"}
               </Button>
             </div>

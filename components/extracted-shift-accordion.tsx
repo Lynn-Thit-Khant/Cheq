@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Calendar as CalendarIcon, Clock, ChevronDown, Trash2 } from "lucide-react"
 import { motion, AnimatePresence } from "motion/react"
 import type { ExtractedShift } from "@/app/(app)/home/ai-actions"
@@ -10,7 +10,7 @@ import {
   dateToString,
   formatDisplayDate,
 } from "@/lib/time-utils"
-import { Field, FieldLabel, FieldError, FieldGroup } from "@/components/ui/field"
+import { Field, FieldLabel, FieldGroup } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/motion/button/base"
 import { Calendar } from "@/components/ui/calendar"
@@ -66,7 +66,22 @@ export function ExtractedShiftAccordion({
   timeFormat = "12h",
   firstDayOfWeek = "Monday",
 }: ExtractedShiftAccordionProps) {
+  // Track open accordion item index (single item open at a time)
   const [openIndex, setOpenIndex] = useState<number | null>(0)
+  const prevErrorsRef = useRef(errors)
+
+  // Auto-expand first errored item ONLY when new validation errors are submitted (not while typing)
+  useEffect(() => {
+    const prevCount = Object.keys(prevErrorsRef.current).length
+    const currentCount = Object.keys(errors).length
+    if (prevCount === 0 && currentCount > 0) {
+      const errorIndices = Object.keys(errors).map(Number)
+      if (errorIndices.length > 0) {
+        setOpenIndex(errorIndices[0])
+      }
+    }
+    prevErrorsRef.current = errors
+  }, [errors])
 
   // Picker popover states per shift row
   const [dateModalOpen, setDateModalOpen] = useState(false)
@@ -153,12 +168,10 @@ export function ExtractedShiftAccordion({
             // Parse date for small date circle badge
             let weekday = "DAY"
             let dayNumber = "1"
-            let selectedDateObj: Date | undefined = undefined
 
             if (shift.shift_date) {
               const dateObj = new Date(`${shift.shift_date}T00:00:00`)
               if (!isNaN(dateObj.getTime())) {
-                selectedDateObj = dateObj
                 weekday = dateObj
                   .toLocaleDateString("en-US", { weekday: "short" })
                   .toUpperCase()
@@ -187,14 +200,11 @@ export function ExtractedShiftAccordion({
                 <button
                   type="button"
                   onClick={() => toggleIndex(index)}
-                  className={cn(
-                    "flex h-14 w-full items-center justify-between px-4 sm:px-6 transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 rounded-full cursor-pointer outline-none select-none gap-3",
-                    hasError && "ring-1 ring-destructive/50 bg-destructive/5"
-                  )}
+                  className="flex h-14 w-full items-center justify-between px-4 sm:px-6 transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 rounded-full cursor-pointer outline-none select-none gap-3"
                 >
-                  {/* Left: Date Circle Badge + Workplace Name */}
+                  {/* Left: Date Circle Badge + Workplace Name + Alert Indicator */}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="flex size-9 shrink-0 flex-col items-center justify-center rounded-full bg-foreground/[0.05] border border-border/50 text-center select-none shadow-sm">
+                    <div className="flex size-9 shrink-0 flex-col items-center justify-center rounded-full bg-foreground/[0.05] border border-border/50 text-center select-none shadow-sm relative">
                       <span className="text-[9px] font-bold tracking-wider text-muted-foreground uppercase leading-none">
                         {weekday}
                       </span>
@@ -203,37 +213,42 @@ export function ExtractedShiftAccordion({
                       </span>
                     </div>
 
-                    <span className="text-sm font-medium text-foreground truncate text-left">
-                      {shift.workplace_name || "Workplace"}
-                    </span>
+                    <div className="flex items-center gap-2 min-w-0 truncate">
+                      <span className="text-sm font-medium text-foreground truncate text-left">
+                        {shift.workplace_name || "Workplace"}
+                      </span>
+                      {hasError && (
+                        <span
+                          className="size-2 rounded-full bg-destructive animate-pulse shrink-0"
+                          title="Incomplete shift details"
+                        />
+                      )}
+                    </div>
                   </div>
 
-                  {/* Right: Shift Timing + Chevron Arrow */}
+                  {/* Right: Shift Timing + Rotating Chevron */}
                   <div className="flex items-center gap-2.5 shrink-0">
                     <span className="text-[13px] text-muted-foreground font-medium">
                       {displayStart} – {displayEnd}
                     </span>
                     <motion.div
                       animate={{ rotate: isOpen ? 180 : 0 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 28 }}
+                      transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
                     >
                       <ChevronDown className="size-4 text-muted-foreground shrink-0" />
                     </motion.div>
                   </div>
                 </button>
 
-                {/* Bouncy Spring Expanded Body */}
-                <AnimatePresence initial={false}>
-                  {isOpen && (
-                    <motion.div
-                      key="content"
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 28 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-4 pb-5 pt-2 sm:px-6 flex flex-col gap-4">
+                {/* Ultra-Smooth Hardware-Accelerated CSS Grid Accordion Panel */}
+                <div
+                  className={cn(
+                    "grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+                    isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                  )}
+                >
+                  <div className="overflow-hidden">
+                    <div className="px-4 pb-5 pt-2 sm:px-6 flex flex-col gap-4">
                         <FieldGroup>
                           {/* Workplace & Location */}
                           <div className="grid grid-cols-2 gap-3">
@@ -249,12 +264,12 @@ export function ExtractedShiftAccordion({
                                   })
                                 }
                                 placeholder="Cafe"
-                                className="h-12 bg-card rounded-full px-4"
+                                className={cn(
+                                  "h-12 bg-card rounded-full px-4",
+                                  shiftErrors.workplace_name && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]"
+                                )}
                                 aria-invalid={!!shiftErrors.workplace_name}
                               />
-                              {shiftErrors.workplace_name && (
-                                <FieldError errors={[{ message: shiftErrors.workplace_name }]} />
-                              )}
                             </Field>
 
                             <Field data-invalid={!!shiftErrors.workplace_location}>
@@ -269,16 +284,16 @@ export function ExtractedShiftAccordion({
                                   })
                                 }
                                 placeholder="Downtown"
-                                className="h-12 bg-card rounded-full px-4"
+                                className={cn(
+                                  "h-12 bg-card rounded-full px-4",
+                                  shiftErrors.workplace_location && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]"
+                                )}
                                 aria-invalid={!!shiftErrors.workplace_location}
                               />
-                              {shiftErrors.workplace_location && (
-                                <FieldError errors={[{ message: shiftErrors.workplace_location }]} />
-                              )}
                             </Field>
                           </div>
 
-                          {/* Date Field (Custom Trigger with Left Calendar Icon) */}
+                          {/* Date Field */}
                           <Field data-invalid={!!shiftErrors.shift_date}>
                             <FieldLabel>Date</FieldLabel>
                             <button
@@ -287,7 +302,7 @@ export function ExtractedShiftAccordion({
                               className={cn(
                                 "flex h-12 w-full items-center gap-2.5 rounded-full border border-border bg-card px-4 text-sm font-medium transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none cursor-pointer",
                                 shift.shift_date ? "text-foreground" : "text-muted-foreground",
-                                shiftErrors.shift_date && "border-destructive"
+                                shiftErrors.shift_date && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]"
                               )}
                             >
                               <CalendarIcon className="size-4 text-muted-foreground shrink-0" />
@@ -296,12 +311,9 @@ export function ExtractedShiftAccordion({
                               </span>
                               <ChevronDown className="ml-auto size-4 text-muted-foreground/50 shrink-0" />
                             </button>
-                            {shiftErrors.shift_date && (
-                              <FieldError errors={[{ message: shiftErrors.shift_date }]} />
-                            )}
                           </Field>
 
-                          {/* Starts & Ends Time Pickers (Custom Triggers with Left Clock Icon) */}
+                          {/* Starts & Ends Time Pickers */}
                           <div className="grid grid-cols-2 gap-3">
                             {/* Start time */}
                             <Field data-invalid={!!shiftErrors.start_time}>
@@ -312,7 +324,7 @@ export function ExtractedShiftAccordion({
                                 className={cn(
                                   "flex h-12 w-full items-center gap-2 rounded-full border border-border bg-card px-3.5 text-sm font-medium transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none cursor-pointer",
                                   shift.start_time ? "text-foreground" : "text-muted-foreground",
-                                  shiftErrors.start_time && "border-destructive"
+                                  shiftErrors.start_time && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]"
                                 )}
                               >
                                 <Clock className="size-4 text-muted-foreground shrink-0" />
@@ -321,9 +333,6 @@ export function ExtractedShiftAccordion({
                                 </span>
                                 <ChevronDown className="ml-auto size-4 text-muted-foreground/50 shrink-0" />
                               </button>
-                              {shiftErrors.start_time && (
-                                <FieldError errors={[{ message: shiftErrors.start_time }]} />
-                              )}
                             </Field>
 
                             {/* End time */}
@@ -335,7 +344,7 @@ export function ExtractedShiftAccordion({
                                 className={cn(
                                   "flex h-12 w-full items-center gap-2 rounded-full border border-border bg-card px-3.5 text-sm font-medium transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none cursor-pointer",
                                   shift.end_time ? "text-foreground" : "text-muted-foreground",
-                                  shiftErrors.end_time && "border-destructive"
+                                  shiftErrors.end_time && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]"
                                 )}
                               >
                                 <Clock className="size-4 text-muted-foreground shrink-0" />
@@ -344,9 +353,6 @@ export function ExtractedShiftAccordion({
                                 </span>
                                 <ChevronDown className="ml-auto size-4 text-muted-foreground/50 shrink-0" />
                               </button>
-                              {shiftErrors.end_time && (
-                                <FieldError errors={[{ message: shiftErrors.end_time }]} />
-                              )}
                             </Field>
                           </div>
 
@@ -402,7 +408,6 @@ export function ExtractedShiftAccordion({
                             variant="destructive"
                             onClick={() => {
                               onDeleteShift(index)
-                              if (openIndex === index) setOpenIndex(null)
                             }}
                             className="h-10 px-4 rounded-full text-xs font-medium flex items-center gap-1.5 cursor-pointer shadow-sm"
                           >
@@ -411,11 +416,10 @@ export function ExtractedShiftAccordion({
                           </Button>
                         </div>
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            )
+                    </div>
+                  </div>
+                </div>
+              )
           })}
         </div>
       </SettingsCard>

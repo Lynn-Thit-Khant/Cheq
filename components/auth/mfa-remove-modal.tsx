@@ -113,15 +113,19 @@ export function MFARemoveModal({
               />
             </div>
 
-            <div className="mt-2 flex justify-end gap-3">
+            <div className="grid grid-cols-2 gap-3 pt-2 w-full">
               <CenterMorphModalClose>
-                <Button variant="ghost" disabled={isRemoving}>Cancel</Button>
+                <Button type="button" variant="outline" disabled={isRemoving} className="h-11 rounded-full text-sm font-medium w-full border-border/60 cursor-pointer">
+                  Cancel
+                </Button>
               </CenterMorphModalClose>
               <Button 
+                type="button"
                 variant="destructive"
                 disabled={isRemoving || status !== 'success'}
                 isLoading={isRemoving}
                 onClick={() => setConfirmOpen(true)}
+                className="h-11 rounded-full text-sm font-medium w-full cursor-pointer"
               >
                 Remove
               </Button>

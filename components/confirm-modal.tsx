@@ -62,19 +62,21 @@ export function ConfirmModal({
           </div>
 
           {/* Footer Buttons */}
-          <div className="mt-2 flex justify-end gap-3 w-full">
+          <div className="grid grid-cols-2 gap-3 pt-2 w-full">
             <CenterMorphModalClose>
               <Button
-                variant="ghost"
-                className="rounded-full h-11 px-5 text-foreground"
+                type="button"
+                variant="outline"
+                className="h-11 rounded-full text-sm font-medium w-full border-border/60 cursor-pointer"
                 disabled={isLoading}
               >
                 {cancelText}
               </Button>
             </CenterMorphModalClose>
             <Button
+              type="button"
               variant={variant}
-              className="rounded-full h-11 px-5"
+              className="h-11 rounded-full text-sm font-medium w-full cursor-pointer"
               onClick={onConfirm}
               isLoading={isLoading}
               disabled={isLoading}

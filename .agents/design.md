@@ -63,7 +63,11 @@ Modal overlays use `CenterMorphModal` from `@/components/motion/center-morph-mod
   - Use `text-sm` (14px) for both key labels and values.
   - Use `py-2.5` vertical padding per row (with `border-b border-border/40`).
   - Set estimated income highlight value to `text-[15px] font-semibold`.
-- **Footer**: Place action buttons in `<div className="mt-2 flex justify-end gap-3">`. Wrap cancel buttons in `<CenterMorphModalClose>`.
+- **Footer Action Buttons (Universal Standard)**:
+  - All modal action footers MUST use full-width equal 50/50 side-by-side buttons: `<div className="grid grid-cols-2 gap-3 pt-2 w-full">`.
+  - Button geometry & typography: `h-11 rounded-full text-sm font-medium w-full cursor-pointer`.
+  - Secondary / Cancel action (left): `<Button type="button" variant="outline" className="border-border/60">`. Wrap cancel triggers in `<CenterMorphModalClose>`.
+  - Primary / Submit action (right): `<Button type="submit">` (Solid white/foreground filled pill) or `<Button variant="destructive">` (Red solid pill for deletes).
 - **Dismissibility Rule**:
   - `dismissible={false}`: Set on form, edit, input, and confirmation modals to protect user data from accidental background tap dismissal.
   - `dismissible={true}`: Set on read-only view details cards and date pickers for fluid backdrop tap dismissal.
