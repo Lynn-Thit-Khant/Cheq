@@ -54,7 +54,7 @@ export function ShiftForm({
     defaultValues: {
       workplace_name: defaultValues?.workplace_name ?? "",
       workplace_location: defaultValues?.workplace_location ?? "",
-      shift_date: defaultValues?.shift_date ?? today,
+      shift_date: defaultValues?.shift_date ?? "",
       start_time: defaultValues?.start_time ?? "",
       end_time: defaultValues?.end_time ?? "",
       hourly_rate: defaultValues?.hourly_rate ?? undefined,
@@ -65,7 +65,7 @@ export function ShiftForm({
   // ── Date picker ────────────────────────────────────────────
   const [dateOpen, setDateOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
-    () => stringToDate(form.getValues("shift_date") || today)
+    () => (defaultValues?.shift_date ? stringToDate(defaultValues.shift_date) : undefined)
   )
 
   // ── Time picker shared state ─────────────────────────────
@@ -118,7 +118,7 @@ export function ShiftForm({
   })
 
   // Display values
-  const dateDisplay = selectedDate ? formatDisplayDate(dateToString(selectedDate)) : "Pick a date"
+  const dateDisplay = selectedDate ? formatDisplayDate(dateToString(selectedDate)) : "Choose date"
   const startDisplay = !startPicked ? "--:--" : (timeFormat === "12h"
     ? displayTime12(startHour, startMin, startAmpm)
     : displayTime24(startHour, startMin))
@@ -183,13 +183,16 @@ export function ShiftForm({
           </div>
 
           {/* ── Shift date (calendar popover) ───────────── */}
-          <Field>
+          <Field data-invalid={!!form.formState.errors.shift_date}>
             <FieldLabel>Date</FieldLabel>
             <CenterMorphModal open={dateOpen} onOpenChange={setDateOpen}>
               <button
                 type="button"
                 onClick={() => setDateOpen(true)}
-                className="flex h-12 w-full items-center gap-2.5 rounded-full border border-border bg-card px-4 text-sm font-medium text-foreground transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none"
+                className={cn(
+                  "flex h-12 w-full items-center gap-2.5 rounded-full border border-border bg-card px-4 text-sm font-medium transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none",
+                  selectedDate ? "text-foreground" : "text-muted-foreground"
+                )}
               >
                 <CalendarIcon className="size-4 text-muted-foreground shrink-0" />
                 <span className="whitespace-nowrap text-sm font-medium">{dateDisplay}</span>
@@ -211,6 +214,8 @@ export function ShiftForm({
                     setSelectedDate(date)
                     if (date) {
                       form.setValue("shift_date", dateToString(date), { shouldValidate: form.formState.isSubmitted })
+                    } else {
+                      form.setValue("shift_date", "", { shouldValidate: form.formState.isSubmitted })
                     }
                     setDateOpen(false)
                   }}

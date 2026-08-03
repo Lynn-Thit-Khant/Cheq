@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { motion, AnimatePresence } from "motion/react"
-import { List, Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, Clock, Check, Trash2, MapPin, Tag, Coffee, Building2 } from "lucide-react"
+import { List, Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, Clock, Check, Trash2, MapPin, Tag, Coffee, Building2, Sparkles, LayoutTemplate, Keyboard } from "lucide-react"
 import { ConfirmModal } from "@/components/confirm-modal"
 import { Tabs, TabsList, TabsTrigger } from "@/components/motion/tabs"
 import { AnimatedNumber } from "@/components/motion/animated-number"
@@ -13,12 +13,16 @@ import {
 } from "@/components/motion/center-morph-modal"
 import { Button } from "@/components/motion/button/base"
 import { SettingsCard } from "@/components/settings-card"
+import { SettingsRow } from "@/components/settings-row"
 import { ShiftForm } from "@/components/shift-form"
+import { TemplateForm } from "@/components/template-form"
 import { Calendar } from "@/components/ui/calendar"
 import { WheelPicker } from "@/components/motion/wheel-picker"
-import type { Shift, ShiftFormValues } from "@/lib/schemas/shift-form-schema"
+import { useRouter } from "next/navigation"
+import type { Shift, ShiftFormValues, ShiftTemplate, TemplateFormValues } from "@/lib/schemas/shift-form-schema"
 import { Loader } from "@/components/motion/loader"
 import { getUserPreferences, type UserPreferences } from "@/app/(app)/settings/defaults/actions"
+import { getTemplates, createTemplate } from "@/app/(app)/settings/templates/actions"
 import { getShifts, createShift, updateShift, deleteShift } from "@/app/(app)/home/actions"
 import { cn } from "@/lib/utils"
 import {
@@ -178,15 +182,19 @@ function shiftToShiftFormValues(shift: Shift): ShiftFormValues {
 }
 
 export default function HomePage() {
+  const router = useRouter()
   const [viewMode, setViewMode] = useState<string>("list")
   const [currentDate, setCurrentDate] = useState<Date>(() => new Date())
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<Date | undefined>(() => new Date())
   const [monthYearPickerOpen, setMonthYearPickerOpen] = useState(false)
   const [shifts, setShifts] = useState<Shift[]>([])
+  const [templates, setTemplates] = useState<ShiftTemplate[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [modalMode, setModalMode] = useState<"create" | "view" | "edit" | null>(null)
+  const [modalMode, setModalMode] = useState<"select-method" | "select-template" | "confirm-template" | "create-template" | "create-from-template" | "create" | "view" | "edit" | null>(null)
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null)
+  const [selectedTemplate, setSelectedTemplate] = useState<ShiftTemplate | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+  const [isSavingTemplate, setIsSavingTemplate] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isSelectMode, setIsSelectMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -203,16 +211,18 @@ export default function HomePage() {
     default_break_duration: 0,
   })
 
-  // Load preferences and shifts on mount
+  // Load preferences, shifts, and templates on mount
   useEffect(() => {
     async function loadData() {
       try {
-        const [prefs, shiftList] = await Promise.all([
+        const [prefs, shiftList, templateList] = await Promise.all([
           getUserPreferences(),
           getShifts(),
+          getTemplates(),
         ])
         setPreferences(prefs)
         setShifts(shiftList)
+        setTemplates(templateList)
       } catch (err) {
         console.error("Error loading home data:", err)
       } finally {
@@ -228,13 +238,13 @@ export default function HomePage() {
   const openCreate = () => {
     setCreateDefaultDate(null)
     setSelectedShift(null)
-    setModalMode("create")
+    setModalMode("select-method")
   }
 
   const openCreateWithDate = (date: Date) => {
     setCreateDefaultDate(date)
     setSelectedShift(null)
-    setModalMode("create")
+    setModalMode("select-method")
   }
 
   const openView = (shift: Shift) => {
@@ -262,6 +272,19 @@ export default function HomePage() {
       console.error("Failed to create shift:", err)
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleCreateTemplate = async (data: TemplateFormValues) => {
+    setIsSavingTemplate(true)
+    try {
+      const created = await createTemplate(data)
+      setTemplates((prev) => [...prev, created])
+      setModalMode("select-template")
+    } catch (err) {
+      console.error("Failed to create template:", err)
+    } finally {
+      setIsSavingTemplate(false)
     }
   }
 
@@ -892,19 +915,9 @@ export default function HomePage() {
                       No shifts scheduled
                     </h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      Select another date or tap below to log hours.
+                      Select another date to view shifts.
                     </p>
                   </div>
-
-                  <motion.div whileTap={{ scale: 0.94 }} className="mt-3">
-                    <button
-                      type="button"
-                      onClick={() => openCreateWithDate(selectedCalendarDate || new Date())}
-                      className="inline-flex items-center justify-center h-11 px-5 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[14px] font-medium text-foreground hover:bg-card/90 transition-colors shadow-sm cursor-pointer"
-                    >
-                      Add Shift
-                    </button>
-                  </motion.div>
                 </div>
               )}
             </div>
@@ -955,6 +968,225 @@ export default function HomePage() {
         </CenterMorphModalContent>
       </CenterMorphModal>
 
+      {/* ── Add Shift Method Selector Modal ───────────────── */}
+      <CenterMorphModal
+        open={modalMode === "select-method"}
+        onOpenChange={(open) => !open && closeModal()}
+      >
+        <CenterMorphModalContent
+          ariaLabel="Add Shift Method"
+          dismissible={true}
+          className="w-full max-w-sm bg-card p-6 border-border/50"
+        >
+          <div className="flex flex-col gap-5">
+            {/* Header */}
+            <div className="flex flex-col gap-1 text-center">
+              <h2 className="text-lg font-semibold leading-normal text-foreground">
+                Add Shift
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Select how you&apos;d like to create your shift
+              </p>
+            </div>
+
+            {/* Settings Card Cluster with Pill-Shape Hover Rows */}
+            <SettingsCard>
+              <SettingsRow
+                onClick={() => {
+                  // Smart Add AI workflow (placeholder for future implementation)
+                }}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="grid h-7 w-7 place-items-center text-muted-foreground">
+                    <Sparkles className="size-5" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[15px] font-medium text-foreground">Smart Add</span>
+                    <span className="inline-flex items-center rounded-full border border-border/60 bg-card/80 backdrop-blur-xl px-2 py-0.5 text-[10px] font-medium text-foreground shadow-sm">
+                      Recommended
+                    </span>
+                  </div>
+                </div>
+                <ChevronRight className="size-4 text-muted-foreground transition-colors" />
+              </SettingsRow>
+
+              <SettingsRow onClick={() => setModalMode("select-template")}>
+                <div className="flex items-center gap-4">
+                  <div className="grid h-7 w-7 place-items-center text-muted-foreground">
+                    <LayoutTemplate className="size-5" />
+                  </div>
+                  <span className="text-[15px] font-medium text-foreground">Templates</span>
+                </div>
+                <ChevronRight className="size-4 text-muted-foreground transition-colors" />
+              </SettingsRow>
+
+              <SettingsRow onClick={() => setModalMode("create")}>
+                <div className="flex items-center gap-4">
+                  <div className="grid h-7 w-7 place-items-center text-muted-foreground">
+                    <Keyboard className="size-5" />
+                  </div>
+                  <span className="text-[15px] font-medium text-foreground">Manual</span>
+                </div>
+                <ChevronRight className="size-4 text-muted-foreground transition-colors" />
+              </SettingsRow>
+            </SettingsCard>
+          </div>
+        </CenterMorphModalContent>
+      </CenterMorphModal>
+
+      {/* ── Select Template Modal ──────────────────────────── */}
+      <CenterMorphModal
+        open={modalMode === "select-template"}
+        onOpenChange={(open) => !open && closeModal()}
+      >
+        <CenterMorphModalContent
+          ariaLabel="Select Template"
+          dismissible={true}
+          className="w-full max-w-sm bg-card p-6 border-border/50"
+        >
+          <motion.button
+            type="button"
+            aria-label="Back to method selection"
+            onClick={() => setModalMode("select-method")}
+            whileTap={{ scale: 0.85, opacity: 0.7 }}
+            className="absolute left-4 top-4 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full bg-foreground/[0.05] text-muted-foreground transition-colors hover:bg-foreground/[0.08] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
+          >
+            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+          </motion.button>
+
+          <div className="flex flex-col gap-5">
+            {/* Header */}
+            <div className="flex flex-col gap-1 text-center">
+              <h2 className="text-lg font-semibold leading-normal text-foreground">
+                Select Template
+              </h2>
+            </div>
+
+            {/* Template List OR Empty State */}
+            {templates.length > 0 ? (
+              <SettingsCard>
+                {templates.map((template) => (
+                  <SettingsRow
+                    key={template.id}
+                    onClick={() => {
+                      setSelectedTemplate(template)
+                      setModalMode("create-from-template")
+                    }}
+                  >
+                    <div className="flex items-center gap-3 text-left min-w-0 flex-1 pr-4">
+                      <div className="w-1 h-5 rounded-full bg-primary/80 shrink-0" />
+                      <span className="text-[15px] font-medium text-foreground truncate">
+                        {template.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className="text-[13px] text-muted-foreground font-medium">
+                        {formatDisplayTime(template.start_time, preferences.time_format)} – {formatDisplayTime(template.end_time, preferences.time_format)}
+                      </span>
+                      <ChevronRight className="size-4 text-muted-foreground shrink-0" />
+                    </div>
+                  </SettingsRow>
+                ))}
+              </SettingsCard>
+            ) : (
+              <div className="flex flex-col items-center justify-center text-center px-6 py-6 select-none">
+                <div className="flex flex-col gap-1.5 max-w-xs">
+                  <h3 className="text-[19px] font-semibold text-foreground tracking-tight">
+                    No templates yet
+                  </h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Save your regular shifts as templates so you can add them with a single tap.
+                  </p>
+                </div>
+
+                <motion.div whileTap={{ scale: 0.94 }} className="mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setModalMode("create-template")}
+                    className="inline-flex items-center justify-center h-12 px-6 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[15px] font-medium text-foreground hover:bg-card/90 transition-colors shadow-sm cursor-pointer"
+                  >
+                    Create Template
+                  </button>
+                </motion.div>
+              </div>
+            )}
+          </div>
+        </CenterMorphModalContent>
+      </CenterMorphModal>
+
+      {/* ── Create Template Modal ──────────────────────────── */}
+      <CenterMorphModal
+        open={modalMode === "create-template"}
+        onOpenChange={(open) => !open && closeModal()}
+      >
+        <CenterMorphModalContent
+          ariaLabel="New Template"
+          className="w-full max-w-sm bg-card p-6 border-border/50"
+        >
+          <motion.button
+            type="button"
+            aria-label="Back to template selection"
+            onClick={() => setModalMode("select-template")}
+            whileTap={{ scale: 0.85, opacity: 0.7 }}
+            className="absolute left-4 top-4 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full bg-foreground/[0.05] text-muted-foreground transition-colors hover:bg-foreground/[0.08] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
+          >
+            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+          </motion.button>
+
+          <TemplateForm
+            onSubmit={handleCreateTemplate}
+            isSaving={isSavingTemplate}
+            timeFormat={preferences.time_format}
+            defaultValues={{
+              hourly_rate: preferences.default_hourly_rate || undefined,
+              break_duration: preferences.default_break_duration || undefined,
+            }}
+          />
+        </CenterMorphModalContent>
+      </CenterMorphModal>
+
+      {/* ── Create Shift from Template Modal ───────────────── */}
+      <CenterMorphModal
+        open={modalMode === "create-from-template"}
+        onOpenChange={(open) => !open && closeModal()}
+      >
+        <CenterMorphModalContent
+          ariaLabel="New Shift from Template"
+          className="w-full max-w-sm bg-card p-6 border-border/50"
+        >
+          <motion.button
+            type="button"
+            aria-label="Back to template selection"
+            onClick={() => setModalMode("select-template")}
+            whileTap={{ scale: 0.85, opacity: 0.7 }}
+            className="absolute left-4 top-4 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full bg-foreground/[0.05] text-muted-foreground transition-colors hover:bg-foreground/[0.08] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
+          >
+            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+          </motion.button>
+
+          <ShiftForm
+            title="New Shift"
+            onSubmit={handleCreate}
+            isSaving={isSaving}
+            timeFormat={preferences.time_format}
+            firstDayOfWeek={preferences.first_day_of_week}
+            defaultValues={
+              selectedTemplate
+                ? {
+                    workplace_name: selectedTemplate.workplace_name,
+                    workplace_location: selectedTemplate.workplace_location,
+                    shift_date: createDefaultDate ? dateToString(createDefaultDate) : undefined,
+                    start_time: selectedTemplate.start_time,
+                    end_time: selectedTemplate.end_time,
+                    hourly_rate: Number(selectedTemplate.hourly_rate),
+                    break_duration: Number(selectedTemplate.break_duration),
+                  }
+                : undefined
+            }
+          />
+        </CenterMorphModalContent>
+      </CenterMorphModal>
+
       {/* ── Create Shift Modal ──────────────────────────── */}
       <CenterMorphModal
         open={modalMode === "create"}
@@ -964,6 +1196,16 @@ export default function HomePage() {
           ariaLabel="New Shift"
           className="w-full max-w-sm bg-card p-6 border-border/50"
         >
+          <motion.button
+            type="button"
+            aria-label="Back to method selection"
+            onClick={() => setModalMode("select-method")}
+            whileTap={{ scale: 0.85, opacity: 0.7 }}
+            className="absolute left-4 top-4 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full bg-foreground/[0.05] text-muted-foreground transition-colors hover:bg-foreground/[0.08] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
+          >
+            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+          </motion.button>
+
           <ShiftForm
             title="New Shift"
             onSubmit={handleCreate}
