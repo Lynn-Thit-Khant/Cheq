@@ -57,8 +57,8 @@ export function ConfirmModal({
 
           {/* Header & Body */}
           <div className="flex flex-col gap-1.5 px-2">
-            <h2 className="text-lg font-semibold leading-normal text-foreground">{title}</h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
+            <h2 className="text-base font-semibold leading-normal text-foreground">{title}</h2>
+            <p className="text-[13px] text-muted-foreground leading-relaxed">{description}</p>
           </div>
 
           {/* Footer Buttons */}

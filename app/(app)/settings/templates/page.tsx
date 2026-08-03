@@ -459,10 +459,10 @@ export default function TemplatesPage() {
             <div className="flex flex-col gap-6">
               {/* Header: Template Name & Workplace/Location Subtitle */}
               <div className="flex flex-col gap-2 text-center">
-                <h2 className="text-lg font-semibold leading-normal text-foreground truncate">
+                <h2 className="text-base font-semibold leading-normal text-foreground truncate">
                   {selected.name}
                 </h2>
-                <p className="text-sm text-muted-foreground truncate">
+                <p className="text-[13px] text-muted-foreground truncate">
                   {selected.workplace_name}
                   {selected.workplace_location ? ` • ${selected.workplace_location}` : ""}
                 </p>

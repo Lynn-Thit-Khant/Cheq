@@ -12,8 +12,8 @@ Enforce a strict 5-tier typography scale across all screens and components. Do n
 | :--- | :--- | :--- | :--- | :--- |
 | **Hero** | Big Dashboard Metrics | `text-4xl font-bold tabular-nums` | `36px` | Monthly total earned (*$362.50*), avatar initials |
 | **H1** | Main Page Headers | `text-2xl font-bold` | `24px` | Subpage title headers (*Templates*, *Defaults*, Profile Name) |
-| **H2** | Modal Titles | `text-lg font-semibold leading-normal` | `18px` | Morph modal titles (*Ginger Lily*, *Add Shift*). Always use `leading-normal` to prevent font descender clipping. |
-| **Primary** | Primary Row Titles & Action Buttons | `text-[15px] font-medium` / `font-semibold` | `15px` | Shift titles (*Ginger Lily*), settings row labels (*Account*), primary action buttons (*Add*, *Save*), list income values (*$78.00*). |
+| **H2** | Modal Titles | `text-base font-semibold leading-normal` | `16px` | Morph modal titles (*Ginger Lily*, *Add Shift*, *Smart Add*, *Template Name*). Always use `leading-normal` to prevent font descender clipping. |
+| **Primary** | Primary Row Titles & Action Buttons | `text-sm font-medium` / `font-semibold` | `14px` | Shift titles (*Ginger Lily*), modal option row labels (*Smart Add*, *Templates*), settings row labels (*Account*), primary action buttons (*Add*, *Save*), list income values (*$78.00*). |
 | **Secondary** | Form Inputs, Subtitles & Modal Details | `text-sm` (14px) / `text-[13px]` (13px) | `14px / 13px` | **Modal detail key-value list rows** (*Location*, *Time*, *Rate*), form input text, settings subtitles (*Coming soon*), date subtitles (*Aug 10, 2026*). |
 | **Micro** | Section Overlines & Badges | `text-[11px] font-medium uppercase tracking-wider` | `11px` | Weekly section group headers (*AUG 10 – 16*). Date badge weekday label uses `text-[10px] font-bold`. |
 
@@ -55,7 +55,7 @@ Modal overlays use `CenterMorphModal` from `@/components/motion/center-morph-mod
 - **Header**:
   ```tsx
   <div className="flex flex-col gap-2 text-center">
-    <h2 className="text-lg font-semibold leading-normal text-foreground truncate">{title}</h2>
+    <h2 className="text-base font-semibold leading-normal text-foreground truncate">{title}</h2>
     <p className="text-sm text-muted-foreground">{subtitle}</p>
   </div>
   ```

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { motion, AnimatePresence } from "motion/react"
-import { List, Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, Clock, Check, Trash2, MapPin, Tag, Coffee, Building2, Sparkles, LayoutTemplate, Keyboard } from "lucide-react"
+import { List, Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, Clock, Check, Trash2, MapPin, Tag, Coffee, Building2, Sparkles, LayoutTemplate, Keyboard, FileText, Image } from "lucide-react"
 import { ConfirmModal } from "@/components/confirm-modal"
 import { Tabs, TabsList, TabsTrigger } from "@/components/motion/tabs"
 import { AnimatedNumber } from "@/components/motion/animated-number"
@@ -17,13 +17,17 @@ import { SettingsRow } from "@/components/settings-row"
 import { ShiftForm } from "@/components/shift-form"
 import { TemplateForm } from "@/components/template-form"
 import { Calendar } from "@/components/ui/calendar"
+import { Textarea } from "@/components/ui/textarea"
+import { Field } from "@/components/ui/field"
 import { WheelPicker } from "@/components/motion/wheel-picker"
 import { useRouter } from "next/navigation"
 import type { Shift, ShiftFormValues, ShiftTemplate, TemplateFormValues } from "@/lib/schemas/shift-form-schema"
 import { Loader } from "@/components/motion/loader"
 import { getUserPreferences, type UserPreferences } from "@/app/(app)/settings/defaults/actions"
 import { getTemplates, createTemplate } from "@/app/(app)/settings/templates/actions"
-import { getShifts, createShift, updateShift, deleteShift } from "@/app/(app)/home/actions"
+import { getShifts, createShift, updateShift, deleteShift, bulkCreateShifts } from "@/app/(app)/home/actions"
+import { extractShiftsFromText, type ExtractedShift } from "./ai-actions"
+import { ExtractedShiftAccordion, type ExtractedShiftErrors } from "@/components/extracted-shift-accordion"
 import { cn } from "@/lib/utils"
 import {
   dateToString,
@@ -190,9 +194,13 @@ export default function HomePage() {
   const [shifts, setShifts] = useState<Shift[]>([])
   const [templates, setTemplates] = useState<ShiftTemplate[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [modalMode, setModalMode] = useState<"select-method" | "select-template" | "confirm-template" | "create-template" | "create-from-template" | "create" | "view" | "edit" | null>(null)
+  const [modalMode, setModalMode] = useState<"select-method" | "select-smart-add" | "smart-add-paste" | "smart-add-review" | "select-template" | "confirm-template" | "create-template" | "create-from-template" | "create" | "view" | "edit" | null>(null)
   const [selectedShift, setSelectedShift] = useState<Shift | null>(null)
   const [selectedTemplate, setSelectedTemplate] = useState<ShiftTemplate | null>(null)
+  const [pastedText, setPastedText] = useState("")
+  const [extractedShifts, setExtractedShifts] = useState<ExtractedShift[]>([])
+  const [extractedShiftErrors, setExtractedShiftErrors] = useState<Record<number, ExtractedShiftErrors>>({})
+  const [isExtracting, setIsExtracting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isSavingTemplate, setIsSavingTemplate] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -259,6 +267,123 @@ export default function HomePage() {
   const closeModal = () => {
     setModalMode(null)
     setSelectedShift(null)
+    setPastedText("")
+    setExtractedShifts([])
+    setExtractedShiftErrors({})
+  }
+
+  const handleExtractShifts = async () => {
+    if (!pastedText || !pastedText.trim()) return
+    setIsExtracting(true)
+    setExtractedShiftErrors({})
+    try {
+      const results = await extractShiftsFromText(pastedText, {
+        default_hourly_rate: preferences.default_hourly_rate || 20,
+        default_break_duration: preferences.default_break_duration || 0,
+      })
+      if (results.length > 0) {
+        setExtractedShifts(results)
+        setModalMode("smart-add-review")
+      }
+    } catch (err) {
+      console.error("Failed to extract shifts:", err)
+    } finally {
+      setIsExtracting(false)
+    }
+  }
+
+  const handleUpdateExtractedShift = (index: number, updated: ExtractedShift) => {
+    setExtractedShifts((prev) => {
+      const next = [...prev]
+      next[index] = updated
+      return next
+    })
+    // Clear errors for this shift index when edited
+    setExtractedShiftErrors((prev) => {
+      if (!prev[index]) return prev
+      const copy = { ...prev }
+      delete copy[index]
+      return copy
+    })
+  }
+
+  const handleDeleteExtractedShift = (index: number) => {
+    setExtractedShifts((prev) => {
+      const next = prev.filter((_, i) => i !== index)
+      if (next.length === 0) {
+        setModalMode("smart-add-paste")
+      }
+      return next
+    })
+    setExtractedShiftErrors((prev) => {
+      if (!prev[index]) return prev
+      const copy = { ...prev }
+      delete copy[index]
+      return copy
+    })
+  }
+
+  const handleSaveExtractedShifts = async () => {
+    if (extractedShifts.length === 0) return
+
+    // Validate all extracted shifts
+    const errorsMap: Record<number, ExtractedShiftErrors> = {}
+    let hasError = false
+
+    extractedShifts.forEach((shift, index) => {
+      const itemErrors: ExtractedShiftErrors = {}
+      if (!shift.workplace_name || !shift.workplace_name.trim()) {
+        itemErrors.workplace_name = "Workplace is required"
+        hasError = true
+      }
+      if (!shift.workplace_location || !shift.workplace_location.trim()) {
+        itemErrors.workplace_location = "Location is required"
+        hasError = true
+      }
+      if (!shift.shift_date || !shift.shift_date.trim()) {
+        itemErrors.shift_date = "Date is required"
+        hasError = true
+      }
+      if (!shift.start_time || !shift.start_time.trim()) {
+        itemErrors.start_time = "Start time is required"
+        hasError = true
+      }
+      if (!shift.end_time || !shift.end_time.trim()) {
+        itemErrors.end_time = "End time is required"
+        hasError = true
+      }
+
+      if (Object.keys(itemErrors).length > 0) {
+        errorsMap[index] = itemErrors
+      }
+    })
+
+    if (hasError) {
+      setExtractedShiftErrors(errorsMap)
+      return
+    }
+
+    setExtractedShiftErrors({})
+    setIsSaving(true)
+    try {
+      const created = await bulkCreateShifts(
+        extractedShifts.map((s) => ({
+          workplace_name: s.workplace_name,
+          workplace_location: s.workplace_location,
+          shift_date: s.shift_date,
+          start_time: s.start_time,
+          end_time: s.end_time,
+          hourly_rate: s.hourly_rate ?? preferences.default_hourly_rate ?? 0,
+          break_duration: s.break_duration ?? preferences.default_break_duration ?? 0,
+        }))
+      )
+      setShifts((prev) => [...created, ...prev])
+      closeModal()
+    } catch (err) {
+      console.error("Failed to save extracted shifts:", err)
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   // ── CRUD Handlers ───────────────────────────────────────────
@@ -981,27 +1106,23 @@ export default function HomePage() {
           <div className="flex flex-col gap-5">
             {/* Header */}
             <div className="flex flex-col gap-1 text-center">
-              <h2 className="text-lg font-semibold leading-normal text-foreground">
+              <h2 className="text-base font-semibold leading-normal text-foreground">
                 Add Shift
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-[13px] text-muted-foreground">
                 Select how you&apos;d like to create your shift
               </p>
             </div>
 
             {/* Settings Card Cluster with Pill-Shape Hover Rows */}
             <SettingsCard>
-              <SettingsRow
-                onClick={() => {
-                  // Smart Add AI workflow (placeholder for future implementation)
-                }}
-              >
+              <SettingsRow onClick={() => setModalMode("select-smart-add")}>
                 <div className="flex items-center gap-4">
                   <div className="grid h-7 w-7 place-items-center text-muted-foreground">
                     <Sparkles className="size-5" />
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[15px] font-medium text-foreground">Smart Add</span>
+                    <span className="text-sm font-medium text-foreground">Smart Add</span>
                     <span className="inline-flex items-center rounded-full border border-border/60 bg-card/80 backdrop-blur-xl px-2 py-0.5 text-[10px] font-medium text-foreground shadow-sm">
                       Recommended
                     </span>
@@ -1015,7 +1136,7 @@ export default function HomePage() {
                   <div className="grid h-7 w-7 place-items-center text-muted-foreground">
                     <LayoutTemplate className="size-5" />
                   </div>
-                  <span className="text-[15px] font-medium text-foreground">Templates</span>
+                  <span className="text-sm font-medium text-foreground">Templates</span>
                 </div>
                 <ChevronRight className="size-4 text-muted-foreground transition-colors" />
               </SettingsRow>
@@ -1025,11 +1146,187 @@ export default function HomePage() {
                   <div className="grid h-7 w-7 place-items-center text-muted-foreground">
                     <Keyboard className="size-5" />
                   </div>
-                  <span className="text-[15px] font-medium text-foreground">Manual</span>
+                  <span className="text-sm font-medium text-foreground">Manual</span>
                 </div>
                 <ChevronRight className="size-4 text-muted-foreground transition-colors" />
               </SettingsRow>
             </SettingsCard>
+          </div>
+        </CenterMorphModalContent>
+      </CenterMorphModal>
+
+      {/* ── Smart Add Selector Modal ───────────────────────── */}
+      <CenterMorphModal
+        open={modalMode === "select-smart-add"}
+        onOpenChange={(open) => !open && closeModal()}
+      >
+        <CenterMorphModalContent
+          ariaLabel="Smart Add"
+          dismissible={true}
+          className="w-full max-w-sm bg-card p-6 border-border/50"
+        >
+          <motion.button
+            type="button"
+            aria-label="Back to method selection"
+            onClick={() => setModalMode("select-method")}
+            whileTap={{ scale: 0.85, opacity: 0.7 }}
+            className="absolute left-4 top-4 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full bg-foreground/[0.05] text-muted-foreground transition-colors hover:bg-foreground/[0.08] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
+          >
+            <ChevronLeft className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+          </motion.button>
+
+          <div className="flex flex-col gap-5">
+            {/* Header */}
+            <div className="flex flex-col gap-1 text-center">
+              <h2 className="text-base font-semibold leading-normal text-foreground">
+                Smart Add
+              </h2>
+            </div>
+
+            {/* Smart Add Options Card */}
+            <SettingsCard>
+              <SettingsRow onClick={() => setModalMode("smart-add-paste")}>
+                <div className="flex items-center gap-4">
+                  <div className="grid h-7 w-7 place-items-center text-muted-foreground">
+                    <FileText className="size-5" />
+                  </div>
+                  <span className="text-sm font-medium text-foreground">Paste Text / Schedule</span>
+                </div>
+                <ChevronRight className="size-4 text-muted-foreground transition-colors" />
+              </SettingsRow>
+
+              <div className="opacity-60 pointer-events-none">
+                <SettingsRow>
+                  <div className="flex items-center gap-4">
+                    <div className="grid h-7 w-7 place-items-center text-muted-foreground">
+                      <Image className="size-5" />
+                    </div>
+                    <span className="text-sm font-medium text-foreground">Upload Photo</span>
+                  </div>
+                  <span className="text-[13px] text-muted-foreground/60">Coming soon</span>                </SettingsRow>
+              </div>
+            </SettingsCard>
+          </div>
+        </CenterMorphModalContent>
+      </CenterMorphModal>
+
+      {/* ── Paste Schedule Modal (Smart Add Step 3) ──────────── */}
+      <CenterMorphModal
+        open={modalMode === "smart-add-paste"}
+        onOpenChange={(open) => !open && closeModal()}
+      >
+        <CenterMorphModalContent
+          ariaLabel="Paste Schedule"
+          dismissible={true}
+          className="w-full max-w-sm bg-card p-6 border-border/50"
+        >
+          <motion.button
+            type="button"
+            aria-label="Back to Smart Add selection"
+            onClick={() => setModalMode("select-smart-add")}
+            whileTap={{ scale: 0.85, opacity: 0.7 }}
+            className="absolute left-4 top-4 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full bg-foreground/[0.05] text-muted-foreground transition-colors hover:bg-foreground/[0.08] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
+          >
+            <ChevronLeft className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+          </motion.button>
+
+          <div className="flex flex-col gap-5">
+            {/* Header */}
+            <div className="flex flex-col gap-1 text-center">
+              <h2 className="text-base font-semibold leading-normal text-foreground">
+                Paste Schedule
+              </h2>
+            </div>
+
+            {/* Textarea Form */}
+            <Field>
+              <Textarea
+                placeholder="e.g. Mon 9am - 5pm at Cafe..."
+                value={pastedText}
+                onChange={(e) => setPastedText(e.target.value)}
+                disabled={isExtracting}
+              />
+            </Field>
+
+            {/* Footer Buttons */}
+            <div className="mt-2 flex justify-end gap-3">
+              <CenterMorphModalClose>
+                <Button variant="ghost" disabled={isExtracting}>
+                  Cancel
+                </Button>
+              </CenterMorphModalClose>
+              <Button
+                type="button"
+                disabled={!pastedText.trim() || isExtracting}
+                isLoading={isExtracting}
+                onClick={handleExtractShifts}
+              >
+                Extract Shifts
+              </Button>
+            </div>
+          </div>
+        </CenterMorphModalContent>
+      </CenterMorphModal>
+
+      {/* ── Review Extracted Shifts Modal (Smart Add Step 4) ──── */}
+      <CenterMorphModal
+        open={modalMode === "smart-add-review"}
+        onOpenChange={(open) => !open && closeModal()}
+      >
+        <CenterMorphModalContent
+          ariaLabel="Review Extracted Shifts"
+          dismissible={true}
+          className="w-full max-w-md bg-card p-6 border-border/50"
+        >
+          <motion.button
+            type="button"
+            aria-label="Back to Paste Schedule"
+            onClick={() => setModalMode("smart-add-paste")}
+            whileTap={{ scale: 0.85, opacity: 0.7 }}
+            className="absolute left-4 top-4 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full bg-foreground/[0.05] text-muted-foreground transition-colors hover:bg-foreground/[0.08] hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring cursor-pointer"
+          >
+            <ChevronLeft className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+          </motion.button>
+
+          <div className="flex flex-col gap-5">
+            {/* Header */}
+            <div className="flex flex-col gap-1 text-center">
+              <h2 className="text-base font-semibold leading-normal text-foreground">
+                Review Shifts
+              </h2>
+              <p className="text-[13px] text-muted-foreground">
+                {extractedShifts.length} shift{extractedShifts.length > 1 ? "s" : ""} extracted
+              </p>
+            </div>
+
+            {/* Accordion List */}
+            <div className="max-h-[380px] overflow-y-auto pr-0.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              <ExtractedShiftAccordion
+                shifts={extractedShifts}
+                errors={extractedShiftErrors}
+                onUpdateShift={handleUpdateExtractedShift}
+                onDeleteShift={handleDeleteExtractedShift}
+                timeFormat={preferences.time_format}
+                firstDayOfWeek={preferences.first_day_of_week}
+              />
+            </div>
+
+            {/* Footer Action Buttons */}
+            <div className="mt-2 flex justify-end gap-3">
+              <CenterMorphModalClose>
+                <Button variant="ghost" disabled={isSaving}>
+                  Cancel
+                </Button>
+              </CenterMorphModalClose>
+              <Button
+                type="button"
+                isLoading={isSaving}
+                disabled={isSaving || extractedShifts.length === 0}
+                onClick={handleSaveExtractedShifts}
+              >
+                Save All ({extractedShifts.length})
+              </Button>
+            </div>
           </div>
         </CenterMorphModalContent>
       </CenterMorphModal>
@@ -1057,7 +1354,7 @@ export default function HomePage() {
           <div className="flex flex-col gap-5">
             {/* Header */}
             <div className="flex flex-col gap-1 text-center">
-              <h2 className="text-lg font-semibold leading-normal text-foreground">
+              <h2 className="text-base font-semibold leading-normal text-foreground">
                 Select Template
               </h2>
             </div>
@@ -1075,7 +1372,7 @@ export default function HomePage() {
                   >
                     <div className="flex items-center gap-3 text-left min-w-0 flex-1 pr-4">
                       <div className="w-1 h-5 rounded-full bg-primary/80 shrink-0" />
-                      <span className="text-[15px] font-medium text-foreground truncate">
+                      <span className="text-sm font-medium text-foreground truncate">
                         {template.name}
                       </span>
                     </div>
@@ -1094,7 +1391,7 @@ export default function HomePage() {
                   <h3 className="text-[19px] font-semibold text-foreground tracking-tight">
                     No templates yet
                   </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                  <p className="text-[13px] text-muted-foreground leading-relaxed">
                     Save your regular shifts as templates so you can add them with a single tap.
                   </p>
                 </div>
@@ -1235,10 +1532,10 @@ export default function HomePage() {
             <div className="flex flex-col gap-6">
               {/* Header: Workplace Name & Date */}
               <div className="flex flex-col gap-2 text-center">
-                <h2 className="text-lg font-semibold leading-normal text-foreground truncate">
+                <h2 className="text-base font-semibold leading-normal text-foreground truncate">
                   {selectedShift.workplace_name}
                 </h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-[13px] text-muted-foreground">
                   {formatDisplayDate(selectedShift.shift_date)}
                 </p>
               </div>

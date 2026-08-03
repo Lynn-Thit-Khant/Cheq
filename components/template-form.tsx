@@ -132,7 +132,7 @@ export function TemplateForm({
                 {...field}
                 type="text"
                 placeholder="Template Name"
-                className="w-full bg-transparent text-center text-lg font-semibold leading-normal text-foreground placeholder:text-muted-foreground/50 outline-none border-none focus:outline-none px-8 truncate"
+                className="w-full bg-transparent text-center text-base font-semibold leading-normal text-foreground placeholder:text-muted-foreground/50 outline-none border-none focus:outline-none px-8 truncate"
               />
               {fieldState.invalid && (
                 <FieldError errors={[fieldState.error]} />

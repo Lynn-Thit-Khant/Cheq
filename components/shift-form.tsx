@@ -131,7 +131,7 @@ export function ShiftForm({
       <div className="flex flex-col gap-6">
         {/* ── Modal Header ────────────── */}
         <div className="flex flex-col gap-1 text-center">
-          <h2 className="text-lg font-semibold leading-normal text-foreground">
+          <h2 className="text-base font-semibold leading-normal text-foreground">
             {title}
           </h2>
         </div>

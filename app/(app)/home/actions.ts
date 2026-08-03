@@ -125,3 +125,39 @@ export async function deleteShift(id: string): Promise<{ success: boolean }> {
 
   return { success: true }
 }
+
+export async function bulkCreateShifts(shifts: ShiftFormValues[]): Promise<Shift[]> {
+  if (!shifts || shifts.length === 0) {
+    return []
+  }
+
+  const supabase = await createClient()
+
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    throw new Error("Unauthorized")
+  }
+
+  const payload = shifts.map((s) => ({
+    user_id: user.id,
+    workplace_name: s.workplace_name || "Workplace",
+    workplace_location: s.workplace_location || "",
+    shift_date: s.shift_date,
+    start_time: s.start_time,
+    end_time: s.end_time,
+    hourly_rate: s.hourly_rate ?? 0,
+    break_duration: s.break_duration ?? 0,
+  }))
+
+  const { data, error } = await supabase
+    .from("shifts")
+    .insert(payload)
+    .select()
+
+  if (error) {
+    console.error("Error bulk creating shifts:", error)
+    throw new Error("Failed to save shifts")
+  }
+
+  return (data ?? []) as Shift[]
+}
