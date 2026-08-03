@@ -205,10 +205,10 @@ export function ExtractedShiftAccordion({
                   {/* Left: Date Circle Badge + Workplace Name + Alert Indicator */}
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className="flex size-9 shrink-0 flex-col items-center justify-center rounded-full bg-foreground/[0.05] border border-border/50 text-center select-none shadow-sm relative">
-                      <span className="text-[9px] font-bold tracking-wider text-muted-foreground uppercase leading-none">
+                      <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase leading-none">
                         {weekday}
                       </span>
-                      <span className="text-[12px] font-bold text-foreground leading-none mt-0.5">
+                      <span className="text-[13px] font-bold text-foreground leading-none mt-0.5">
                         {dayNumber}
                       </span>
                     </div>
@@ -409,7 +409,7 @@ export function ExtractedShiftAccordion({
                             onClick={() => {
                               onDeleteShift(index)
                             }}
-                            className="h-10 px-4 rounded-full text-xs font-medium flex items-center gap-1.5 cursor-pointer shadow-sm"
+                            className="h-10 px-4 rounded-full text-sm font-medium flex items-center gap-1.5 cursor-pointer shadow-sm"
                           >
                             <Trash2 className="size-3.5" />
                             Delete
