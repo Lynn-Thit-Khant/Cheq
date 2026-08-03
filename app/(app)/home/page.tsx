@@ -1124,7 +1124,7 @@ export default function HomePage() {
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-foreground">Smart Add</span>
                     <span className="inline-flex items-center rounded-full border border-border/60 bg-card/80 backdrop-blur-xl px-2 py-0.5 text-[10px] font-medium text-foreground shadow-sm">
-                      Recommended
+                      Don't tokenmaxx
                     </span>
                   </div>
                 </div>
@@ -1190,7 +1190,7 @@ export default function HomePage() {
                   <div className="grid h-7 w-7 place-items-center text-muted-foreground">
                     <FileText className="size-5" />
                   </div>
-                  <span className="text-sm font-medium text-foreground">Paste Text / Schedule</span>
+                  <span className="text-sm font-medium text-foreground">Paste Schedule</span>
                 </div>
                 <ChevronRight className="size-4 text-muted-foreground transition-colors" />
               </SettingsRow>
