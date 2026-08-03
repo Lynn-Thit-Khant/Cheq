@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { Dock, DockItem } from "@/components/motion/dock"
 import { Home, TrendingUp, Settings, Sparkles } from "lucide-react"
@@ -18,6 +18,12 @@ export function BottomNav() {
 
   const [activeHref, setActiveHref] = useState(pathname)
   const [prevPathname, setPrevPathname] = useState(pathname)
+
+  useEffect(() => {
+    tabs.forEach((tab) => {
+      router.prefetch(tab.href)
+    })
+  }, [router])
 
   if (pathname !== prevPathname) {
     setPrevPathname(pathname)

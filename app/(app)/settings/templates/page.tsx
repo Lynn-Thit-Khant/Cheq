@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { BackButton } from "@/components/back-button"
-import { Briefcase, ChevronRight, Check, Trash2, Plus } from "lucide-react"
+import { Briefcase, ChevronRight, Check, Trash2, Plus, Building2, MapPin, Clock, Tag, Coffee } from "lucide-react"
 import { motion, AnimatePresence } from "motion/react"
 import { ConfirmModal } from "@/components/confirm-modal"
 import {
@@ -25,7 +25,7 @@ import {
 // ── Helpers ────────────────────────────────────────────────────
 import { SettingsCard } from "@/components/settings-card"
 import { SettingsRow } from "@/components/settings-row"
-import { formatDisplayTime } from "@/lib/time-utils"
+import { formatDisplayTime, calculateShiftIncome, calculateShiftDurationHours, formatCurrency } from "@/lib/time-utils"
 import { cn } from "@/lib/utils"
 
 function templateToTemplateFormValues(t: ShiftTemplate): TemplateFormValues {
@@ -272,16 +272,28 @@ export default function TemplatesPage() {
                 </div>
                 <h1 className="text-2xl font-bold text-center">Templates</h1>
                 <div className="absolute right-0">
-                  {hasTemplates && !isLoading && canCreate && (
-                    <motion.button
-                      type="button"
-                      whileTap={{ scale: 0.85, opacity: 0.7 }}
-                      onClick={openCreate}
-                      className="inline-flex items-center justify-center h-12 px-5 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[15px] font-medium text-foreground hover:bg-card/90 transition-colors shadow-sm"
-                      aria-label="Create template"
-                    >
-                      Add
-                    </motion.button>
+                  {hasTemplates && !isLoading && (
+                    canCreate ? (
+                      <motion.button
+                        type="button"
+                        whileTap={{ scale: 0.85, opacity: 0.7 }}
+                        onClick={openCreate}
+                        className="inline-flex items-center justify-center h-12 px-5 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[15px] font-medium text-foreground hover:bg-card/90 transition-colors shadow-sm"
+                        aria-label="Create template"
+                      >
+                        Add
+                      </motion.button>
+                    ) : (
+                      <motion.button
+                        type="button"
+                        whileTap={{ scale: 0.85, opacity: 0.7 }}
+                        onClick={() => setIsSelectMode(true)}
+                        className="inline-flex items-center justify-center h-12 px-5 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[15px] font-medium text-foreground hover:bg-card/90 transition-colors shadow-sm"
+                        aria-label="Select templates"
+                      >
+                        Select
+                      </motion.button>
+                    )
                   )}
                 </div>
               </motion.div>
@@ -440,33 +452,25 @@ export default function TemplatesPage() {
       >
         <CenterMorphModalContent
           ariaLabel="View Template"
+          dismissible={true}
           className="w-full max-w-sm bg-card p-6 border-border/50"
         >
           {selected && (
             <div className="flex flex-col gap-6">
-              {/* Header */}
-              <div className="flex flex-col gap-1 text-center px-8">
-                <h2 className="text-lg font-semibold leading-none text-foreground truncate">
+              {/* Header: Template Name & Workplace/Location Subtitle */}
+              <div className="flex flex-col gap-2 text-center">
+                <h2 className="text-lg font-semibold leading-normal text-foreground truncate">
                   {selected.name}
                 </h2>
+                <p className="text-sm text-muted-foreground truncate">
+                  {selected.workplace_name}
+                  {selected.workplace_location ? ` • ${selected.workplace_location}` : ""}
+                </p>
               </div>
 
-              {/* Details */}
+              {/* Clean Single Details List (Shift Parameters) */}
               <div className="flex flex-col">
-                <div className="flex items-center justify-between text-[15px] py-3.5 border-b border-border/40 gap-4">
-                  <span className="text-muted-foreground shrink-0">Workplace</span>
-                  <span className="text-foreground font-medium truncate max-w-[60%] text-right">
-                    {selected.workplace_name}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-[15px] py-3.5 border-b border-border/40 gap-4">
-                  <span className="text-muted-foreground shrink-0">Location</span>
-                  <span className="text-foreground font-medium truncate max-w-[60%] text-right">
-                    {selected.workplace_location}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between text-[15px] py-3.5 border-b border-border/40">
+                <div className="flex items-center justify-between text-sm py-2.5 border-b border-border/40">
                   <span className="text-muted-foreground">Time</span>
                   <span className="text-foreground font-medium">
                     {formatDisplayTime(selected.start_time, preferences.time_format)}
@@ -474,22 +478,50 @@ export default function TemplatesPage() {
                     {formatDisplayTime(selected.end_time, preferences.time_format)}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-[15px] py-3.5 border-b border-border/40">
+
+                <div className="flex items-center justify-between text-sm py-2.5 border-b border-border/40">
                   <span className="text-muted-foreground">Rate</span>
                   <span className="text-foreground font-medium">
                     ${Number(selected.hourly_rate).toFixed(2)} / hr
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-[15px] py-3.5">
+
+                <div className="flex items-center justify-between text-sm py-2.5 border-b border-border/40">
                   <span className="text-muted-foreground">Break</span>
                   <span className="text-foreground font-medium">
                     {selected.break_duration} min
                   </span>
                 </div>
+
+                <div className="flex items-center justify-between text-sm py-2.5 border-b border-border/40">
+                  <span className="text-muted-foreground">Total Worked</span>
+                  <span className="text-foreground font-medium">
+                    {calculateShiftDurationHours(
+                      selected.start_time,
+                      selected.end_time,
+                      selected.break_duration
+                    ).toFixed(2)}{" "}
+                    hrs
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between text-sm py-2.5">
+                  <span className="text-muted-foreground font-medium">Estimated Income</span>
+                  <span className="text-foreground font-semibold text-[15px]">
+                    {formatCurrency(
+                      calculateShiftIncome(
+                        selected.start_time,
+                        selected.end_time,
+                        selected.hourly_rate,
+                        selected.break_duration
+                      )
+                    )}
+                  </span>
+                </div>
               </div>
 
-              {/* Footer: Delete + Edit */}
-              <div className="mt-2 flex justify-end gap-3">
+              {/* Actions: Delete + Edit (Right-Aligned) */}
+              <div className="mt-1 flex justify-end gap-3">
                 <Button
                   variant="destructive"
                   onClick={() => setSingleDeleteConfirmOpen(true)}

@@ -132,7 +132,7 @@ export function TemplateForm({
                 {...field}
                 type="text"
                 placeholder="Template Name"
-                className="w-full bg-transparent text-center text-lg font-semibold leading-none text-foreground placeholder:text-muted-foreground/50 outline-none border-none focus:outline-none px-8 truncate"
+                className="w-full bg-transparent text-center text-lg font-semibold leading-normal text-foreground placeholder:text-muted-foreground/50 outline-none border-none focus:outline-none px-8 truncate"
               />
               {fieldState.invalid && (
                 <FieldError errors={[fieldState.error]} />
@@ -244,7 +244,7 @@ export function TemplateForm({
                 </CenterMorphModalContent>
               </CenterMorphModal>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 {/* Start time */}
                 <Field>
                   <FieldLabel>Starts</FieldLabel>
@@ -256,12 +256,12 @@ export function TemplateForm({
                       setTimePickerOpen(true);
                     }}
                     className={cn(
-                      "flex h-12 w-full items-center gap-3 rounded-full border border-border bg-card px-4 text-base md:text-sm text-foreground transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none",
+                      "flex h-12 w-full items-center gap-2 rounded-full border border-border bg-card px-3.5 text-sm font-medium text-foreground transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none",
                       activeTimeField === "start" && timePickerOpen && "border-ring ring-1 ring-ring"
                     )}
                   >
                     <Clock className="size-4 text-muted-foreground shrink-0" />
-                    <span>{startDisplay}</span>
+                    <span className="whitespace-nowrap text-sm font-medium">{startDisplay}</span>
                     <ChevronDown className="ml-auto size-4 text-muted-foreground/50 shrink-0" />
                   </button>
                   {form.formState.errors.start_time && (
@@ -280,14 +280,12 @@ export function TemplateForm({
                       setTimePickerOpen(true);
                     }}
                     className={cn(
-                      "flex h-12 w-full items-center gap-3 rounded-full border border-border bg-card px-4 text-base md:text-sm text-foreground transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none",
+                      "flex h-12 w-full items-center gap-2 rounded-full border border-border bg-card px-3.5 text-sm font-medium text-foreground transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none",
                       activeTimeField === "end" && timePickerOpen && "border-ring ring-1 ring-ring"
                     )}
                   >
                     <Clock className="size-4 text-muted-foreground shrink-0" />
-                    <span>
-                      {endDisplay}
-                    </span>
+                    <span className="whitespace-nowrap text-sm font-medium">{endDisplay}</span>
                     <ChevronDown className="ml-auto size-4 text-muted-foreground/50 shrink-0" />
                   </button>
                   {form.formState.errors.end_time && (

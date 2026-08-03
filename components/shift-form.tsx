@@ -131,7 +131,7 @@ export function ShiftForm({
       <div className="flex flex-col gap-6">
         {/* ── Modal Header ────────────── */}
         <div className="flex flex-col gap-1 text-center">
-          <h2 className="text-lg font-semibold leading-none text-foreground">
+          <h2 className="text-lg font-semibold leading-normal text-foreground">
             {title}
           </h2>
         </div>
@@ -189,10 +189,10 @@ export function ShiftForm({
               <button
                 type="button"
                 onClick={() => setDateOpen(true)}
-                className="flex h-12 w-full items-center gap-3 rounded-full border border-border bg-card px-4 text-base md:text-sm text-foreground transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none"
+                className="flex h-12 w-full items-center gap-2.5 rounded-full border border-border bg-card px-4 text-sm font-medium text-foreground transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none"
               >
                 <CalendarIcon className="size-4 text-muted-foreground shrink-0" />
-                <span>{dateDisplay}</span>
+                <span className="whitespace-nowrap text-sm font-medium">{dateDisplay}</span>
                 <ChevronDown className="ml-auto size-4 text-muted-foreground/50 shrink-0" />
               </button>
               <CenterMorphModalContent
@@ -290,12 +290,12 @@ export function ShiftForm({
                     setTimePickerOpen(true)
                   }}
                   className={cn(
-                    "flex h-12 w-full items-center gap-3 rounded-full border border-border bg-card px-4 text-base md:text-sm text-foreground transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none",
+                    "flex h-12 w-full items-center gap-2 rounded-full border border-border bg-card px-3.5 text-sm font-medium text-foreground transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none",
                     activeTimeField === "start" && timePickerOpen && "border-ring ring-1 ring-ring"
                   )}
                 >
                   <Clock className="size-4 text-muted-foreground shrink-0" />
-                  <span>{startDisplay}</span>
+                  <span className="whitespace-nowrap text-sm font-medium">{startDisplay}</span>
                   <ChevronDown className="ml-auto size-4 text-muted-foreground/50 shrink-0" />
                 </button>
                 {form.formState.errors.start_time && (
@@ -314,12 +314,12 @@ export function ShiftForm({
                     setTimePickerOpen(true)
                   }}
                   className={cn(
-                    "flex h-12 w-full items-center gap-3 rounded-full border border-border bg-card px-4 text-base md:text-sm text-foreground transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none",
+                    "flex h-12 w-full items-center gap-2 rounded-full border border-border bg-card px-3.5 text-sm font-medium text-foreground transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none",
                     activeTimeField === "end" && timePickerOpen && "border-ring ring-1 ring-ring"
                   )}
                 >
                   <Clock className="size-4 text-muted-foreground shrink-0" />
-                  <span>{endDisplay}</span>
+                  <span className="whitespace-nowrap text-sm font-medium">{endDisplay}</span>
                   <ChevronDown className="ml-auto size-4 text-muted-foreground/50 shrink-0" />
                 </button>
                 {form.formState.errors.end_time && (

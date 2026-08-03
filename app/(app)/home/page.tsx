@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { motion, AnimatePresence } from "motion/react"
-import { List, Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, Clock, Check, Trash2 } from "lucide-react"
+import { List, Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, Clock, Check, Trash2, MapPin, Tag, Coffee, Building2 } from "lucide-react"
 import { ConfirmModal } from "@/components/confirm-modal"
 import { Tabs, TabsList, TabsTrigger } from "@/components/motion/tabs"
 import { AnimatedNumber } from "@/components/motion/animated-number"
@@ -732,22 +732,22 @@ export default function HomePage() {
               </div>
 
               {/* Month Navigation Directly Below Total Earned */}
-              <div className="flex items-center gap-1 mt-1">
+              <div className="flex items-center gap-0.5 mt-1">
                 <motion.button
                   type="button"
                   whileTap={{ scale: 0.85 }}
                   onClick={prevMonth}
-                  className="inline-flex size-8 items-center justify-center rounded-full transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-foreground cursor-pointer"
+                  className="inline-flex size-10 items-center justify-center rounded-full transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-foreground cursor-pointer"
                   aria-label="Previous month"
                 >
-                  <ChevronLeft className="size-4 text-muted-foreground" />
+                  <ChevronLeft className="size-5 text-muted-foreground stroke-[2.25]" />
                 </motion.button>
 
                 <motion.button
                   type="button"
                   whileTap={{ scale: 0.96 }}
                   onClick={() => setMonthYearPickerOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-semibold text-foreground hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer select-none"
+                  className="inline-flex items-center gap-1 px-1.5 py-1 rounded-full text-sm font-semibold text-foreground hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer select-none"
                   aria-label="Select month and year"
                 >
                   <span>{calendarMonthYearLabel}</span>
@@ -758,10 +758,10 @@ export default function HomePage() {
                   type="button"
                   whileTap={{ scale: 0.85 }}
                   onClick={nextMonth}
-                  className="inline-flex size-8 items-center justify-center rounded-full transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-foreground cursor-pointer"
+                  className="inline-flex size-10 items-center justify-center rounded-full transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-foreground cursor-pointer"
                   aria-label="Next month"
                 >
-                  <ChevronRight className="size-4 text-muted-foreground" />
+                  <ChevronRight className="size-5 text-muted-foreground stroke-[2.25]" />
                 </motion.button>
               </div>
             </div>
@@ -809,22 +809,22 @@ export default function HomePage() {
             {/* Frameless Calendar Grid Container */}
             <div className="flex flex-col items-center w-full mx-auto mb-6">
               {/* Calendar Header with Centered Month/Year & Frameless Buttons */}
-              <div className="w-full flex items-center justify-center gap-2.5 mb-3">
+              <div className="w-full flex items-center justify-center gap-0.5 mb-3">
                 <motion.button
                   type="button"
                   whileTap={{ scale: 0.85 }}
                   onClick={prevMonth}
-                  className="inline-flex size-8 items-center justify-center rounded-full transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-foreground cursor-pointer"
+                  className="inline-flex size-10 items-center justify-center rounded-full transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-foreground cursor-pointer"
                   aria-label="Previous month"
                 >
-                  <ChevronLeft className="size-4 text-muted-foreground" />
+                  <ChevronLeft className="size-5 text-muted-foreground stroke-[2.25]" />
                 </motion.button>
 
                 <motion.button
                   type="button"
                   whileTap={{ scale: 0.96 }}
                   onClick={() => setMonthYearPickerOpen(true)}
-                  className="inline-flex items-center justify-center gap-2 px-2.5 py-1 rounded-full text-lg font-bold text-foreground hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer select-none text-center"
+                  className="inline-flex items-center justify-center gap-1.5 px-2 py-1 rounded-full text-lg font-bold text-foreground hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer select-none text-center"
                   aria-label="Select month and year"
                 >
                   <span>{calendarMonthYearLabel}</span>
@@ -835,10 +835,10 @@ export default function HomePage() {
                   type="button"
                   whileTap={{ scale: 0.85 }}
                   onClick={nextMonth}
-                  className="inline-flex size-8 items-center justify-center rounded-full transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-foreground cursor-pointer"
+                  className="inline-flex size-10 items-center justify-center rounded-full transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-foreground cursor-pointer"
                   aria-label="Next month"
                 >
-                  <ChevronRight className="size-4 text-muted-foreground" />
+                  <ChevronRight className="size-5 text-muted-foreground stroke-[2.25]" />
                 </motion.button>
               </div>
 
@@ -873,10 +873,10 @@ export default function HomePage() {
                   nav: "hidden",
                   month_caption: "hidden",
                   month_grid: "w-fit border-collapse",
-                  weekdays: "flex justify-between gap-1",
-                  weekday: "size-10 text-[11px] font-medium text-muted-foreground/70 select-none flex items-center justify-center uppercase tracking-wider",
-                  week: "mt-1 flex w-fit justify-between gap-1",
-                  day: "group/day relative size-10 p-0 text-center select-none flex items-center justify-center",
+                  weekdays: "flex justify-between gap-1 sm:gap-1.5",
+                  weekday: "size-10 sm:size-11 text-[11px] font-medium text-muted-foreground/70 select-none flex items-center justify-center uppercase tracking-wider",
+                  week: "mt-1 flex w-fit justify-between gap-1 sm:gap-1.5",
+                  day: "group/day relative size-10 sm:size-11 p-0 text-center select-none flex items-center justify-center",
                 }}
               />
             </div>
@@ -902,7 +902,7 @@ export default function HomePage() {
                       onClick={() => openCreateWithDate(selectedCalendarDate || new Date())}
                       className="inline-flex items-center justify-center h-11 px-5 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[14px] font-medium text-foreground hover:bg-card/90 transition-colors shadow-sm cursor-pointer"
                     >
-                      Add Shift for {shortSelectedDayLabel}
+                      Add Shift
                     </button>
                   </motion.div>
                 </div>
@@ -986,13 +986,14 @@ export default function HomePage() {
       >
         <CenterMorphModalContent
           ariaLabel="Shift Details"
+          dismissible={true}
           className="w-full max-w-sm bg-card p-6 border-border/50"
         >
           {selectedShift && (
             <div className="flex flex-col gap-6">
-              {/* Header */}
-              <div className="flex flex-col gap-2 text-center px-4">
-                <h2 className="text-lg font-semibold text-foreground truncate">
+              {/* Header: Workplace Name & Date */}
+              <div className="flex flex-col gap-2 text-center">
+                <h2 className="text-lg font-semibold leading-normal text-foreground truncate">
                   {selectedShift.workplace_name}
                 </h2>
                 <p className="text-sm text-muted-foreground">
@@ -1000,16 +1001,16 @@ export default function HomePage() {
                 </p>
               </div>
 
-              {/* Details Breakdown */}
+              {/* Clean Single Details List */}
               <div className="flex flex-col">
-                <div className="flex items-center justify-between text-[15px] py-3.5 border-b border-border/40 gap-4">
+                <div className="flex items-center justify-between text-sm py-2.5 border-b border-border/40 gap-4">
                   <span className="text-muted-foreground shrink-0">Location</span>
                   <span className="text-foreground font-medium truncate max-w-[60%] text-right">
                     {selectedShift.workplace_location}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-[15px] py-3.5 border-b border-border/40">
+                <div className="flex items-center justify-between text-sm py-2.5 border-b border-border/40">
                   <span className="text-muted-foreground">Time</span>
                   <span className="text-foreground font-medium">
                     {formatDisplayTime(selectedShift.start_time, preferences.time_format)}
@@ -1018,21 +1019,21 @@ export default function HomePage() {
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-[15px] py-3.5 border-b border-border/40">
+                <div className="flex items-center justify-between text-sm py-2.5 border-b border-border/40">
                   <span className="text-muted-foreground">Rate</span>
                   <span className="text-foreground font-medium">
                     ${Number(selectedShift.hourly_rate).toFixed(2)} / hr
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-[15px] py-3.5 border-b border-border/40">
+                <div className="flex items-center justify-between text-sm py-2.5 border-b border-border/40">
                   <span className="text-muted-foreground">Break</span>
                   <span className="text-foreground font-medium">
                     {selectedShift.break_duration} min
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-[15px] py-3.5 border-b border-border/40">
+                <div className="flex items-center justify-between text-sm py-2.5 border-b border-border/40">
                   <span className="text-muted-foreground">Total Worked</span>
                   <span className="text-foreground font-medium">
                     {calculateShiftDurationHours(
@@ -1044,9 +1045,9 @@ export default function HomePage() {
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-[15px] py-3.5">
-                  <span className="text-muted-foreground font-semibold">Estimated Income</span>
-                  <span className="text-primary font-bold text-base">
+                <div className="flex items-center justify-between text-sm py-2.5">
+                  <span className="text-muted-foreground font-medium">Estimated Income</span>
+                  <span className="text-foreground font-semibold text-[15px]">
                     {formatCurrency(
                       selectedShift.estimated_income !== undefined && selectedShift.estimated_income !== null
                         ? Number(selectedShift.estimated_income)
@@ -1061,8 +1062,8 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Actions: Delete + Edit */}
-              <div className="mt-2 flex justify-end gap-3">
+              {/* Actions: Delete + Edit (Right-Aligned) */}
+              <div className="mt-1 flex justify-end gap-3">
                 <Button
                   variant="destructive"
                   onClick={() => setSingleDeleteConfirmOpen(true)}
