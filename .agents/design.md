@@ -11,11 +11,11 @@ Enforce a strict 5-tier typography scale across all screens and components. Do n
 | Tier | Role | Tailwind Classes | Exact Size | Example Usage |
 | :--- | :--- | :--- | :--- | :--- |
 | **Hero** | Big Dashboard Metrics | `text-4xl font-bold tabular-nums` | `36px` | Monthly total earned (*$362.50*), avatar initials |
-| **H1** | Main Page Headers | `text-2xl font-bold` | `24px` | Subpage title headers (*Templates*, *Defaults*, Profile Name) |
-| **H2** | Modal Titles | `text-base font-semibold leading-normal` | `16px` | Morph modal titles (*Ginger Lily*, *Add Shift*, *Smart Add*, *Template Name*). Always use `leading-normal` to prevent font descender clipping. |
-| **Primary** | Primary Row Titles & Action Buttons | `text-sm font-medium` / `font-semibold` | `14px` | Shift titles (*Ginger Lily*), modal option row labels (*Smart Add*, *Templates*), settings row labels (*Account*), primary action buttons (*Add*, *Save*), list income values (*$78.00*). |
-| **Secondary** | Form Inputs, Subtitles & Modal Details | `text-sm` (14px) / `text-[13px]` (13px) | `14px / 13px` | **Modal detail key-value list rows** (*Location*, *Time*, *Rate*), form input text, settings subtitles (*Coming soon*), date subtitles (*Aug 10, 2026*). |
-| **Micro** | Section Overlines & Badges | `text-[11px] font-medium uppercase tracking-wider` | `11px` | Weekly section group headers (*AUG 10 – 16*). Date badge weekday label uses `text-[10px] font-bold`. |
+| **H1** | Main Page Headers | `text-2xl font-bold` | `24px` | Subpage title headers (*Templates*, *Defaults*, *Account*) |
+| **H2** | Section / Modal Titles & Empty States | `text-lg font-semibold` / `text-base font-semibold` | `18px / 16px` | Modal titles (*Review Shifts*, *Duplicate Shift Detected*), empty state headers (*No shifts yet*) |
+| **Primary** | Primary Row Titles, Settings & Action Buttons | `text-[15px] font-medium` / `text-sm font-medium` | `15px / 14px` | Shift titles (*Republic Bar*), settings row labels (*Account*), primary action buttons (*Add*, *Save*) |
+| **Secondary** | Form Inputs, Subtitles & Time Ranges | `text-[13px] text-muted-foreground` / `text-sm` | `13px / 14px` | Subtitles (*17:00 – 00:00*), form input text, modal detail key-values |
+| **Micro** | Overlines & Date Badges | `text-[11px] font-medium uppercase` / `text-[10px] font-bold` | `11px / 10px` | Weekly section group headers (*AUG 10 – 16*), Date badge weekday label (*WED*) |
 
 ---
 
