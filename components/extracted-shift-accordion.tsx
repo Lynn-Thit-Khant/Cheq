@@ -188,7 +188,7 @@ export function ExtractedShiftAccordion({
                   type="button"
                   onClick={() => toggleIndex(index)}
                   className={cn(
-                    "flex h-14 w-full items-center justify-between px-4 sm:px-6 transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 rounded-[24px] cursor-pointer outline-none select-none gap-3",
+                    "flex h-14 w-full items-center justify-between px-4 sm:px-6 transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 rounded-full cursor-pointer outline-none select-none gap-3",
                     hasError && "ring-1 ring-destructive/50 bg-destructive/5"
                   )}
                 >
