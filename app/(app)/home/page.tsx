@@ -1322,7 +1322,7 @@ export default function HomePage() {
                 onClick={handleExtractShifts}
                 className="h-11 rounded-full text-sm font-medium w-full cursor-pointer"
               >
-                Extract Shifts
+                {isExtracting ? "Extracting" : "Extract"}
               </Button>
             </div>
           </div>
