@@ -244,7 +244,7 @@ export default function AccountPage() {
                 </button>
               </MorphPopoverTrigger>
               <MorphPopoverContent align="end" sideOffset={0} radius={999} unstyled className="w-auto p-4 -mr-4">
-                <div className="rounded-[32px] bg-card/90 backdrop-blur-xl border border-border/50 overflow-hidden flex flex-col p-1.5 gap-0.5">
+                <div className="rounded-full bg-card/90 backdrop-blur-xl border border-border/50 overflow-hidden flex flex-col">
                   <Button
                     variant="ghost"
                     size="lg"
@@ -252,7 +252,7 @@ export default function AccountPage() {
                       setNameOpen(false)
                       setNameModalOpen(true)
                     }}
-                    className="w-full justify-start font-medium text-foreground rounded-full h-12 text-[15px]"
+                    className="w-full justify-start font-medium text-foreground h-12 text-[15px]"
                   >
                     <Pencil className="h-4 w-4" strokeWidth={1.5} />
                     Edit Name
@@ -278,7 +278,7 @@ export default function AccountPage() {
                       setEmailSuccess(false)
                       setEmailModalOpen(true)
                     }}
-                    className="w-full justify-start font-medium text-foreground rounded-full h-12 text-[15px]"
+                    className="w-full justify-start font-medium text-foreground rounded-[26px] h-12 text-[15px]"
                   >
                     <Pencil className="h-4 w-4" strokeWidth={1.5} />
                     Edit Email
@@ -297,7 +297,7 @@ export default function AccountPage() {
                         setCopyState("copy")
                       }, 2000)
                     }}
-                    className="w-full justify-start font-medium text-foreground rounded-full h-12 text-[15px]"
+                    className="w-full justify-start font-medium text-foreground rounded-[26px] h-12 text-[15px]"
                   />
                 </div>
               </MorphPopoverContent>
@@ -322,7 +322,7 @@ export default function AccountPage() {
                       setPasswordSuccess(false)
                       setPasswordModalOpen(true)
                     }}
-                    className="w-full justify-start font-medium text-foreground rounded-full h-12"
+                    className="w-full justify-start font-medium text-foreground rounded-[26px] h-12 text-[15px]"
                   >
                     <Lock className="h-4 w-4" strokeWidth={1.5} />
                     Edit Password
@@ -333,7 +333,7 @@ export default function AccountPage() {
                     onClick={() => {
                       router.push('/auth/forgot-password')
                     }}
-                    className="w-full justify-start font-medium text-foreground rounded-full h-12"
+                    className="w-full justify-start font-medium text-foreground rounded-[26px] h-12 text-[15px]"
                   >
                     <KeyRound className="h-4 w-4" strokeWidth={1.5} />
                     Forgot password
@@ -356,7 +356,7 @@ export default function AccountPage() {
                 </button>
               </MorphPopoverTrigger>
               <MorphPopoverContent align="end" sideOffset={0} radius={999} unstyled className="w-auto p-4 -mr-4">
-                <div className="rounded-[32px] bg-card/90 backdrop-blur-xl border border-border/50 overflow-hidden flex flex-col p-1.5 gap-0.5">
+                <div className="rounded-full bg-card/90 backdrop-blur-xl border border-border/50 overflow-hidden flex flex-col">
                   <Button
                     variant="ghost"
                     size="lg"
@@ -369,7 +369,7 @@ export default function AccountPage() {
                       }
                     }}
                     className={cn(
-                      "w-full justify-start font-medium rounded-full h-12 text-[15px]",
+                      "w-full justify-start font-medium h-12 text-[15px]",
                       mfaEnabled 
                         ? "text-destructive hover:text-destructive hover:bg-destructive/10"
                         : "text-foreground"
