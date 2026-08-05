@@ -47,8 +47,6 @@ export function ShiftForm({
   onSubmit,
   isSaving = false,
 }: ShiftFormProps) {
-  const today = useMemo(() => dateToString(new Date()), [])
-
   const form = useForm<ShiftFormValues>({
     resolver: zodResolver(shiftFormSchema),
     defaultValues: {

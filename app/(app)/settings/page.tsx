@@ -29,7 +29,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-start p-4 gap-6 w-full max-w-md mx-auto mt-6">
+    <div className="flex flex-1 flex-col items-center justify-start p-4 gap-6 w-full max-w-md mx-auto mt-2">
       <div className="flex flex-col items-center justify-center gap-1 w-full mb-2 mt-4 text-center">
         <div className="h-[84px] w-[84px] rounded-full bg-primary text-primary-foreground flex items-center justify-center text-4xl font-bold mb-3">
           {userName ? userName.charAt(0).toUpperCase() : (userEmail ? userEmail.charAt(0).toUpperCase() : "U")}

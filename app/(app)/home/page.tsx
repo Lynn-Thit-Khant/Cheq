@@ -629,6 +629,42 @@ export default function HomePage() {
     return sum + income
   }, 0)
 
+  // Previous month total earned & MoM delta
+  const prevMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear
+  const prevMonthNum = currentMonth === 0 ? 12 : currentMonth
+
+  const prevMonthShifts = shifts.filter((shift) => {
+    if (!shift.shift_date) return false
+    const [y, m] = shift.shift_date.split("-").map(Number)
+    return y === prevMonthYear && m === prevMonthNum
+  })
+
+  const prevMonthlyEarned = prevMonthShifts.reduce((sum, shift) => {
+    const income =
+      shift.total_earned !== undefined && shift.total_earned !== null
+        ? Number(shift.total_earned)
+        : shift.estimated_income !== undefined && shift.estimated_income !== null
+        ? Number(shift.estimated_income)
+        : calculateShiftIncome(
+            shift.start_time,
+            shift.end_time,
+            shift.hourly_rate,
+            shift.break_duration
+          )
+    return sum + income
+  }, 0)
+
+  const monthDelta = useMemo(() => {
+    if (totalMonthlyEarned === 0 && prevMonthlyEarned === 0) return null
+    const diff = totalMonthlyEarned - prevMonthlyEarned
+    const pct = prevMonthlyEarned > 0 ? (diff / prevMonthlyEarned) * 100 : totalMonthlyEarned > 0 ? 100 : 0
+    return {
+      isPositive: diff >= 0,
+      formattedAmount: `${diff >= 0 ? "+" : "-"}${formatCurrency(Math.abs(diff))}`,
+      formattedPercent: Math.abs(pct).toFixed(1),
+    }
+  }, [totalMonthlyEarned, prevMonthlyEarned])
+
   const hasMonthlyShifts = monthlyShifts.length > 0
 
   // Dates with shifts for Calendar dots
@@ -941,6 +977,20 @@ export default function HomePage() {
                   format={(n) => formatCurrency(n)}
                 />
               </div>
+
+              {/* Month-over-Month Performance Delta Tag */}
+              {monthDelta && (
+                <div
+                  className={cn(
+                    "flex items-center gap-0.5 text-xs font-semibold tabular-nums leading-none mt-0.5 mb-1",
+                    monthDelta.isPositive ? "text-emerald-500" : "text-rose-500"
+                  )}
+                >
+                  <span>{monthDelta.formattedAmount}</span>
+                  <span>{monthDelta.isPositive ? "▲" : "▼"}</span>
+                  <span>{monthDelta.formattedPercent}%</span>
+                </div>
+              )}
 
               {/* Month Navigation Directly Below Total Earned */}
               <div className="flex items-center gap-0.5 mt-1">

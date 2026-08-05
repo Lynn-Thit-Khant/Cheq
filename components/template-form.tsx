@@ -112,13 +112,6 @@ export function TemplateForm({
     ? displayTime12(endHour, endMin, endAmpm)
     : displayTime24(endHour, endMin))
 
-  const startTime24 = timeFormat === "12h"
-    ? formatTime12(startHour, startMin, startAmpm)
-    : formatTime24(startHour, startMin)
-  const endTime24 = timeFormat === "12h"
-    ? formatTime12(endHour, endMin, endAmpm)
-    : formatTime24(endHour, endMin)
-
   return (
     <form onSubmit={handleFormSubmit}>
       <div className="flex flex-col gap-5">

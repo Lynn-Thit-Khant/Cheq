@@ -59,10 +59,25 @@ Modal overlays use `CenterMorphModal` from `@/components/motion/center-morph-mod
     <p className="text-sm text-muted-foreground">{subtitle}</p>
   </div>
   ```
-- **Detail View Key-Value Lists**:
-  - Use `text-sm` (14px) for both key labels and values.
-  - Use `py-2.5` vertical padding per row (with `border-b border-border/40`).
-  - Set estimated income highlight value to `text-[15px] font-semibold`.
+- **Section & Modal Overline Titles**:
+  - Always use `text-[13px] font-medium text-muted-foreground` in **sentence case** (e.g. `Format`, `Period`, `Total earned`, `Total hours`).
+  - NEVER use ALL-CAPS/UPPERCASE (`FORMAT`, `PERIOD SCOPE`).
+- **Modal Pill Tabs Toggle**:
+  - Use concise, clean labels (e.g. `PDF` & `CSV` instead of `PDF Statement` & `CSV Data`).
+  - Use exact timeframe toggle indicator architecture:
+    `<TabsList className="bg-card/80 backdrop-blur-xl border border-border p-1 rounded-full flex items-center gap-1 shadow-sm w-full h-12">`
+    `<TabsTrigger className="flex-1 h-full rounded-full text-xs sm:text-sm font-medium" indicatorClassName="bg-black/10 dark:bg-white/10">`
+- **Modal Selection Cards (Squishy Glass)**:
+  - Wrap grouped options in the official card architecture:
+    ```tsx
+    <div className="relative flex flex-col w-full">
+      <div className="absolute inset-0 bg-card/80 backdrop-blur-xl rounded-[24px] border border-border/40 pointer-events-none shadow-sm" />
+      <div className="relative z-10 flex flex-col p-1">
+        {/* Option rows with h-12, px-4, rounded-2xl, text-[15px] font-medium */}
+      </div>
+    </div>
+    ```
+  - Option row divider: `<div className="h-[1px] w-full bg-border/40" />`.
 - **Footer Action Buttons (Universal Standard)**:
   - All modal action footers MUST use full-width equal 50/50 side-by-side buttons: `<div className="grid grid-cols-2 gap-3 pt-2 w-full">`.
   - Button geometry & typography: `h-11 rounded-full text-sm font-medium w-full cursor-pointer`.
