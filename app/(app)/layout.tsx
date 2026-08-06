@@ -27,8 +27,9 @@ export default async function AppLayout({
   return (
     <UserProvider user={user}>
       <div className="relative h-[100dvh] flex flex-col overflow-hidden bg-background text-foreground">
-        <main className="flex-1 overflow-y-auto pb-24 flex flex-col overscroll-y-contain">
+        <main className="flex-1 overflow-y-auto flex flex-col overscroll-y-contain">
           {children}
+          <div className="h-28 shrink-0 pointer-events-none" aria-hidden="true" />
         </main>
         <BottomNav />
       </div>
