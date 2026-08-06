@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ServiceWorkerRegister } from "@/components/service-worker-register";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
@@ -15,7 +16,12 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
-    apple: "/favicon.svg",
+    apple: "/icons/apple-touch-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Cheq",
   },
 };
 
@@ -24,6 +30,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: "#171717",
 };
 
 export default async function RootLayout({
@@ -39,6 +46,7 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
+        <ServiceWorkerRegister />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -51,3 +59,4 @@ export default async function RootLayout({
     </html>
   );
 }
+
