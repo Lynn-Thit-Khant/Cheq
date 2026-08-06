@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
+import { DynamicFavicon } from "@/components/favicon";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
@@ -14,12 +15,11 @@ export const metadata: Metadata = {
   description: "The smartest way to track, manage, and visualize your part-time income.",
   icons: {
     icon: [
-      { url: "/icon.svg", type: "image/svg+xml" },
-      { url: "/icon-dark.svg", media: "(prefers-color-scheme: light)" },
-      { url: "/icon-light.svg", media: "(prefers-color-scheme: dark)" },
+      { url: "/favicon-dark.svg", media: "(prefers-color-scheme: light)" },
+      { url: "/favicon-light.svg", media: "(prefers-color-scheme: dark)" },
     ],
-    shortcut: "/icon.svg",
-    apple: "/icon.svg",
+    shortcut: "/favicon-dark.svg",
+    apple: "/favicon-dark.svg",
   },
 };
 
@@ -49,6 +49,7 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <DynamicFavicon />
           {children}
         </ThemeProvider>
       </body>
