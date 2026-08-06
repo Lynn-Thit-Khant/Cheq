@@ -2,15 +2,16 @@
 
 import * as React from "react"
 import { useTheme } from "next-themes"
-import { Calendar, ChevronDown, ChevronLeft, ChevronRight, Download, TrendingUp } from "lucide-react"
+import { Calendar, Check, ChevronDown, ChevronLeft, ChevronRight, Download, TrendingUp } from "lucide-react"
 import { motion, AnimatePresence } from "motion/react"
 import { Bar, BarChart, CartesianGrid, LabelList, XAxis, Cell } from "recharts"
 
 import { AnimatedNumber } from "@/components/motion/animated-number"
 import { Tabs, TabsList, TabsTrigger } from "@/components/motion/tabs"
+import { RadioGroup, RadioGroupItem } from "@/components/motion/radio"
 import { getShifts } from "@/app/(app)/home/actions"
 import type { Shift } from "@/lib/schemas/shift-form-schema"
-import { calculateShiftDurationHours, calculateShiftIncome, formatCurrency, dateToString } from "@/lib/time-utils"
+import { calculateShiftDurationHours, calculateShiftIncome, formatCurrency, formatSmartCurrency, dateToString } from "@/lib/time-utils"
 import { cn } from "@/lib/utils"
 import {
   ChartContainer,
@@ -19,13 +20,15 @@ import {
 } from "@/components/ui/chart"
 
 import { getUserPreferences, type UserPreferences } from "@/app/(app)/settings/defaults/actions"
+import { useUser } from "@/components/user-provider"
+import { downloadStatementPDF } from "@/lib/pdf-statement"
 import {
   CenterMorphModal,
   CenterMorphModalTrigger,
   CenterMorphModalContent,
   CenterMorphModalClose,
 } from "@/components/motion/center-morph-modal"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/motion/button/base"
 import { WheelPicker } from "@/components/motion/wheel-picker"
 
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -133,7 +136,7 @@ function getDayViewData(
     return {
       label: day.label,
       fullRange: day.fullRange,
-      earnings: Math.round(totalEarnings),
+      earnings: Number(totalEarnings.toFixed(2)),
       totalHours,
       daysWorked: distinctDays,
       avgRate,
@@ -210,7 +213,7 @@ function getWeekViewData(shifts: Shift[], monthOffset: number) {
     return {
       label: bucket.label,
       fullRange: `Week ${bucket.label.replace("W", "")} (${monthName.slice(0, 3)} ${bucket.start}-${bucket.end})`,
-      earnings: Math.round(totalEarnings),
+      earnings: Number(totalEarnings.toFixed(2)),
       totalHours,
       daysWorked: distinctDays,
       avgRate,
@@ -266,7 +269,7 @@ function getMonthViewData(shifts: Shift[], sixMonthOffset: number) {
     return {
       label: m.mShort,
       fullRange: `${m.mName} ${m.yr}`,
-      earnings: Math.round(totalEarnings),
+      earnings: Number(totalEarnings.toFixed(2)),
       totalHours,
       daysWorked: distinctDays,
       avgRate,
@@ -318,7 +321,7 @@ function getYearViewData(shifts: Shift[], sixYearOffset: number) {
     return {
       label: String(yr),
       fullRange: `${yr} Total`,
-      earnings: Math.round(totalEarnings),
+      earnings: Number(totalEarnings.toFixed(2)),
       totalHours,
       daysWorked: distinctDays,
       avgRate,
@@ -333,6 +336,7 @@ function getYearViewData(shifts: Shift[], sixYearOffset: number) {
 }
 
 export function AnalyticsEarningsChart() {
+  const { user } = useUser()
   const { resolvedTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
 
@@ -494,23 +498,89 @@ export function AnalyticsEarningsChart() {
     setSelectedIndex(null)
   }
 
-  const handleExport = () => {
-    if (!shifts || shifts.length === 0) return
+  const [isExporting, setIsExporting] = React.useState(false)
 
-    const csvHeader = "Shift Date,Start Time,End Time,Hourly Rate,Break (mins),Hours Worked,Earnings ($)\n"
-    const rows = shifts.map((s) => {
-      const hrs = calculateShiftDurationHours(s.start_time, s.end_time, s.break_duration)
-      const income = calculateShiftIncome(s.start_time, s.end_time, s.hourly_rate, s.break_duration)
-      return `${s.shift_date},${s.start_time},${s.end_time},${s.hourly_rate},${s.break_duration},${hrs.toFixed(1)},${income.toFixed(2)}`
-    })
+  const getFilteredShiftsForStatement = React.useCallback(() => {
+    if (!shifts || shifts.length === 0) return []
+    const now = new Date()
 
-    const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(csvHeader + rows.join("\n"))
-    const link = document.createElement("a")
-    link.setAttribute("href", csvContent)
-    link.setAttribute("download", `cheq-shifts-export-${timeframe}.csv`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    if (statementScope === "month") {
+      const monthPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`
+      return shifts.filter((s) => s.shift_date && s.shift_date.startsWith(monthPrefix))
+    }
+
+    if (statementScope === "ytd") {
+      const yearPrefix = `${now.getFullYear()}`
+      return shifts.filter((s) => s.shift_date && s.shift_date.startsWith(yearPrefix))
+    }
+
+    if (statementScope === "custom") {
+      const fromStr = `${customFrom.year}-${String(customFrom.month + 1).padStart(2, "0")}-01`
+      const lastDayTo = new Date(customTo.year, customTo.month + 1, 0).getDate()
+      const toStr = `${customTo.year}-${String(customTo.month + 1).padStart(2, "0")}-${String(lastDayTo).padStart(2, "0")}`
+      return shifts.filter((s) => s.shift_date && s.shift_date >= fromStr && s.shift_date <= toStr)
+    }
+
+    return shifts
+  }, [shifts, statementScope, customFrom, customTo])
+
+  const getScopeLabel = React.useCallback(() => {
+    const now = new Date()
+    if (statementScope === "month") {
+      return now.toLocaleString("en-US", { month: "long", year: "numeric" })
+    }
+    if (statementScope === "ytd") {
+      return `YTD ${now.getFullYear()}`
+    }
+    const fromName = MONTH_NAMES[customFrom.month]
+    const toName = MONTH_NAMES[customTo.month]
+    return `${fromName} ${customFrom.year} – ${toName} ${customTo.year}`
+  }, [statementScope, customFrom, customTo])
+
+  const handleExport = async () => {
+    const exportShifts = getFilteredShiftsForStatement()
+    if (!exportShifts || exportShifts.length === 0) return
+
+    setIsExporting(true)
+    try {
+      if (statementFormat === "pdf") {
+        const dateTag = `${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, "0")}`
+        const randomTag = Math.floor(1000 + Math.random() * 9000)
+        const statementId = `CHQ-${dateTag}-${randomTag}`
+        const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || "Account Holder"
+        const userEmail = user?.email || ""
+        const logoUrl = typeof window !== "undefined" ? `${window.location.origin}/logo-dark.svg` : "/logo-dark.svg"
+
+        await downloadStatementPDF({
+          shifts: exportShifts,
+          userName,
+          userEmail,
+          scopeLabel: getScopeLabel(),
+          statementId,
+          logoUrl,
+          timeFormat: preferences.time_format,
+        })
+      } else {
+        const csvHeader = "Shift Date,Workplace,Start Time,End Time,Hourly Rate ($),Break (mins),Hours Worked,Earnings ($)\n"
+        const rows = exportShifts.map((s) => {
+          const hrs = calculateShiftDurationHours(s.start_time, s.end_time, s.break_duration)
+          const income = calculateShiftIncome(s.start_time, s.end_time, s.hourly_rate, s.break_duration)
+          return `"${s.shift_date}","${s.workplace_name || "Shift"}","${s.start_time}","${s.end_time}",${s.hourly_rate},${s.break_duration},${hrs.toFixed(1)},${income.toFixed(2)}`
+        })
+
+        const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(csvHeader + rows.join("\n"))
+        const link = document.createElement("a")
+        link.setAttribute("href", csvContent)
+        link.setAttribute("download", `cheq-statement-${statementScope}.csv`)
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      }
+    } catch (err) {
+      console.error("Failed to export statement:", err)
+    } finally {
+      setIsExporting(false)
+    }
   }
 
   return (
@@ -572,6 +642,30 @@ export function AnalyticsEarningsChart() {
                 tickLine={false}
                 tickMargin={10}
                 axisLine={false}
+                tick={(props: any) => {
+                  const { x, y, payload, index } = props
+                  const isSelected = index === effectiveIndex
+                  return (
+                    <g transform={`translate(${x},${y})`}>
+                      <text
+                        x={0}
+                        y={0}
+                        dy={10}
+                        textAnchor="middle"
+                        fontSize={13}
+                        fontWeight={isSelected ? 700 : 500}
+                        className={cn(
+                          "transition-colors duration-200 tabular-nums",
+                          isSelected
+                            ? "fill-foreground opacity-100 font-bold"
+                            : "fill-muted-foreground opacity-40 font-medium"
+                        )}
+                      >
+                        {payload.value}
+                      </text>
+                    </g>
+                  )
+                }}
               />
 
               <Bar
@@ -618,7 +712,7 @@ export function AnalyticsEarningsChart() {
                   position="top"
                   content={(props: any) => {
                     const { x, y, width, value } = props
-                    if (!value || value <= 0) return null
+                    if (value === undefined || value === null || Number(value) <= 0) return null
                     return (
                       <text
                         x={x + width / 2}
@@ -629,7 +723,7 @@ export function AnalyticsEarningsChart() {
                         fontWeight={600}
                         className="tabular-nums fill-foreground font-semibold"
                       >
-                        ${Number(value).toLocaleString()}
+                        {formatSmartCurrency(Number(value))}
                       </text>
                     )
                   }}
@@ -834,7 +928,7 @@ export function AnalyticsEarningsChart() {
                 Get Statement
               </h2>
               <p className="text-xs text-muted-foreground">
-                Generate an earning report
+                Export your earnings report
               </p>
             </div>
 
@@ -877,56 +971,17 @@ export function AnalyticsEarningsChart() {
                 </span>
                 <div className="relative flex flex-col w-full">
                   <div className="absolute inset-0 bg-card/80 backdrop-blur-xl rounded-[24px] border border-border/40 pointer-events-none shadow-sm" />
-                  <div className="relative z-10 flex flex-col p-1">
-                    {/* Option 1: Current month */}
-                    <div
-                      onClick={() => setStatementScope("month")}
-                      className="flex h-12 w-full items-center justify-between px-4 rounded-2xl transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 cursor-pointer"
-                    >
-                      <span className="text-[15px] font-medium text-foreground">Current month</span>
-                      <input
-                        type="radio"
-                        name="statement_scope_group"
-                        checked={statementScope === "month"}
-                        onChange={() => setStatementScope("month")}
-                        className="size-4 accent-primary cursor-pointer"
-                      />
-                    </div>
-
+                  <RadioGroup
+                    value={statementScope}
+                    onValueChange={(v) => setStatementScope(v as "month" | "ytd" | "custom")}
+                    className="relative z-10 p-1 gap-0"
+                  >
+                    <RadioGroupItem value="month" label="Current month" />
                     <div className="h-[1px] w-full bg-border/40 my-0.5" />
-
-                    {/* Option 2: Year-to-date */}
-                    <div
-                      onClick={() => setStatementScope("ytd")}
-                      className="flex h-12 w-full items-center justify-between px-4 rounded-2xl transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 cursor-pointer"
-                    >
-                      <span className="text-[15px] font-medium text-foreground">Year-to-date</span>
-                      <input
-                        type="radio"
-                        name="statement_scope_group"
-                        checked={statementScope === "ytd"}
-                        onChange={() => setStatementScope("ytd")}
-                        className="size-4 accent-primary cursor-pointer"
-                      />
-                    </div>
-
+                    <RadioGroupItem value="ytd" label="Year-to-date" />
                     <div className="h-[1px] w-full bg-border/40 my-0.5" />
-
-                    {/* Option 3: Custom */}
-                    <div
-                      onClick={() => setStatementScope("custom")}
-                      className="flex h-12 w-full items-center justify-between px-4 rounded-2xl transition-colors hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 cursor-pointer"
-                    >
-                      <span className="text-[15px] font-medium text-foreground">Custom</span>
-                      <input
-                        type="radio"
-                        name="statement_scope_group"
-                        checked={statementScope === "custom"}
-                        onChange={() => setStatementScope("custom")}
-                        className="size-4 accent-primary cursor-pointer"
-                      />
-                    </div>
-                  </div>
+                    <RadioGroupItem value="custom" label="Custom" />
+                  </RadioGroup>
                 </div>
 
                 {/* Collapsible Custom Date Range Dropdown (Password strength style spring expand) */}
@@ -996,13 +1051,15 @@ export function AnalyticsEarningsChart() {
 
               <Button
                 type="button"
-                onClick={() => {
-                  handleExport()
+                isLoading={isExporting}
+                disabled={isExporting}
+                onClick={async () => {
+                  await handleExport()
                   setStatementModalOpen(false)
                 }}
-                className="h-11 rounded-full text-sm font-medium bg-primary text-primary-foreground w-full cursor-pointer"
+                className="h-11 rounded-full text-sm font-medium w-full cursor-pointer"
               >
-                Download
+                {isExporting ? "Downloading..." : "Download"}
               </Button>
             </div>
           </div>

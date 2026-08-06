@@ -130,3 +130,13 @@ export function formatCurrency(amount: number): string {
   }).format(amount)
 }
 
+export function formatSmartCurrency(amount: number): string {
+  const hasCents = amount % 1 !== 0
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: hasCents ? 2 : 0,
+    maximumFractionDigits: 2,
+  }).format(amount)
+}
+
