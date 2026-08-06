@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import Link from 'next/link'
+import { Logo } from '@/components/logo'
 
 const formSchema = z.object({
   email: z.string().min(1, "Email is required.").email("Please enter a valid email address."),
@@ -65,6 +66,7 @@ export function ForgotPasswordForm({
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup>
             <div className="flex flex-col items-center gap-2 text-center">
+              <Logo size="2xl" className="mb-2" />
               <h1 className="text-3xl font-bold">Reset Password</h1>
             </div>
             

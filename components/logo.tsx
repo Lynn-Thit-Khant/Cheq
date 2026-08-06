@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils"
 
 interface LogoProps {
   className?: string
-  size?: "sm" | "md" | "lg" | "xl"
+  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl"
 }
 
 export function Logo({ className, size = "md" }: LogoProps) {
@@ -11,7 +11,9 @@ export function Logo({ className, size = "md" }: LogoProps) {
     sm: 32,
     md: 44,
     lg: 56,
-    xl: 72,
+    xl: 84,
+    "2xl": 96,
+    "3xl": 120,
   }
 
   const px = dimensions[size]

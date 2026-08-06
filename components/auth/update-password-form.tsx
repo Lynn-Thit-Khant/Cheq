@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/field"
 
 import { PasswordStrengthInput, validatePassword } from "@/components/password-strength-input"
+import { Logo } from '@/components/logo'
 
 
 const formSchema = z.object({
@@ -79,6 +80,7 @@ export function UpdatePasswordForm({
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
+            <Logo size="2xl" className="mb-2" />
             <h1 className="text-3xl font-bold">Update Password</h1>
             <FieldDescription>Please enter your new password below.</FieldDescription>
           </div>

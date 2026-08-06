@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { PasswordStrengthInput, validatePassword } from "@/components/password-strength-input"
 import Link from 'next/link'
+import { Logo } from '@/components/logo'
 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required."),
@@ -96,6 +97,7 @@ export function SignUpForm({
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
+            <Logo size="2xl" className="mb-2" />
             <h1 className="text-3xl font-bold">Create an account</h1>
           </div>
           
