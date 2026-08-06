@@ -8,7 +8,7 @@ const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: {
-    default: "Cheq – Income Tracker",
+    default: "Cheq | Part-Time Income Tracker",
     template: "%s | Cheq",
   },
   description: "The smartest way to track, manage, and visualize your part-time income.",
