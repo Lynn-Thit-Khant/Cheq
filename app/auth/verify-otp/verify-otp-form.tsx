@@ -6,6 +6,7 @@ import { OTPInput, type OTPStatus } from '@/components/motion/otp-input'
 import { verifyEmailOtp } from '@/app/auth/actions'
 import { FieldGroup } from '@/components/ui/field'
 import { BackButton } from '@/components/back-button'
+import { Logo } from '@/components/logo'
 
 interface VerifyOTPFormProps {
   email: string
@@ -48,6 +49,7 @@ export function VerifyOTPForm({ email, type }: VerifyOTPFormProps) {
       <div className="flex flex-col gap-6 mt-8">
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
+            <Logo size="3xl" className="mb-4 sm:mb-5" />
             <h1 className="text-3xl font-bold">Verify Email</h1>
             <p className="text-sm text-muted-foreground">
               Please enter the 6-digit code sent to your email.

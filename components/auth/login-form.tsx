@@ -70,7 +70,7 @@ export function LoginForm({
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
-            <Logo size="2xl" className="mb-4 sm:mb-5" />
+            <Logo size="3xl" className="mb-4 sm:mb-5" />
             <h1 className="text-3xl font-bold">Welcome back</h1>
           </div>
           

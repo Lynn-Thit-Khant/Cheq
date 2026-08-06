@@ -4,6 +4,7 @@ import { use } from 'react'
 import { useRouter } from 'next/navigation'
 import { FieldGroup, FieldDescription } from '@/components/ui/field'
 import { Button } from '@/components/motion/button/base'
+import { Logo } from '@/components/logo'
 
 export default function ErrorPage({ searchParams }: { searchParams: Promise<{ error: string }> }) {
   const router = useRouter()
@@ -31,7 +32,7 @@ export default function ErrorPage({ searchParams }: { searchParams: Promise<{ er
     <div className="w-full max-w-sm flex flex-col gap-6 px-4 sm:px-0">
       <FieldGroup>
         <div className="flex flex-col items-center gap-3 text-center">
-
+          <Logo size="3xl" className="mb-4 sm:mb-5" />
           <h1 className="text-3xl font-bold">{title}</h1>
           <FieldDescription className="text-base text-center">
             {description}
