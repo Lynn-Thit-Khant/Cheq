@@ -440,10 +440,34 @@ export function StatementPDF({
 
 export async function downloadStatementPDF(props: StatementPDFProps) {
   const blob = await pdf(<StatementPDF {...props} />).toBlob()
+  const fileName = `cheq-statement-${props.statementId.toLowerCase()}.pdf`
+
+  // 1. Try Native OS Save Picker (Chrome, Edge, Brave, Opera Desktop)
+  if (typeof window !== "undefined" && "showSaveFilePicker" in window) {
+    try {
+      const handle = await (window as any).showSaveFilePicker({
+        suggestedName: fileName,
+        types: [
+          {
+            description: "PDF Statement Document",
+            accept: { "application/pdf": [".pdf"] },
+          },
+        ],
+      })
+      const writable = await handle.createWritable()
+      await writable.write(blob)
+      await writable.close()
+      return
+    } catch (err: any) {
+      if (err?.name === "AbortError") return
+    }
+  }
+
+  // 2. Fallback for Safari / Mobile browsers
   const url = URL.createObjectURL(blob)
   const link = document.createElement("a")
   link.href = url
-  link.download = `cheq-statement-${props.statementId.toLowerCase()}.pdf`
+  link.download = fileName
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
