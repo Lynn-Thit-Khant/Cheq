@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTheme } from "next-themes"
 import { Calendar, ChevronDown, ChevronLeft, ChevronRight, Download, TrendingUp } from "lucide-react"
 import { motion, AnimatePresence } from "motion/react"
 import { Bar, BarChart, CartesianGrid, LabelList, XAxis, Cell } from "recharts"
@@ -332,6 +333,13 @@ function getYearViewData(shifts: Shift[], sixYearOffset: number) {
 }
 
 export function AnalyticsEarningsChart() {
+  const { resolvedTheme } = useTheme()
+  const [mounted, setMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const [timeframe, setTimeframe] = React.useState<Timeframe>("month")
   const [offset, setOffset] = React.useState(0)
   const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null)
@@ -577,6 +585,7 @@ export function AnalyticsEarningsChart() {
                 shape={(props: any) => {
                   const { x, y, width, height, index } = props
                   const isActive = index === effectiveIndex
+                  const opacity = isActive ? 0.8 : 0.5
                   return (
                     <motion.rect
                       key={`bar-${index}`}
@@ -589,7 +598,7 @@ export function AnalyticsEarningsChart() {
                       animate={{
                         y,
                         height,
-                        opacity: isActive ? 0.7 : 0.3,
+                        opacity,
                       }}
                       transition={{
                         type: "spring",
