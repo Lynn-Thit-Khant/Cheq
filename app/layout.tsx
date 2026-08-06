@@ -7,7 +7,10 @@ import { ThemeProvider } from "@/components/theme-provider";
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
-  title: "Cheq",
+  title: {
+    default: "Cheq – Income Tracker",
+    template: "%s | Cheq",
+  },
   description: "The smartest way to track, manage, and visualize your part-time income.",
 };
 
