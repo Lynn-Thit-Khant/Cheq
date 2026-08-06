@@ -3,7 +3,7 @@ import { SettingsCard } from "@/components/settings-card"
 
 export default function ConnectorsPage() {
   return (
-    <div className="flex flex-1 flex-col p-4 w-full max-w-md mx-auto mt-2 h-full relative">
+    <div className="flex flex-1 flex-col p-4 pt-6 sm:pt-8 w-full max-w-md mx-auto relative">
       <div className="grid grid-cols-[3rem_1fr_3rem] items-center w-full mb-2 shrink-0">
         <BackButton href="/settings" />
         <h1 className="text-2xl font-bold text-center">Connectors</h1>

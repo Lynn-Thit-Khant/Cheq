@@ -539,12 +539,14 @@ export function AnalyticsEarningsChart() {
         </div>
       </div>
 
-      {/* Bar Chart Container */}
-      <div className="w-full pt-2">
-        <div className="w-full">
+      {/* Bar Chart Glass Card Container */}
+      <div className="relative flex flex-col w-full">
+        <div className="absolute inset-0 bg-card/80 backdrop-blur-xl rounded-[28px] border border-border/40 pointer-events-none shadow-sm" />
+        <div className="relative z-10 flex flex-col p-4 sm:p-5">
           <ChartContainer config={chartConfig} className="[&_*]:outline-none [&_.recharts-rectangle]:stroke-none [&_.recharts-sector]:stroke-none [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-transparent">
             <BarChart
               data={activeView.chartData}
+              barCategoryGap="15%"
               onClick={(state) => {
                 if (state && typeof state.activeTooltipIndex === "number") {
                   setSelectedIndex(state.activeTooltipIndex)
@@ -552,8 +554,8 @@ export function AnalyticsEarningsChart() {
               }}
               margin={{
                 top: 24,
-                left: 0,
-                right: 0,
+                left: 8,
+                right: 8,
               }}
             >
               <CartesianGrid vertical={false} />
@@ -567,6 +569,7 @@ export function AnalyticsEarningsChart() {
               <Bar
                 key={`${timeframe}-${offset}`}
                 dataKey="earnings"
+                maxBarSize={36}
                 radius={8}
                 isAnimationActive={true}
                 animationDuration={500}
@@ -586,7 +589,7 @@ export function AnalyticsEarningsChart() {
                       animate={{
                         y,
                         height,
-                        opacity: isActive ? 1 : 0.22,
+                        opacity: isActive ? 0.6 : 0.3,
                       }}
                       transition={{
                         type: "spring",
@@ -1083,7 +1086,7 @@ export function AnalyticsEarningsChart() {
 
 export default function AnalyticsPage() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-start p-4 gap-6 w-full max-w-md mx-auto mt-2 relative select-none">
+    <div className="flex flex-1 flex-col p-4 pt-6 sm:pt-8 gap-6 w-full max-w-md mx-auto relative select-none">
       <AnalyticsEarningsChart />
     </div>
   )

@@ -852,7 +852,7 @@ export default function HomePage() {
 
   return (
     <>
-      <div className="flex flex-1 flex-col p-4 w-full max-w-md mx-auto mt-2 h-full relative">
+      <div className="flex flex-1 flex-col p-4 pt-6 sm:pt-8 w-full max-w-md mx-auto relative">
         {/* Header */}
         <div className="relative flex items-center justify-between w-full mb-4 shrink-0 min-h-[3rem] gap-4">
           <AnimatePresence mode="wait" initial={false}>
@@ -965,7 +965,7 @@ export default function HomePage() {
           </div>
         ) : viewMode === "list" ? (
           /* ── List View with Hero Section & Weekly Grouped Activity ── */
-          <div className="flex flex-col flex-1 pb-32">
+          <div className="flex flex-col flex-1">
             {/* Hero Section: Total Earned */}
             <div className="flex flex-col items-center justify-center text-center gap-1 my-4 mb-6">
               <span className="text-[13px] font-medium text-muted-foreground">
@@ -1066,7 +1066,7 @@ export default function HomePage() {
           </div>
         ) : (
           /* ── Calendar View ── */
-          <div className="flex flex-col flex-1 pb-32 mt-2">
+          <div className="flex flex-col flex-1 mt-2">
             {/* Frameless Calendar Grid Container */}
             <div className="flex flex-col items-center w-full mx-auto mb-6">
               {/* Calendar Header with Centered Month/Year & Frameless Buttons */}

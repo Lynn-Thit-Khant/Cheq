@@ -205,7 +205,7 @@ export default function TemplatesPage() {
 
   return (
     <>
-      <div className="flex flex-1 flex-col p-4 w-full max-w-md mx-auto mt-2 h-full relative">
+      <div className="flex flex-1 flex-col p-4 pt-6 sm:pt-8 w-full max-w-md mx-auto relative">
         {/* Header */}
         <div className="relative flex items-center justify-between w-full mb-2 shrink-0 min-h-[3rem]">
           <AnimatePresence mode="wait" initial={false}>

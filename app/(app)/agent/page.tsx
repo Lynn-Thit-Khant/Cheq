@@ -5,7 +5,7 @@ import { TextReveal } from "@/components/motion/text-reveal"
 
 export default function AgentPage() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center p-4 gap-4 w-full max-w-md mx-auto text-center">
+    <div className="flex flex-1 flex-col items-center justify-start p-4 pt-12 sm:pt-16 gap-4 w-full max-w-md mx-auto text-center relative">
       {/* Elevated Icon Container */}
       <div className="mb-2 flex items-center justify-center">
         {/* Static Elevated Circle */}
