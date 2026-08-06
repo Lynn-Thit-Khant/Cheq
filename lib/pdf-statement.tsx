@@ -205,11 +205,8 @@ const styles = StyleSheet.create({
     fontWeight: 600,
     color: "#09090B",
   },
-  // Column Vertical Dividers
+  // Column Padding
   colBorder: {
-    borderRightWidth: 1,
-    borderRightColor: "#E4E4E7",
-    borderRightStyle: "solid",
     paddingRight: 4,
   },
   // Column Widths (Sum = 100%)
