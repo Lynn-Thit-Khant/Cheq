@@ -14,9 +14,5 @@ export default async function LoginPage() {
     redirect('/home')
   }
 
-  return (
-    <div className="w-full max-w-sm">
-      <LoginForm />
-    </div>
-  )
+  return <LoginForm />
 }

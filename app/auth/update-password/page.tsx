@@ -17,9 +17,5 @@ export default async function UpdatePasswordPage() {
     redirect('/auth/mfa?next=/auth/update-password')
   }
 
-  return (
-    <div className="w-full max-w-sm">
-      <UpdatePasswordForm />
-    </div>
-  )
+  return <UpdatePasswordForm />
 }

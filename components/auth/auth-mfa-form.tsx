@@ -68,7 +68,7 @@ export function AuthMFAForm() {
   return (
     <div className="flex flex-col gap-6 w-full">
       <div className="flex flex-col items-center gap-2 text-center">
-        <Logo size="2xl" className="mb-2" />
+        <Logo size="2xl" className="mb-4 sm:mb-5" />
         <h1 className="text-3xl font-bold">Multi-factor Auth</h1>
         <p className="text-sm text-muted-foreground">
           Enter the 6-digit code from your authenticator app.

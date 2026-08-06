@@ -19,9 +19,5 @@ export default async function MFAPage(props: { searchParams: Promise<{ next?: st
     redirect(nextUrl)
   }
 
-  return (
-    <div className="w-full max-w-sm">
-      <AuthMFAForm />
-    </div>
-  )
+  return <AuthMFAForm />
 }

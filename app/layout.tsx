@@ -13,7 +13,11 @@ export const metadata: Metadata = {
   },
   description: "The smartest way to track, manage, and visualize your part-time income.",
   icons: {
-    icon: "/icon.svg",
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon-dark.svg", media: "(prefers-color-scheme: light)" },
+      { url: "/icon-light.svg", media: "(prefers-color-scheme: dark)" },
+    ],
     shortcut: "/icon.svg",
     apple: "/icon.svg",
   },

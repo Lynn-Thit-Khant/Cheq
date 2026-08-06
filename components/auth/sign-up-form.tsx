@@ -97,7 +97,7 @@ export function SignUpForm({
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
-            <Logo size="2xl" className="mb-2" />
+            <Logo size="2xl" className="mb-4 sm:mb-5" />
             <h1 className="text-3xl font-bold">Create an account</h1>
           </div>
           
