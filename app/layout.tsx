@@ -12,6 +12,11 @@ export const metadata: Metadata = {
     template: "%s | Cheq",
   },
   description: "The smartest way to track, manage, and visualize your part-time income.",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export const viewport: Viewport = {
