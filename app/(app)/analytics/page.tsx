@@ -589,7 +589,7 @@ export function AnalyticsEarningsChart() {
                       animate={{
                         y,
                         height,
-                        opacity: isActive ? 0.6 : 0.3,
+                        opacity: isActive ? 0.7 : 0.3,
                       }}
                       transition={{
                         type: "spring",
