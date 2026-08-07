@@ -20,6 +20,7 @@ import {
 
 import { PasswordStrengthInput, validatePassword } from "@/components/password-strength-input"
 import { Logo } from '@/components/logo'
+import { BackButton } from '@/components/back-button'
 
 
 const formSchema = z.object({
@@ -76,7 +77,9 @@ export function UpdatePasswordForm({
   }
 
   return (
-    <div className={cn("flex flex-col gap-6 px-4 sm:px-0", className)} {...props}>
+    <>
+      <BackButton href="/auth/login" className="absolute top-4 left-4 sm:top-6 sm:left-6" />
+      <div className={cn("flex flex-col gap-6 px-4 sm:px-0", className)} {...props}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
@@ -132,6 +135,7 @@ export function UpdatePasswordForm({
           </Field>
         </FieldGroup>
       </form>
-    </div>
+      </div>
+    </>
   )
 }

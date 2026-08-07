@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import Link from 'next/link'
+import { BackButton } from '@/components/back-button'
 import { Logo } from '@/components/logo'
 
 const formSchema = z.object({
@@ -62,7 +63,9 @@ export function ForgotPasswordForm({
   }
 
   return (
-    <div className={cn("flex flex-col gap-6 px-4 sm:px-0", className)} {...props}>
+    <>
+      <BackButton href="/auth/login" className="absolute top-4 left-4 sm:top-6 sm:left-6" />
+      <div className={cn("flex flex-col gap-6 px-4 sm:px-0", className)} {...props}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup>
             <div className="flex flex-col items-center gap-2 text-center">
@@ -103,5 +106,6 @@ export function ForgotPasswordForm({
           </FieldGroup>
         </form>
     </div>
+    </>
   )
 }

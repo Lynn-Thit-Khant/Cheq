@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/client"
 import { OTPInput, type OTPStatus } from "@/components/motion/otp-input"
+import { BackButton } from '@/components/back-button'
 import { Logo } from '@/components/logo'
 
 export function AuthMFAForm() {
@@ -66,29 +67,32 @@ export function AuthMFAForm() {
   }
 
   return (
-    <div className="flex flex-col gap-6 w-full">
-      <div className="flex flex-col items-center gap-2 text-center">
-        <Logo size="3xl" className="mb-4 sm:mb-5" />
-        <h1 className="text-3xl font-bold">Multi-factor Auth</h1>
-        <p className="text-sm text-muted-foreground">
-          Enter the 6-digit code from your authenticator app.
-        </p>
-      </div>
+    <>
+      <BackButton href="/auth/login" className="absolute top-4 left-4 sm:top-6 sm:left-6" />
+      <div className="flex flex-col gap-6 w-full">
+        <div className="flex flex-col items-center gap-2 text-center">
+          <Logo size="3xl" className="mb-4 sm:mb-5" />
+          <h1 className="text-3xl font-bold">Multi-factor Auth</h1>
+          <p className="text-sm text-muted-foreground">
+            Enter the 6-digit code from your authenticator app.
+          </p>
+        </div>
 
-      <div className="flex justify-center w-full">
-        <OTPInput
-          label="Verification Code"
-          successMessage="Verification successful."
-          errorMessage={errorMsg}
-          value={value}
-          status={status}
-          onChange={(v) => {
-            setValue(v)
-            if (status !== "idle") setStatus("idle")
-          }}
-          onComplete={handleComplete}
-        />
+        <div className="flex justify-center w-full">
+          <OTPInput
+            label="Verification Code"
+            successMessage="Verification successful."
+            errorMessage={errorMsg}
+            value={value}
+            status={status}
+            onChange={(v) => {
+              setValue(v)
+              if (status !== "idle") setStatus("idle")
+            }}
+            onComplete={handleComplete}
+          />
+        </div>
       </div>
-    </div>
+    </>
   )
 }
