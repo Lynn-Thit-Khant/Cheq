@@ -679,7 +679,8 @@ export function AnalyticsEarningsChart() {
                 shape={(props: any) => {
                   const { x, y, width, height, index } = props
                   const isActive = index === effectiveIndex
-                  const opacity = isActive ? 0.8 : 0.5
+                  const isDark = mounted && resolvedTheme === "dark"
+                  const opacity = isActive ? (isDark ? 0.9 : 0.8) : 0.5
                   return (
                     <motion.rect
                       key={`bar-${index}`}
@@ -785,7 +786,11 @@ export function AnalyticsEarningsChart() {
               Total earned
             </span>
             <span className="text-xl font-bold text-foreground tabular-nums">
-              ${(activeItem?.earnings ?? totalPeriodEarnings).toLocaleString()}
+              {loading ? (
+                <span className="inline-block h-6 w-24 bg-muted/60 rounded animate-pulse my-0.5" />
+              ) : (
+                `$${(activeItem?.earnings ?? totalPeriodEarnings).toLocaleString()}`
+              )}
             </span>
             {deltaInfo?.earningsDelta ? (
               <div
@@ -814,9 +819,13 @@ export function AnalyticsEarningsChart() {
               Total hours
             </span>
             <span className="text-xl font-bold text-foreground tabular-nums">
-              {activeItem && activeItem.totalHours > 0
-                ? `${activeItem.totalHours.toFixed(1)} hrs`
-                : "0 hrs"}
+              {loading ? (
+                <span className="inline-block h-6 w-20 bg-muted/60 rounded animate-pulse my-0.5" />
+              ) : activeItem && activeItem.totalHours > 0 ? (
+                `${activeItem.totalHours.toFixed(1)} hrs`
+              ) : (
+                "0 hrs"
+              )}
             </span>
             {deltaInfo?.hoursDelta ? (
               <div
@@ -845,7 +854,11 @@ export function AnalyticsEarningsChart() {
               Avg rate
             </span>
             <span className="text-xl font-bold text-foreground tabular-nums">
-              ${(activeItem?.avgRate ?? 0).toFixed(2)}/hr
+              {loading ? (
+                <span className="inline-block h-6 w-24 bg-muted/60 rounded animate-pulse my-0.5" />
+              ) : (
+                `$${(activeItem?.avgRate ?? 0).toFixed(2)}/hr`
+              )}
             </span>
             {deltaInfo?.rateDelta ? (
               <div
@@ -874,7 +887,11 @@ export function AnalyticsEarningsChart() {
               Days worked
             </span>
             <span className="text-xl font-bold text-foreground tabular-nums">
-              {activeItem?.daysWorked ?? 0} {(activeItem?.daysWorked ?? 0) === 1 ? "day" : "days"}
+              {loading ? (
+                <span className="inline-block h-6 w-16 bg-muted/60 rounded animate-pulse my-0.5" />
+              ) : (
+                `${activeItem?.daysWorked ?? 0} ${(activeItem?.daysWorked ?? 0) === 1 ? "day" : "days"}`
+              )}
             </span>
             {deltaInfo?.daysDelta ? (
               <div
