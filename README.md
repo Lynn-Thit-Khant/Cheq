@@ -1,4 +1,4 @@
-# Cheq — Shift and Income Tracker
+# Cheq — Part-time Income Tracker
 
 A mobile-first web application for part-time workers to log shifts, track income, parse natural language schedules with AI, and export PDF/CSV statements.
 
