@@ -46,6 +46,7 @@ export interface ExtractedShiftErrors {
   shift_date?: string
   start_time?: string
   end_time?: string
+  hourly_rate?: string
   break_duration?: string
 }
 
@@ -337,7 +338,7 @@ export function ExtractedShiftAccordion({
 
                           {/* Hourly rate & Break (min) */}
                           <div className="grid grid-cols-2 gap-3">
-                            <Field>
+                            <Field data-invalid={!!shiftErrors.hourly_rate}>
                               <FieldLabel htmlFor={`rate-${index}`}>Hourly rate</FieldLabel>
                               <div className="relative">
                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-base pointer-events-none">
@@ -357,9 +358,16 @@ export function ExtractedShiftAccordion({
                                     })
                                   }}
                                   placeholder="0.00"
-                                  className="h-12 bg-card rounded-full pl-8 pr-4 text-sm font-medium [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                  className={cn(
+                                    "h-12 bg-card rounded-full pl-8 pr-4 text-sm font-medium [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                                    shiftErrors.hourly_rate && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]"
+                                  )}
+                                  aria-invalid={!!shiftErrors.hourly_rate}
                                 />
                               </div>
+                              {shiftErrors.hourly_rate && (
+                                <FieldError errors={[{ message: shiftErrors.hourly_rate }]} />
+                              )}
                             </Field>
 
                             <Field data-invalid={!!shiftErrors.break_duration}>

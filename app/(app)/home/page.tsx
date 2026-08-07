@@ -350,7 +350,7 @@ export default function HomePage() {
     extractedShifts.forEach((shift, index) => {
       const itemErrors: ExtractedShiftErrors = {}
       if (!shift.workplace_name || !shift.workplace_name.trim()) {
-        itemErrors.workplace_name = "Workplace is required"
+        itemErrors.workplace_name = "Workplace name is required"
         hasError = true
       }
       if (!shift.shift_date || !shift.shift_date.trim()) {
@@ -366,6 +366,22 @@ export default function HomePage() {
         hasError = true
       } else if (shift.start_time && shift.start_time.trim() === shift.end_time.trim()) {
         itemErrors.end_time = "End time cannot be the same as start time"
+        hasError = true
+      }
+
+      if (shift.hourly_rate === undefined || shift.hourly_rate === null || (shift.hourly_rate as unknown) === "") {
+        itemErrors.hourly_rate = "Hourly rate is required"
+        hasError = true
+      } else if (typeof shift.hourly_rate === "number" && shift.hourly_rate <= 0) {
+        itemErrors.hourly_rate = "Hourly rate must be greater than 0"
+        hasError = true
+      }
+
+      if (shift.break_duration === undefined || shift.break_duration === null || (shift.break_duration as unknown) === "") {
+        itemErrors.break_duration = "Break time is required"
+        hasError = true
+      } else if (typeof shift.break_duration === "number" && shift.break_duration < 0) {
+        itemErrors.break_duration = "Break must be 0 or above"
         hasError = true
       }
 

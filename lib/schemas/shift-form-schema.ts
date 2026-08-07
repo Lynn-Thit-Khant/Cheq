@@ -5,23 +5,57 @@ import { z } from "zod"
 // manual shift entry (Home page).
 
 export const shiftFormSchema = z.object({
-  workplace_name: z.string().min(1, "Workplace name is required."),
+  workplace_name: z.string().trim().min(1, "Workplace name is required."),
   shift_date: z.string().min(1, "Date is required."),
   start_time: z.string().min(1, "Start time is required."),
   end_time: z.string().min(1, "End time is required."),
-  hourly_rate: z.number().min(0, "Rate must be 0 or above.").optional(),
-  break_duration: z.number().int().min(0, "Break must be 0 or above.").optional(),
+  hourly_rate: z
+    .custom<number>((val) => val !== undefined && val !== null && (val as unknown) !== "" && !isNaN(Number(val)), {
+      message: "Hourly rate is required.",
+    })
+    .transform((val) => Number(val))
+    .refine((val) => val > 0, {
+      message: "Hourly rate must be greater than 0.",
+    }),
+  break_duration: z
+    .custom<number>((val) => val !== undefined && val !== null && (val as unknown) !== "" && !isNaN(Number(val)), {
+      message: "Break time is required.",
+    })
+    .transform((val) => Number(val))
+    .refine((val) => Number.isInteger(val), {
+      message: "Break must be an integer.",
+    })
+    .refine((val) => val >= 0, {
+      message: "Break must be 0 or above.",
+    }),
 })
 
 export type ShiftFormValues = z.infer<typeof shiftFormSchema>
 
 export const templateFormSchema = z.object({
-  name: z.string().min(1, "Template name is required."),
-  workplace_name: z.string().min(1, "Workplace name is required."),
+  name: z.string().trim().min(1, "Template name is required."),
+  workplace_name: z.string().trim().min(1, "Workplace name is required."),
   start_time: z.string().min(1, "Start time is required."),
   end_time: z.string().min(1, "End time is required."),
-  hourly_rate: z.number().min(0, "Rate must be 0 or above.").optional(),
-  break_duration: z.number().int().min(0, "Break must be 0 or above.").optional(),
+  hourly_rate: z
+    .custom<number>((val) => val !== undefined && val !== null && (val as unknown) !== "" && !isNaN(Number(val)), {
+      message: "Hourly rate is required.",
+    })
+    .transform((val) => Number(val))
+    .refine((val) => val > 0, {
+      message: "Hourly rate must be greater than 0.",
+    }),
+  break_duration: z
+    .custom<number>((val) => val !== undefined && val !== null && (val as unknown) !== "" && !isNaN(Number(val)), {
+      message: "Break time is required.",
+    })
+    .transform((val) => Number(val))
+    .refine((val) => Number.isInteger(val), {
+      message: "Break must be an integer.",
+    })
+    .refine((val) => val >= 0, {
+      message: "Break must be 0 or above.",
+    }),
 })
 export type TemplateFormValues = z.infer<typeof templateFormSchema>
 
