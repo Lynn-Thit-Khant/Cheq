@@ -33,20 +33,19 @@ export function VerifyOTPForm({ email, type }: VerifyOTPFormProps) {
       setStatus('success')
       
       setTimeout(() => {
-        router.refresh()
         if (type === 'signup') {
           router.replace('/home')
         } else {
           router.replace('/auth/update-password')
         }
-      }, 1000)
+      }, 800)
     }
   }
 
   return (
-    <div className="w-full max-w-sm">
-      <BackButton href="/auth/login" />
-      <div className="flex flex-col gap-6 mt-8">
+    <>
+      <BackButton href="/auth/login" className="absolute top-4 left-4 sm:top-6 sm:left-6" />
+      <div className="flex flex-col gap-6 w-full">
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
             <Logo size="3xl" className="mb-4 sm:mb-5" />
@@ -72,6 +71,6 @@ export function VerifyOTPForm({ email, type }: VerifyOTPFormProps) {
           </div>
         </FieldGroup>
       </div>
-    </div>
+    </>
   )
 }
