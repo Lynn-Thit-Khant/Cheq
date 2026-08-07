@@ -100,8 +100,32 @@ export function TemplateForm({
   }, [endHour, endMin, endAmpm, timeFormat, form, endPicked])
 
   const handleFormSubmit = form.handleSubmit(async (data) => {
+    if (isSameTime || isBreakTooLong) return
     await onSubmit(data)
   })
+
+  // Watch form values for real-time validation
+  const startTimeVal = form.watch("start_time")
+  const endTimeVal = form.watch("end_time")
+  const breakDurationVal = form.watch("break_duration")
+
+  const isSameTime = Boolean(startPicked && endPicked && startTimeVal && endTimeVal && startTimeVal === endTimeVal)
+
+  let shiftSpanMinutes = 0
+  if (startTimeVal && endTimeVal && !isSameTime) {
+    const [sh, sm] = startTimeVal.split(":").map(Number)
+    const [eh, em] = endTimeVal.split(":").map(Number)
+    const sTotal = sh * 60 + (sm || 0)
+    let eTotal = eh * 60 + (em || 0)
+    if (eTotal < sTotal) eTotal += 24 * 60
+    shiftSpanMinutes = eTotal - sTotal
+  }
+
+  const isBreakTooLong = Boolean(
+    shiftSpanMinutes > 0 &&
+    typeof breakDurationVal === "number" &&
+    breakDurationVal >= shiftSpanMinutes
+  )
 
   // Display values
   const startDisplay = !startPicked ? "--:--" : (timeFormat === "12h"
@@ -145,8 +169,8 @@ export function TemplateForm({
                   {...field}
                   id="workplace_name"
                   type="text"
-                  placeholder="Cafe"
-                  className="h-12 bg-card w-full"
+                  placeholder="e.g. Republic Bar"
+                  className="h-12 bg-card"
                   aria-invalid={fieldState.invalid}
                 />
                 {fieldState.invalid && (
@@ -159,110 +183,143 @@ export function TemplateForm({
 
           {/* ── Start + End time ────────────────────────── */}
           <div className="relative">
-              {/* Single Shared CenterMorphModal for perfect centering */}
-              <CenterMorphModal open={timePickerOpen} onOpenChange={setTimePickerOpen}>
-                <CenterMorphModalContent
-                  ariaLabel="Select time"
-                  showCloseButton={false}
-                  dismissible={true}
-                  noMorph
-                  className="w-[260px] p-2 border-border/60 shadow-sm bg-card"
+            {/* Modal for Wheel Time Picker */}
+            <CenterMorphModal open={timePickerOpen} onOpenChange={setTimePickerOpen}>
+              <CenterMorphModalContent
+                ariaLabel="Select time"
+                showCloseButton={false}
+                dismissible={true}
+                noMorph
+                className="w-[280px] p-3 border-border/60 shadow-sm bg-card"
+              >
+                <div className="flex items-stretch justify-center gap-2 px-2">
+                  {timeFormat === "12h" ? (
+                    <>
+                      <WheelPicker
+                        options={HOURS_12}
+                        value={activeTimeField === "start" ? startHour : endHour}
+                        onValueChange={(val) => {
+                          if (activeTimeField === "start") setStartHour(val);
+                          else setEndHour(val);
+                        }}
+                        className="flex-1 border-0 bg-transparent rounded-full"
+                        visibleCount={5}
+                        itemHeight={38}
+                        sound
+                        aria-label="Hours"
+                      />
+                      <WheelPicker
+                        options={MINUTES}
+                        value={activeTimeField === "start" ? startMin : endMin}
+                        onValueChange={(val) => {
+                          if (activeTimeField === "start") setStartMin(val);
+                          else setEndMin(val);
+                        }}
+                        className="flex-1 border-0 bg-transparent rounded-full"
+                        visibleCount={5}
+                        itemHeight={38}
+                        sound
+                        aria-label="Minutes"
+                      />
+                      <WheelPicker
+                        options={AMPM}
+                        value={activeTimeField === "start" ? startAmpm : endAmpm}
+                        onValueChange={(val) => {
+                          if (activeTimeField === "start") setStartAmpm(val);
+                          else setEndAmpm(val);
+                        }}
+                        className="flex-1 border-0 bg-transparent rounded-full"
+                        visibleCount={5}
+                        itemHeight={38}
+                        sound
+                        aria-label="AM/PM"
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <WheelPicker
+                        options={HOURS_24}
+                        value={activeTimeField === "start" ? startHour : endHour}
+                        onValueChange={(val) => {
+                          if (activeTimeField === "start") setStartHour(val);
+                          else setEndHour(val);
+                        }}
+                        className="flex-1 border-0 bg-transparent rounded-full"
+                        visibleCount={5}
+                        itemHeight={38}
+                        sound
+                        aria-label="Hours"
+                      />
+                      <WheelPicker
+                        options={MINUTES}
+                        value={activeTimeField === "start" ? startMin : endMin}
+                        onValueChange={(val) => {
+                          if (activeTimeField === "start") setStartMin(val);
+                          else setEndMin(val);
+                        }}
+                        className="flex-1 border-0 bg-transparent rounded-full"
+                        visibleCount={5}
+                        itemHeight={38}
+                        sound
+                        aria-label="Minutes"
+                      />
+                    </>
+                  )}
+                </div>
+              </CenterMorphModalContent>
+            </CenterMorphModal>
+
+            <div className="grid grid-cols-2 gap-3">
+              {/* Start time */}
+              <Field>
+                <FieldLabel>Starts</FieldLabel>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTimeField("start");
+                    setStartPicked(true);
+                    setTimePickerOpen(true);
+                  }}
+                  className={cn(
+                    "flex h-12 w-full items-center gap-2 rounded-full border border-border bg-card px-3.5 text-sm font-medium text-foreground transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none",
+                    activeTimeField === "start" && timePickerOpen && "border-ring ring-1 ring-ring"
+                  )}
                 >
-                  <div className="flex items-stretch justify-center gap-1 px-4">
-                    <WheelPicker
-                      options={timeFormat === "12h" ? HOURS_12 : HOURS_24}
-                      value={activeTimeField === "start" ? startHour : endHour}
-                      onValueChange={activeTimeField === "start" ? setStartHour : setEndHour}
-                      className="flex-1 border-0 bg-transparent rounded-full"
-                      visibleCount={5}
-                      itemHeight={38}
-                      sound
-                      aria-label="Hour"
-                    />
-                    
-                    <div className="flex items-center justify-center w-4 text-xl font-medium text-foreground pb-1">
-                      :
-                    </div>
+                  <Clock className="size-4 text-muted-foreground shrink-0" />
+                  <span className="whitespace-nowrap text-sm font-medium">{startDisplay}</span>
+                  <ChevronDown className="ml-auto size-4 text-muted-foreground/50 shrink-0" />
+                </button>
+                {form.formState.errors.start_time && (
+                  <FieldError errors={[form.formState.errors.start_time]} />
+                )}
+              </Field>
 
-                    <WheelPicker
-                      options={MINUTES}
-                      value={activeTimeField === "start" ? startMin : endMin}
-                      onValueChange={activeTimeField === "start" ? setStartMin : setEndMin}
-                      className="flex-1 border-0 bg-transparent rounded-full"
-                      visibleCount={5}
-                      itemHeight={38}
-                      sound
-                      aria-label="Minute"
-                    />
-                    {timeFormat === "12h" && (
-                      <>
-                        <div className="w-2" />
-                        <WheelPicker
-                          options={AMPM}
-                          value={activeTimeField === "start" ? startAmpm : endAmpm}
-                          onValueChange={activeTimeField === "start" ? setStartAmpm : setEndAmpm}
-                          className="flex-1 border-0 bg-transparent rounded-full"
-                          visibleCount={5}
-                          itemHeight={38}
-                          sound
-                          aria-label="AM/PM"
-                        />
-                      </>
-                    )}
-                  </div>
-                </CenterMorphModalContent>
-              </CenterMorphModal>
-
-              <div className="grid grid-cols-2 gap-3">
-                {/* Start time */}
-                <Field>
-                  <FieldLabel>Starts</FieldLabel>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveTimeField("start");
-                      setStartPicked(true);
-                      setTimePickerOpen(true);
-                    }}
-                    className={cn(
-                      "flex h-12 w-full items-center gap-2 rounded-full border border-border bg-card px-3.5 text-sm font-medium text-foreground transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none",
-                      activeTimeField === "start" && timePickerOpen && "border-ring ring-1 ring-ring"
-                    )}
-                  >
-                    <Clock className="size-4 text-muted-foreground shrink-0" />
-                    <span className="whitespace-nowrap text-sm font-medium">{startDisplay}</span>
-                    <ChevronDown className="ml-auto size-4 text-muted-foreground/50 shrink-0" />
-                  </button>
-                  {form.formState.errors.start_time && (
-                    <FieldError errors={[form.formState.errors.start_time]} />
+              {/* End time */}
+              <Field data-invalid={isSameTime || !!form.formState.errors.end_time}>
+                <FieldLabel>Ends</FieldLabel>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTimeField("end");
+                    setEndPicked(true);
+                    setTimePickerOpen(true);
+                  }}
+                  className={cn(
+                    "flex h-12 w-full items-center gap-2 rounded-full border border-border bg-card px-3.5 text-sm font-medium text-foreground transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none",
+                    activeTimeField === "end" && timePickerOpen && "border-ring ring-1 ring-ring",
+                    (isSameTime || form.formState.errors.end_time) && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]"
                   )}
-                </Field>
-
-                {/* End time */}
-                <Field>
-                  <FieldLabel>Ends</FieldLabel>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveTimeField("end");
-                      setEndPicked(true);
-                      setTimePickerOpen(true);
-                    }}
-                    className={cn(
-                      "flex h-12 w-full items-center gap-2 rounded-full border border-border bg-card px-3.5 text-sm font-medium text-foreground transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none",
-                      activeTimeField === "end" && timePickerOpen && "border-ring ring-1 ring-ring"
-                    )}
-                  >
-                    <Clock className="size-4 text-muted-foreground shrink-0" />
-                    <span className="whitespace-nowrap text-sm font-medium">{endDisplay}</span>
-                    <ChevronDown className="ml-auto size-4 text-muted-foreground/50 shrink-0" />
-                  </button>
-                  {form.formState.errors.end_time && (
-                    <FieldError errors={[form.formState.errors.end_time]} />
-                  )}
-                </Field>
-              </div>
+                >
+                  <Clock className="size-4 text-muted-foreground shrink-0" />
+                  <span className="whitespace-nowrap text-sm font-medium">{endDisplay}</span>
+                  <ChevronDown className="ml-auto size-4 text-muted-foreground/50 shrink-0" />
+                </button>
+                {(isSameTime || form.formState.errors.end_time) && (
+                  <FieldError errors={[{ message: isSameTime ? "End time cannot be the same as start time" : form.formState.errors.end_time?.message }]} />
+                )}
+              </Field>
             </div>
+          </div>
 
           {/* ── Hourly rate + Break ─────────────────────── */}
           <div className="grid grid-cols-2 gap-3">
@@ -281,7 +338,7 @@ export function TemplateForm({
                       inputMode="decimal"
                       min="0"
                       step="0.01"
-                      value={field.value ?? ''}
+                      value={field.value ? field.value : ''}
                       onChange={(e) => field.onChange(e.target.value === '' ? '' : parseFloat(e.target.value))}
                       placeholder="0.00"
                       className="h-12 bg-card pl-8 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -299,7 +356,7 @@ export function TemplateForm({
               name="break_duration"
               control={form.control}
               render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
+                <Field data-invalid={isBreakTooLong || fieldState.invalid}>
                   <FieldLabel htmlFor="break_duration">Break (min)</FieldLabel>
                   <Input
                     {...field}
@@ -308,14 +365,17 @@ export function TemplateForm({
                     inputMode="numeric"
                     min="0"
                     step="1"
-                    value={field.value ?? ''}
+                    value={field.value ? field.value : ''}
                     onChange={(e) => field.onChange(e.target.value === '' ? '' : parseInt(e.target.value))}
                     placeholder="30"
-                    className="h-12 bg-card [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    aria-invalid={fieldState.invalid}
+                    className={cn(
+                      "h-12 bg-card [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                      (isBreakTooLong || fieldState.invalid) && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]"
+                    )}
+                    aria-invalid={isBreakTooLong || fieldState.invalid}
                   />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
+                  {(isBreakTooLong || fieldState.invalid) && (
+                    <FieldError errors={[{ message: isBreakTooLong ? "Break must be shorter than shift length" : fieldState.error?.message }]} />
                   )}
                 </Field>
               )}
@@ -330,7 +390,7 @@ export function TemplateForm({
               Cancel
             </Button>
           </CenterMorphModalClose>
-          <Button type="submit" isLoading={isSaving} disabled={isSaving} className="h-11 rounded-full text-sm font-medium w-full cursor-pointer">
+          <Button type="submit" isLoading={isSaving} disabled={isSaving || isSameTime || isBreakTooLong} className="h-11 rounded-full text-sm font-medium w-full cursor-pointer">
             {isSaving ? "Saving" : "Save"}
           </Button>
         </div>

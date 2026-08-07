@@ -72,14 +72,11 @@ interface ShiftWeekGroup {
 }
 
 function getWeekRangeLabel(startDate: Date, endDate: Date): string {
-  const startMonth = startDate.toLocaleDateString("en-US", { month: "short" }).toUpperCase()
+  const startMonth = startDate.toLocaleDateString("en-US", { month: "short" })
   const startDay = startDate.getDate()
-  const endMonth = endDate.toLocaleDateString("en-US", { month: "short" }).toUpperCase()
+  const endMonth = endDate.toLocaleDateString("en-US", { month: "short" })
   const endDay = endDate.getDate()
 
-  if (startMonth === endMonth) {
-    return `${startMonth} ${startDay} – ${endDay}`
-  }
   return `${startMonth} ${startDay} – ${endMonth} ${endDay}`
 }
 
@@ -214,6 +211,21 @@ export default function HomePage() {
   const [conflictType, setConflictType] = useState<ShiftConflictType | null>(null)
   const [conflictingShift, setConflictingShift] = useState<Shift | null>(null)
   const [pendingShift, setPendingShift] = useState<ShiftFormValues | null>(null)
+  const [batchConflictQueue, setBatchConflictQueue] = useState<
+    Array<{
+      extractedShift: ShiftFormValues
+      conflictType: ShiftConflictType
+      conflictingShift: Shift
+    }>
+  >([])
+  const [batchQueueIndex, setBatchQueueIndex] = useState(0)
+  const [batchResolutions, setBatchResolutions] = useState<
+    Array<{
+      shiftToSave: ShiftFormValues | null
+      shiftToDeleteId: string | null
+    }>
+  >([])
+  const [batchNonConflictingShifts, setBatchNonConflictingShifts] = useState<ShiftFormValues[]>([])
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isLongPressRef = useRef(false)
 
@@ -352,6 +364,22 @@ export default function HomePage() {
       if (!shift.end_time || !shift.end_time.trim()) {
         itemErrors.end_time = "End time is required"
         hasError = true
+      } else if (shift.start_time && shift.start_time.trim() === shift.end_time.trim()) {
+        itemErrors.end_time = "End time cannot be the same as start time"
+        hasError = true
+      }
+
+      if (shift.start_time && shift.end_time && shift.start_time.trim() !== shift.end_time.trim()) {
+        const [sh, sm] = shift.start_time.split(":").map(Number)
+        const [eh, em] = shift.end_time.split(":").map(Number)
+        const sTotal = sh * 60 + (sm || 0)
+        let eTotal = eh * 60 + (em || 0)
+        if (eTotal < sTotal) eTotal += 24 * 60
+        const span = eTotal - sTotal
+        if (typeof shift.break_duration === "number" && shift.break_duration >= span) {
+          itemErrors.break_duration = "Break must be shorter than shift length"
+          hasError = true
+        }
       }
 
       if (Object.keys(itemErrors).length > 0) {
@@ -366,25 +394,76 @@ export default function HomePage() {
 
     setExtractedShiftErrors({})
 
-    setIsSaving(true)
-    try {
-      const created = await bulkCreateShifts(
-        extractedShifts.map((s) => ({
-          workplace_name: s.workplace_name,
-          shift_date: s.shift_date,
-          start_time: s.start_time,
-          end_time: s.end_time,
-          hourly_rate: s.hourly_rate ?? preferences.default_hourly_rate ?? 0,
-          break_duration: s.break_duration ?? preferences.default_break_duration ?? 0,
-        }))
-      )
-      setShifts((prev) => [...created, ...prev])
-      closeModal()
-    } catch (err) {
-      console.error("Failed to save extracted shifts:", err)
-    } finally {
-      setIsSaving(false)
+    const normalizedShifts: ShiftFormValues[] = extractedShifts.map((s) => ({
+      workplace_name: s.workplace_name.trim(),
+      shift_date: s.shift_date,
+      start_time: s.start_time,
+      end_time: s.end_time,
+      hourly_rate: s.hourly_rate ?? preferences.default_hourly_rate ?? 0,
+      break_duration: s.break_duration ?? preferences.default_break_duration ?? 0,
+    }))
+
+    // Detect intra-batch and database collisions across the batch
+    const conflictItems: Array<{
+      extractedShift: ShiftFormValues
+      conflictType: ShiftConflictType
+      conflictingShift: Shift
+    }> = []
+    const nonConflicting: ShiftFormValues[] = []
+    const simulatedAccepted: Shift[] = [...shifts]
+
+    for (let i = 0; i < normalizedShifts.length; i++) {
+      const current = normalizedShifts[i]
+      const conflictResult = detectShiftConflict(current, simulatedAccepted)
+
+      if (conflictResult.hasConflict && conflictResult.conflictingShift && conflictResult.conflictType) {
+        conflictItems.push({
+          extractedShift: current,
+          conflictType: conflictResult.conflictType,
+          conflictingShift: conflictResult.conflictingShift,
+        })
+      } else {
+        nonConflicting.push(current)
+        // Add to simulated accepted so subsequent shifts in this batch check against it (Layer 3 intra-batch)
+        simulatedAccepted.push({
+          id: `temp-${i}`,
+          user_id: "",
+          workplace_name: current.workplace_name,
+          shift_date: current.shift_date,
+          start_time: current.start_time,
+          end_time: current.end_time,
+          hourly_rate: current.hourly_rate ?? 0,
+          break_duration: current.break_duration ?? 0,
+          created_at: "",
+          updated_at: "",
+        })
+      }
     }
+
+    // If no conflicts in the batch, save all immediately
+    if (conflictItems.length === 0) {
+      setIsSaving(true)
+      try {
+        const created = await bulkCreateShifts(normalizedShifts)
+        setShifts((prev) => [...created, ...prev])
+        closeModal()
+      } catch (err) {
+        console.error("Failed to save extracted shifts:", err)
+      } finally {
+        setIsSaving(false)
+      }
+      return
+    }
+
+    // Queue conflicts to step through seamlessly
+    setBatchConflictQueue(conflictItems)
+    setBatchQueueIndex(0)
+    setBatchResolutions([])
+    setBatchNonConflictingShifts(nonConflicting)
+    setPendingShift(conflictItems[0].extractedShift)
+    setConflictingShift(conflictItems[0].conflictingShift)
+    setConflictType(conflictItems[0].conflictType)
+    setConflictModalOpen(true)
   }
 
   const handleCreate = async (data: ShiftFormValues) => {
@@ -392,6 +471,9 @@ export default function HomePage() {
     const conflictResult = detectShiftConflict(data, shifts)
 
     if (conflictResult.hasConflict) {
+      setBatchConflictQueue([])
+      setBatchResolutions([])
+      setBatchNonConflictingShifts([])
       setPendingShift(data)
       setConflictingShift(conflictResult.conflictingShift)
       setConflictType(conflictResult.conflictType)
@@ -413,20 +495,94 @@ export default function HomePage() {
 
   const handleConflictPrimaryAction = async () => {
     if (!pendingShift) return
+    setIsSaving(true)
 
+    // Smooth tactile feedback so the user visibly sees 'Skipping' / 'Replacing'
+    await new Promise((r) => setTimeout(r, 350))
+
+    // Check if we are in batch conflict resolution mode
+    if (batchConflictQueue.length > 0) {
+      const currentItem = batchConflictQueue[batchQueueIndex]
+      const resolution = {
+        shiftToSave: currentItem.conflictType === "exact_duplicate" ? null : currentItem.extractedShift,
+        shiftToDeleteId:
+          currentItem.conflictType === "exact_duplicate"
+            ? null
+            : currentItem.conflictingShift.id.startsWith("temp-")
+            ? null
+            : currentItem.conflictingShift.id,
+      }
+
+      const nextResolutions = [...batchResolutions, resolution]
+      const nextIndex = batchQueueIndex + 1
+
+      if (nextIndex < batchConflictQueue.length) {
+        setBatchResolutions(nextResolutions)
+        setBatchQueueIndex(nextIndex)
+        setPendingShift(batchConflictQueue[nextIndex].extractedShift)
+        setConflictingShift(batchConflictQueue[nextIndex].conflictingShift)
+        setConflictType(batchConflictQueue[nextIndex].conflictType)
+        setIsSaving(false)
+        return
+      }
+
+      // All batch conflicts resolved! Commit batch to Supabase
+      try {
+        const deleteIds = nextResolutions
+          .map((r) => r.shiftToDeleteId)
+          .filter((id): id is string => Boolean(id))
+
+        if (deleteIds.length > 0) {
+          await Promise.all(deleteIds.map((id) => deleteShift(id)))
+        }
+
+        const approvedBatch = nextResolutions
+          .map((r) => r.shiftToSave)
+          .filter((s): s is ShiftFormValues => Boolean(s))
+
+        const allToCreate = [...batchNonConflictingShifts, ...approvedBatch]
+        if (allToCreate.length > 0) {
+          const created = await bulkCreateShifts(allToCreate)
+          setShifts((prev) => [
+            ...created,
+            ...prev.filter((s) => !deleteIds.includes(s.id)),
+          ])
+        } else if (deleteIds.length > 0) {
+          setShifts((prev) => prev.filter((s) => !deleteIds.includes(s.id)))
+        }
+
+        setConflictModalOpen(false)
+        setBatchConflictQueue([])
+        setBatchResolutions([])
+        setBatchNonConflictingShifts([])
+        setPendingShift(null)
+        setConflictingShift(null)
+        setConflictType(null)
+        closeModal()
+      } catch (err) {
+        console.error("Failed to commit batch conflict resolutions:", err)
+      } finally {
+        setIsSaving(false)
+      }
+      return
+    }
+
+    // Single shift manual conflict flow
     if (conflictType === "exact_duplicate") {
-      // Primary CTA = Skip Duplicate -> Simply close modal and clear pending state
       setConflictModalOpen(false)
       setPendingShift(null)
       setConflictingShift(null)
       setConflictType(null)
+      setIsSaving(false)
       closeModal()
       return
     }
 
-    // Primary CTA = Replace Shift -> Delete existing conflicting shift and save pending shift
-    if (!conflictingShift) return
-    setIsSaving(true)
+    if (!conflictingShift) {
+      setIsSaving(false)
+      return
+    }
+
     try {
       await deleteShift(conflictingShift.id)
       const created = await createShift(pendingShift)
@@ -445,9 +601,72 @@ export default function HomePage() {
 
   const handleConflictSecondaryAction = async () => {
     if (!pendingShift) return
-
-    // Secondary CTA = Keep Both -> Save pending shift as double shift / overlap
     setIsSaving(true)
+
+    // Smooth tactile feedback so the user visibly sees 'Keeping'
+    await new Promise((r) => setTimeout(r, 350))
+
+    // Check if we are in batch conflict resolution mode
+    if (batchConflictQueue.length > 0) {
+      const currentItem = batchConflictQueue[batchQueueIndex]
+      const resolution = {
+        shiftToSave: currentItem.extractedShift,
+        shiftToDeleteId: null, // Keep both, so do not delete existing
+      }
+
+      const nextResolutions = [...batchResolutions, resolution]
+      const nextIndex = batchQueueIndex + 1
+
+      if (nextIndex < batchConflictQueue.length) {
+        setBatchResolutions(nextResolutions)
+        setBatchQueueIndex(nextIndex)
+        setPendingShift(batchConflictQueue[nextIndex].extractedShift)
+        setConflictingShift(batchConflictQueue[nextIndex].conflictingShift)
+        setConflictType(batchConflictQueue[nextIndex].conflictType)
+        setIsSaving(false)
+        return
+      }
+
+      // All batch conflicts resolved! Commit batch to Supabase
+      try {
+        const deleteIds = nextResolutions
+          .map((r) => r.shiftToDeleteId)
+          .filter((id): id is string => Boolean(id))
+
+        if (deleteIds.length > 0) {
+          await Promise.all(deleteIds.map((id) => deleteShift(id)))
+        }
+
+        const approvedBatch = nextResolutions
+          .map((r) => r.shiftToSave)
+          .filter((s): s is ShiftFormValues => Boolean(s))
+
+        const allToCreate = [...batchNonConflictingShifts, ...approvedBatch]
+        if (allToCreate.length > 0) {
+          const created = await bulkCreateShifts(allToCreate)
+          setShifts((prev) => [
+            ...created,
+            ...prev.filter((s) => !deleteIds.includes(s.id)),
+          ])
+        }
+
+        setConflictModalOpen(false)
+        setBatchConflictQueue([])
+        setBatchResolutions([])
+        setBatchNonConflictingShifts([])
+        setPendingShift(null)
+        setConflictingShift(null)
+        setConflictType(null)
+        closeModal()
+      } catch (err) {
+        console.error("Failed to commit batch conflict resolutions:", err)
+      } finally {
+        setIsSaving(false)
+      }
+      return
+    }
+
+    // Single shift manual conflict flow
     try {
       const created = await createShift(pendingShift)
       setShifts((prev) => [created, ...prev])
@@ -1054,7 +1273,7 @@ export default function HomePage() {
                   <div key={group.weekKey} className="flex flex-col gap-2">
                     {/* Weekly Subheader: Range */}
                     <div className="px-3 flex items-center justify-between">
-                      <span className="text-[11px] font-medium tracking-wider text-muted-foreground uppercase">
+                      <span className="text-[11px] font-medium tracking-wider text-muted-foreground">
                         {group.label}
                       </span>
                     </div>
@@ -1135,7 +1354,7 @@ export default function HomePage() {
                   month_caption: "hidden",
                   month_grid: "w-fit border-collapse",
                   weekdays: "flex justify-between gap-1 sm:gap-1.5",
-                  weekday: "size-10 sm:size-11 text-[11px] font-medium text-muted-foreground/70 select-none flex items-center justify-center uppercase tracking-wider",
+                  weekday: "size-10 sm:size-11 text-[14px] font-medium text-muted-foreground/70 select-none flex items-center justify-center uppercase tracking-wider",
                   week: "mt-1 flex w-fit justify-between gap-1 sm:gap-1.5",
                   day: "group/day relative size-10 sm:size-11 p-0 text-center select-none flex items-center justify-center",
                 }}
@@ -1218,12 +1437,12 @@ export default function HomePage() {
         >
           <div className="flex flex-col gap-5">
             {/* Header */}
-            <div className="flex flex-col gap-1 text-center">
+            <div className="flex flex-col gap-2 text-center">
               <h2 className="text-base font-semibold leading-normal text-foreground">
                 Add Shift
               </h2>
-              <p className="text-[13px] text-muted-foreground">
-                Select how you&apos;d like to create your shift
+              <p className="text-sm text-muted-foreground">
+                Choose how you want to add your shift
               </p>
             </div>
 
@@ -1287,7 +1506,7 @@ export default function HomePage() {
 
           <div className="flex flex-col gap-5">
             {/* Header */}
-            <div className="flex flex-col gap-1 text-center">
+            <div className="flex flex-col gap-2 text-center">
               <h2 className="text-base font-semibold leading-normal text-foreground">
                 Smart Add
               </h2>
@@ -1313,7 +1532,8 @@ export default function HomePage() {
                     </div>
                     <span className="text-sm font-medium text-foreground">Upload Photo</span>
                   </div>
-                  <span className="text-[13px] text-muted-foreground/60">Coming soon</span>                </SettingsRow>
+                  <span className="text-[13px] text-muted-foreground/60">Coming soon</span>
+                </SettingsRow>
               </div>
             </SettingsCard>
           </div>
@@ -1342,7 +1562,7 @@ export default function HomePage() {
 
           <div className="flex flex-col gap-5">
             {/* Header */}
-            <div className="flex flex-col gap-1 text-center">
+            <div className="flex flex-col gap-2 text-center">
               <h2 className="text-base font-semibold leading-normal text-foreground">
                 Paste Schedule
               </h2>
@@ -1401,11 +1621,11 @@ export default function HomePage() {
 
           <div className="flex flex-col gap-5">
             {/* Header */}
-            <div className="flex flex-col gap-1 text-center">
+            <div className="flex flex-col gap-2 text-center">
               <h2 className="text-base font-semibold leading-normal text-foreground">
                 Review Shifts
               </h2>
-              <p className="text-[13px] text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {extractedShifts.length} shift{extractedShifts.length > 1 ? "s" : ""} extracted
               </p>
             </div>
@@ -1465,7 +1685,7 @@ export default function HomePage() {
 
           <div className="flex flex-col gap-5">
             {/* Header */}
-            <div className="flex flex-col gap-1 text-center">
+            <div className="flex flex-col gap-2 text-center">
               <h2 className="text-base font-semibold leading-normal text-foreground">
                 Select Template
               </h2>
@@ -1503,8 +1723,8 @@ export default function HomePage() {
                   <h3 className="text-[19px] font-semibold text-foreground tracking-tight">
                     No templates yet
                   </h3>
-                  <p className="text-[13px] text-muted-foreground leading-relaxed">
-                    Save your regular shifts as templates so you can add them with a single tap.
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Save recurring shifts to add in one tap.
                   </p>
                 </div>
 
@@ -1514,7 +1734,7 @@ export default function HomePage() {
                     onClick={() => setModalMode("create-template")}
                     className="inline-flex items-center justify-center h-12 px-6 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[15px] font-medium text-foreground hover:bg-card/90 transition-colors shadow-sm cursor-pointer"
                   >
-                    Create Template
+                    Add Template
                   </button>
                 </motion.div>
               </div>
@@ -1646,7 +1866,7 @@ export default function HomePage() {
                 <h2 className="text-base font-semibold leading-normal text-foreground truncate">
                   {selectedShift.workplace_name}
                 </h2>
-                <p className="text-[13px] text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   {formatDisplayDate(selectedShift.shift_date)}
                 </p>
               </div>
@@ -1758,7 +1978,7 @@ export default function HomePage() {
         open={singleDeleteConfirmOpen}
         onOpenChange={setSingleDeleteConfirmOpen}
         title="Delete shift?"
-        description="This will permanently remove this shift log."
+        description="This shift will be permanently removed."
         confirmText="Delete"
         isLoading={isDeleting}
         onConfirm={handleDelete}
@@ -1769,7 +1989,7 @@ export default function HomePage() {
         open={bulkDeleteConfirmOpen}
         onOpenChange={setBulkDeleteConfirmOpen}
         title={selectedIds.size === 1 ? "Delete 1 shift?" : `Delete ${selectedIds.size} shifts?`}
-        description="This will permanently remove the selected shift logs."
+        description={selectedIds.size === 1 ? "This shift will be permanently removed." : "These shifts will be permanently removed."}
         confirmText="Delete"
         isLoading={isDeletingBulk}
         onConfirm={handleBulkDelete}

@@ -1,6 +1,5 @@
 'use client'
 
-
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -17,11 +16,9 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
-
 import { PasswordStrengthInput, validatePassword } from "@/components/password-strength-input"
 import { Logo } from '@/components/logo'
 import { BackButton } from '@/components/back-button'
-
 
 const formSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters.").refine(validatePassword, "Please ensure all password requirements are met."),
@@ -77,9 +74,10 @@ export function UpdatePasswordForm({
   }
 
   return (
-    <>
-      <BackButton href="/auth/login" className="absolute top-4 left-4 sm:top-6 sm:left-6" />
-      <div className={cn("flex flex-col gap-6 px-4 sm:px-0", className)} {...props}>
+    <div className={cn("flex flex-col gap-6 px-4 sm:px-0 w-full", className)} {...props}>
+      <div className="w-full flex items-center justify-start -mb-2">
+        <BackButton href="/auth/login" />
+      </div>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
@@ -87,55 +85,54 @@ export function UpdatePasswordForm({
             <h1 className="text-3xl font-bold">Update Password</h1>
             <FieldDescription>Please enter your new password below.</FieldDescription>
           </div>
-          
-          <Controller
-            name="password"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="password">New password</FieldLabel>
-                <PasswordStrengthInput
-                  {...field}
-                  id="password"
-                  placeholder="New password"
-                  showStrengthIndicator={true}
-                  aria-invalid={fieldState.invalid}
-                />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
+            
+            <Controller
+              name="password"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="password">New password</FieldLabel>
+                  <PasswordStrengthInput
+                    {...field}
+                    id="password"
+                    placeholder="New password"
+                    showStrengthIndicator={true}
+                    aria-invalid={fieldState.invalid}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
 
-          <Controller
-            name="repeatPassword"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="repeat-password">Repeat Password</FieldLabel>
-                <PasswordStrengthInput
-                  {...field}
-                  id="repeat-password"
-                  placeholder="Repeat new password"
-                  showStrengthIndicator={false}
-                  aria-invalid={fieldState.invalid}
-                />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
+            <Controller
+              name="repeatPassword"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="repeat-password">Repeat Password</FieldLabel>
+                  <PasswordStrengthInput
+                    {...field}
+                    id="repeat-password"
+                    placeholder="Repeat new password"
+                    showStrengthIndicator={false}
+                    aria-invalid={fieldState.invalid}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
 
-          <Field>
-            <Button size="lg" type="submit" disabled={isLoading} isLoading={isLoading} className="w-full">
-              {isLoading ? 'Saving' : 'Save new password'}
-            </Button>
-          </Field>
-        </FieldGroup>
-      </form>
+            <Field>
+              <Button size="lg" type="submit" disabled={isLoading} isLoading={isLoading} className="w-full">
+                {isLoading ? 'Saving' : 'Save new password'}
+              </Button>
+            </Field>
+          </FieldGroup>
+        </form>
       </div>
-    </>
   )
 }

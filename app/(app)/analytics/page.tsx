@@ -11,7 +11,15 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/motion/tabs"
 import { RadioGroup, RadioGroupItem } from "@/components/motion/radio"
 import { getShifts } from "@/app/(app)/home/actions"
 import type { Shift } from "@/lib/schemas/shift-form-schema"
-import { calculateShiftDurationHours, calculateShiftIncome, formatCurrency, formatSmartCurrency, dateToString } from "@/lib/time-utils"
+import {
+  calculateShiftDurationHours,
+  calculateShiftIncome,
+  formatCurrency,
+  formatSmartCurrency,
+  dateToString,
+  formatShiftDisplayDate,
+  formatDisplayTime,
+} from "@/lib/time-utils"
 import { cn } from "@/lib/utils"
 import {
   ChartContainer,
@@ -30,6 +38,7 @@ import {
 } from "@/components/motion/center-morph-modal"
 import { Button } from "@/components/motion/button/base"
 import { WheelPicker } from "@/components/motion/wheel-picker"
+import { Loader } from "@/components/motion/loader"
 
 const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
@@ -151,7 +160,7 @@ function getDayViewData(
   })
 
   return {
-    title: "Days",
+    title: "Daily Overview",
     subtitle: `${startStr} – ${endStr}`,
     chartData,
     currentDayIndex,
@@ -221,7 +230,7 @@ function getWeekViewData(shifts: Shift[], monthOffset: number) {
   })
 
   return {
-    title: "Weeks",
+    title: "Weekly Overview",
     subtitle: `${monthName} ${year}`,
     chartData,
     currentWeekIndex,
@@ -284,7 +293,7 @@ function getMonthViewData(shifts: Shift[], sixMonthOffset: number) {
       : `${start.mName} ${start.yr} - ${end.mName} ${end.yr}`
 
   return {
-    title: "Months",
+    title: "Monthly Overview",
     subtitle,
     chartData,
   }
@@ -329,7 +338,7 @@ function getYearViewData(shifts: Shift[], sixYearOffset: number) {
   })
 
   return {
-    title: "Years",
+    title: "Annual Overview",
     subtitle: `${years[0]} – ${years[5]}`,
     chartData,
   }
@@ -561,26 +570,76 @@ export function AnalyticsEarningsChart() {
           timeFormat: preferences.time_format,
         })
       } else {
-        const csvHeader = "Shift Date,Workplace,Start Time,End Time,Hourly Rate ($),Break (mins),Hours Worked,Earnings ($)\n"
-        const rows = exportShifts.map((s) => {
+        const csvHeader = "#,Date,Workplace,Time,Break,Hours,Rate,Total\n"
+        let totalEarnings = 0
+        let totalHours = 0
+
+        const rows = exportShifts.map((s, idx) => {
           const hrs = calculateShiftDurationHours(s.start_time, s.end_time, s.break_duration)
           const income = calculateShiftIncome(s.start_time, s.end_time, s.hourly_rate, s.break_duration)
-          return `"${s.shift_date}","${s.workplace_name || "Shift"}","${s.start_time}","${s.end_time}",${s.hourly_rate},${s.break_duration},${hrs.toFixed(1)},${income.toFixed(2)}`
+          totalEarnings += income
+          totalHours += hrs
+
+          const startTimeStr = formatDisplayTime(s.start_time, preferences.time_format)
+          const endTimeStr = formatDisplayTime(s.end_time, preferences.time_format)
+          const timeRangeStr = `${startTimeStr} - ${endTimeStr}`
+          const dateFormatted = formatShiftDisplayDate(s.shift_date) || s.shift_date || "Date"
+          const workplaceClean = (s.workplace_name || "Shift").replace(/"/g, '""')
+
+          return `${idx + 1},"${dateFormatted}","${workplaceClean}","${timeRangeStr}","${s.break_duration || 0}m","${hrs.toFixed(1)}h","$${(s.hourly_rate || 0).toFixed(2)}","$${income.toFixed(2)}"`
         })
 
-        const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(csvHeader + rows.join("\n"))
+        // Add summary totals row matching PDF format
+        rows.push(`"","TOTAL","","","","${totalHours.toFixed(1)}h","","$${totalEarnings.toFixed(2)}"`)
+
+        const csvString = csvHeader + rows.join("\n")
+        const fileName = `cheq-statement-${statementScope}.csv`
+        const blob = new Blob([csvString], { type: "text/csv;charset=utf-8" })
+
+        // 1. Try Native OS Save Picker (Chrome, Edge, Brave, Opera Desktop)
+        if (typeof window !== "undefined" && "showSaveFilePicker" in window) {
+          try {
+            const handle = await (window as any).showSaveFilePicker({
+              suggestedName: fileName,
+              types: [
+                {
+                  description: "CSV Spreadsheet Document",
+                  accept: { "text/csv": [".csv"] },
+                },
+              ],
+            })
+            const writable = await handle.createWritable()
+            await writable.write(blob)
+            await writable.close()
+            return
+          } catch (err: any) {
+            if (err?.name === "AbortError") return
+          }
+        }
+
+        // 2. Fallback for Safari / Mobile browsers
+        const url = URL.createObjectURL(blob)
         const link = document.createElement("a")
-        link.setAttribute("href", csvContent)
-        link.setAttribute("download", `cheq-statement-${statementScope}.csv`)
+        link.href = url
+        link.download = fileName
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
+        URL.revokeObjectURL(url)
       }
     } catch (err) {
       console.error("Failed to export statement:", err)
     } finally {
       setIsExporting(false)
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center py-24 min-h-[50vh]">
+        <Loader variant="ascii-braille" size={28} className="text-muted-foreground" />
+      </div>
+    )
   }
 
   return (
@@ -803,11 +862,7 @@ export function AnalyticsEarningsChart() {
                 <span>{deltaInfo.earningsDelta.isPositive ? "▲" : "▼"}</span>
                 <span>{deltaInfo.earningsDelta.formattedPercent}%</span>
               </div>
-            ) : (
-              <span className="text-xs text-muted-foreground font-normal mt-0.5 truncate">
-                {activeItem?.fullRange || "Selected period"}
-              </span>
-            )}
+            ) : null}
           </div>
         </div>
 
@@ -838,11 +893,7 @@ export function AnalyticsEarningsChart() {
                 <span>{deltaInfo.hoursDelta.isPositive ? "▲" : "▼"}</span>
                 <span>{deltaInfo.hoursDelta.formattedPercent}%</span>
               </div>
-            ) : (
-              <span className="text-xs text-muted-foreground font-normal mt-0.5">
-                Shift duration
-              </span>
-            )}
+            ) : null}
           </div>
         </div>
 
@@ -871,11 +922,7 @@ export function AnalyticsEarningsChart() {
                 <span>{deltaInfo.rateDelta.isPositive ? "▲" : "▼"}</span>
                 <span>{deltaInfo.rateDelta.formattedPercent}%</span>
               </div>
-            ) : (
-              <span className="text-xs text-muted-foreground font-normal mt-0.5">
-                Effective rate
-              </span>
-            )}
+            ) : null}
           </div>
         </div>
 
@@ -904,11 +951,7 @@ export function AnalyticsEarningsChart() {
                 <span>{deltaInfo.daysDelta.isPositive ? "▲" : "▼"}</span>
                 <span>{deltaInfo.daysDelta.formattedPercent}%</span>
               </div>
-            ) : (
-              <span className="text-xs text-muted-foreground font-normal mt-0.5">
-                Recorded shifts
-              </span>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
@@ -945,7 +988,7 @@ export function AnalyticsEarningsChart() {
                 Get Statement
               </h2>
               <p className="text-xs text-muted-foreground">
-                Export your earnings report
+                Download official earnings summary
               </p>
             </div>
 
@@ -995,9 +1038,9 @@ export function AnalyticsEarningsChart() {
                   >
                     <RadioGroupItem value="month" label="Current month" />
                     <div className="h-[1px] w-full bg-border/40 my-0.5" />
-                    <RadioGroupItem value="ytd" label="Year-to-date" />
+                    <RadioGroupItem value="ytd" label="Year-to-date (YTD)" />
                     <div className="h-[1px] w-full bg-border/40 my-0.5" />
-                    <RadioGroupItem value="custom" label="Custom" />
+                    <RadioGroupItem value="custom" label="Custom date range" />
                   </RadioGroup>
                 </div>
 

@@ -10,6 +10,7 @@ import { SettingsCard } from "@/components/settings-card"
 import { SettingsRow } from "@/components/settings-row"
 import Link from "next/link"
 import { useUser } from "@/components/user-provider"
+import { Loader } from "@/components/motion/loader"
 
 export default function SettingsPage() {
   const { setTheme, resolvedTheme } = useTheme()
@@ -26,6 +27,14 @@ export default function SettingsPage() {
 
   const toggle = () => {
     setTheme(isDark ? "light" : "dark")
+  }
+
+  if (!mounted) {
+    return (
+      <div className="flex-1 flex items-center justify-center py-24 min-h-[50vh]">
+        <Loader variant="ascii-braille" size={28} className="text-muted-foreground" />
+      </div>
+    )
   }
 
   return (

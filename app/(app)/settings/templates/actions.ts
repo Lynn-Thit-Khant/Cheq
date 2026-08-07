@@ -107,6 +107,10 @@ export async function updateTemplate(id: string, values: TemplateFormValues): Pr
 }
 
 export async function deleteTemplate(id: string): Promise<{ success: boolean }> {
+  if (!id || typeof id !== 'string') {
+    throw new Error("Invalid template ID")
+  }
+
   const supabase = await createClient()
 
   const { data: { user }, error: authError } = await supabase.auth.getUser()

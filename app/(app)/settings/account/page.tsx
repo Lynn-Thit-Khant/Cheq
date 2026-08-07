@@ -289,7 +289,7 @@ export default function AccountPage() {
                     className="w-full justify-start font-medium text-foreground rounded-[26px] h-12 text-[15px]"
                   >
                     <Pencil className="h-4 w-4" strokeWidth={1.5} />
-                    Edit Email
+                    Change Email
                   </Button>
                   <ActionSwapBlurButton
                     items={COPY_ITEMS}
@@ -333,7 +333,7 @@ export default function AccountPage() {
                     className="w-full justify-start font-medium text-foreground rounded-[26px] h-12 text-[15px]"
                   >
                     <Lock className="h-4 w-4" strokeWidth={1.5} />
-                    Edit Password
+                    Change Password
                   </Button>
                   <Button
                     variant="ghost"
@@ -344,7 +344,7 @@ export default function AccountPage() {
                     className="w-full justify-start font-medium text-foreground rounded-[26px] h-12 text-[15px]"
                   >
                     <KeyRound className="h-4 w-4" strokeWidth={1.5} />
-                    Forgot password
+                    Forgot password?
                   </Button>
                 </div>
               </MorphPopoverContent>
@@ -394,7 +394,7 @@ export default function AccountPage() {
               </MorphPopoverContent>
             </MorphPopover>
             <SettingsRow interactive={true}>
-              <span className="text-[15px] leading-6 text-muted-foreground shrink-0">Passkeys</span>
+              <span className="text-[15px] leading-6 text-muted-foreground shrink-0">Passkeys (Biometrics)</span>
               <span className="text-[13px] text-muted-foreground/60">Coming soon</span>
             </SettingsRow>
       </SettingsCard>
@@ -418,7 +418,7 @@ export default function AccountPage() {
     }}>
       <CenterMorphModalContent ariaLabel="Edit Name" className="w-full max-w-sm bg-card p-6 border-border/50">
         <div className="flex flex-col gap-6">
-          <div className="flex flex-col text-center">
+          <div className="flex flex-col gap-2 text-center">
             <h2 className="text-base font-semibold leading-normal text-foreground">Edit Name</h2>
           </div>
           <FieldGroup>
@@ -477,16 +477,16 @@ export default function AccountPage() {
       }}
     >
       <CenterMorphModalContent 
-        ariaLabel="Edit Email" 
+        ariaLabel="Change Email" 
         className="w-full max-w-sm bg-card p-6 border-border/50"
         dismissible={!emailSuccess}
         showCloseButton={!emailSuccess}
       >
         {emailSuccess ? (
           <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-4 text-center">
+            <div className="flex flex-col gap-2 text-center">
               <h2 className="text-base font-semibold leading-normal text-foreground">Email updated successfully</h2>
-              <p className="text-[13px] text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 For security reasons, please sign in again with your new email address.
               </p>
             </div>
@@ -498,8 +498,11 @@ export default function AccountPage() {
           </div>
         ) : emailStep === 'input' ? (
           <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-2 text-center mb-4">
-              <h2 className="text-base font-semibold leading-normal text-foreground">Edit Email</h2>
+            <div className="flex flex-col gap-2 text-center">
+              <h2 className="text-base font-semibold leading-normal text-foreground">Change Email</h2>
+              <p className="text-sm text-muted-foreground">
+                Enter your new email and current password to continue.
+              </p>
             </div>
             <FieldGroup>
               <Field>
@@ -527,7 +530,7 @@ export default function AccountPage() {
                   onChange={(e) => {
                     setEmailCurrentPassword(e.target.value)
                     if (emailPasswordError) setEmailPasswordError('')
-                  }}
+                  }} 
                   aria-invalid={!!emailPasswordError}
                   required
                 />
@@ -543,16 +546,16 @@ export default function AccountPage() {
                 </Button>
               </CenterMorphModalClose>
               <Button onClick={handleNextEmail} isLoading={isSavingEmail} disabled={isSavingEmail || !newEmail.trim() || newEmail === userEmail || !emailCurrentPassword} className="h-11 rounded-full text-sm font-medium w-full cursor-pointer">
-                {isSavingEmail ? "Processing" : "Next"}
+                {isSavingEmail ? "Sending code" : "Continue"}
               </Button>
             </div>
           </div>
         ) : emailStep === 'verify' ? (
           <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-4 text-center">
-              <h2 className="text-base font-semibold leading-normal text-foreground">Verify new email</h2>
-              <p className="text-[13px] text-muted-foreground">
-                Please enter the 6-digit code sent to your new email address.
+            <div className="flex flex-col gap-2 text-center">
+              <h2 className="text-base font-semibold leading-normal text-foreground">Verify Email</h2>
+              <p className="text-sm text-muted-foreground">
+                Enter the 6-digit verification code sent to your new email.
               </p>
             </div>
             <div className="flex justify-center w-full">
@@ -560,7 +563,7 @@ export default function AccountPage() {
                   key="email-otp"
                   label="Verification Code"
                   successMessage="Verification successful."
-                  errorMessage={emailOtpError || "Invalid code."}
+                  errorMessage={emailOtpError || "Invalid code. Please check and try again."}
                   value={emailOtpCode}
                   status={emailOtpStatus}
                   onChange={(v) => {
@@ -603,16 +606,16 @@ export default function AccountPage() {
       }}
     >
       <CenterMorphModalContent 
-        ariaLabel="Edit Password" 
+        ariaLabel="Change Password" 
         className="w-full max-w-sm bg-card p-6 border-border/50"
         dismissible={!passwordSuccess}
         showCloseButton={!passwordSuccess}
       >
         {passwordSuccess ? (
           <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-4 text-center">
+            <div className="flex flex-col gap-2 text-center">
               <h2 className="text-base font-semibold leading-normal text-foreground">Password updated successfully</h2>
-              <p className="text-[13px] text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 For security reasons, please sign in again with your new password.
               </p>
             </div>
@@ -624,8 +627,11 @@ export default function AccountPage() {
           </div>
         ) : (
           <div className="flex flex-col gap-6">
-            <div className="flex flex-col text-center">
-              <h2 className="text-base font-semibold leading-normal text-foreground">Edit Password</h2>
+            <div className="flex flex-col gap-2 text-center">
+              <h2 className="text-base font-semibold leading-normal text-foreground">Change Password</h2>
+              <p className="text-sm text-muted-foreground">
+                Enter your current password and choose a new secure password.
+              </p>
             </div>
             {passwordError && (
               <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md border border-destructive/20 text-center">
@@ -679,7 +685,7 @@ export default function AccountPage() {
                 </Button>
               </CenterMorphModalClose>
               <Button onClick={handleSavePassword} isLoading={isSavingPassword} disabled={isSavingPassword || !currentPassword || !newPassword || newPassword !== confirmPassword} className="h-11 rounded-full text-sm font-medium w-full cursor-pointer">
-                {isSavingPassword ? "Updating" : "Update"}
+                {isSavingPassword ? "Updating" : "Update Password"}
               </Button>
             </div>
           </div>

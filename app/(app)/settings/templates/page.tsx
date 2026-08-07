@@ -202,6 +202,14 @@ export default function TemplatesPage() {
   const hasTemplates = templates.length > 0
   const canCreate = templates.length < 5
 
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center py-24 min-h-[50vh]">
+        <Loader variant="ascii-braille" size={28} className="text-muted-foreground" />
+      </div>
+    )
+  }
+
   return (
     <>
       <div className="flex flex-1 flex-col p-4 pt-6 sm:pt-8 w-full max-w-md mx-auto relative">
@@ -277,8 +285,8 @@ export default function TemplatesPage() {
                         type="button"
                         whileTap={{ scale: 0.85, opacity: 0.7 }}
                         onClick={openCreate}
-                        className="inline-flex items-center justify-center h-12 px-5 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[15px] font-medium text-foreground hover:bg-card/90 transition-colors shadow-sm"
-                        aria-label="Create template"
+                        className="inline-flex items-center justify-center h-12 px-5 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[15px] font-medium text-foreground hover:bg-card/90 transition-colors shadow-sm cursor-pointer"
+                        aria-label="Add template"
                       >
                         Add
                       </motion.button>
@@ -287,7 +295,7 @@ export default function TemplatesPage() {
                         type="button"
                         whileTap={{ scale: 0.85, opacity: 0.7 }}
                         onClick={() => setIsSelectMode(true)}
-                        className="inline-flex items-center justify-center h-12 px-5 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[15px] font-medium text-foreground hover:bg-card/90 transition-colors shadow-sm"
+                        className="inline-flex items-center justify-center h-12 px-5 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[15px] font-medium text-foreground hover:bg-card/90 transition-colors shadow-sm cursor-pointer"
                         aria-label="Select templates"
                       >
                         Select
@@ -312,7 +320,7 @@ export default function TemplatesPage() {
                 No templates yet
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Save your regular shifts as templates.
+                Save recurring shifts to add in one tap.
               </p>
             </div>
 
@@ -320,9 +328,9 @@ export default function TemplatesPage() {
               <button
                 type="button"
                 onClick={openCreate}
-                className="inline-flex items-center justify-center h-12 px-6 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[15px] font-medium text-foreground hover:bg-card/90 transition-colors shadow-sm"
+                className="inline-flex items-center justify-center h-12 px-6 rounded-full border border-border bg-card/80 backdrop-blur-xl text-[15px] font-medium text-foreground hover:bg-card/90 transition-colors shadow-sm cursor-pointer"
               >
-                Create Template
+                Add Template
               </button>
             </motion.div>
           </div>
@@ -461,7 +469,7 @@ export default function TemplatesPage() {
                 <h2 className="text-base font-semibold leading-normal text-foreground truncate">
                   {selected.name}
                 </h2>
-                <p className="text-[13px] text-muted-foreground truncate">
+                <p className="text-sm text-muted-foreground truncate">
                   {selected.workplace_name}
                 </p>
               </div>
@@ -562,7 +570,7 @@ export default function TemplatesPage() {
         open={singleDeleteConfirmOpen}
         onOpenChange={setSingleDeleteConfirmOpen}
         title="Delete template?"
-        description="This will permanently remove this shift template."
+        description="This shift template will be permanently removed."
         confirmText="Delete"
         isLoading={isDeleting}
         onConfirm={handleDelete}
@@ -573,7 +581,7 @@ export default function TemplatesPage() {
         open={bulkDeleteConfirmOpen}
         onOpenChange={setBulkDeleteConfirmOpen}
         title={selectedIds.size === 1 ? "Delete 1 template?" : `Delete ${selectedIds.size} templates?`}
-        description="This will permanently remove the selected templates."
+        description={selectedIds.size === 1 ? "This shift template will be permanently removed." : "These shift templates will be permanently removed."}
         confirmText="Delete"
         isLoading={isDeletingBulk}
         onConfirm={handleBulkDelete}

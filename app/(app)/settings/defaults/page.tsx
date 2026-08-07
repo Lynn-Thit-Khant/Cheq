@@ -161,7 +161,7 @@ export default function DefaultsPage() {
                 <MorphPopoverTrigger>
                   <button type="button" className={`flex h-14 w-full items-center justify-between px-6 gap-3 group relative transition-[transform,box-shadow] duration-300 cursor-pointer rounded-[28px] outline-none ${timeFormatOpen ? 'z-[60] bg-card shadow-2xl scale-[1.02] ring-1 ring-border/50' : 'z-10 hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10'}`}>
                     <span className="text-[15px] leading-6 text-muted-foreground shrink-0">Time Format</span>
-                    <span className="text-[15px] font-medium text-foreground text-right">{preferences.time_format === '12h' ? '12 hr' : '24 hr'}</span>
+                    <span className="text-[15px] font-medium text-foreground text-right">{preferences.time_format === '12h' ? '12-Hour' : '24-Hour'}</span>
                   </button>
                 </MorphPopoverTrigger>
                 <MorphPopoverContent align="end" sideOffset={0} radius={999} unstyled className="w-auto p-4 -mr-4">
@@ -182,7 +182,7 @@ export default function DefaultsPage() {
               <MorphPopover open={firstDayOpen} onOpenChange={setFirstDayOpen}>
                 <MorphPopoverTrigger>
                   <button type="button" className={`flex h-14 w-full items-center justify-between px-6 gap-3 group relative transition-[transform,box-shadow] duration-300 cursor-pointer rounded-[28px] outline-none ${firstDayOpen ? 'z-[60] bg-card shadow-2xl scale-[1.02] ring-1 ring-border/50' : 'z-10 hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10'}`}>
-                    <span className="text-[15px] leading-6 text-muted-foreground shrink-0">First Day of Week</span>
+                    <span className="text-[15px] leading-6 text-muted-foreground shrink-0">Start of Week</span>
                     <span className="text-[15px] font-medium text-foreground text-right">{preferences.first_day_of_week}</span>
                   </button>
                 </MorphPopoverTrigger>
@@ -236,7 +236,7 @@ export default function DefaultsPage() {
                       )}
                     >
                       <Pencil className="h-4 w-4" strokeWidth={1.5} />
-                      {preferences.default_hourly_rate > 0 ? "Edit Default Rate" : "Set up Default Rate"}
+                      {preferences.default_hourly_rate > 0 ? "Edit Rate" : "Set Default Rate"}
                     </Button>
                     {preferences.default_hourly_rate > 0 && (
                       <Button
@@ -250,7 +250,7 @@ export default function DefaultsPage() {
                         className="w-full justify-start font-medium text-destructive hover:text-destructive hover:bg-destructive/10 rounded-[26px] h-12 text-[15px]"
                       >
                         <Trash2 className="h-4 w-4" strokeWidth={1.5} />
-                        Remove Default Rate
+                        Clear Rate
                       </Button>
                     )}
                   </div>
@@ -290,7 +290,7 @@ export default function DefaultsPage() {
                       )}
                     >
                       <Pencil className="h-4 w-4" strokeWidth={1.5} />
-                      {preferences.default_break_duration > 0 ? "Edit Default Break" : "Set up Default Break"}
+                      {preferences.default_break_duration > 0 ? "Edit Break" : "Set Default Break"}
                     </Button>
                     {preferences.default_break_duration > 0 && (
                       <Button
@@ -304,7 +304,7 @@ export default function DefaultsPage() {
                         className="w-full justify-start font-medium text-destructive hover:text-destructive hover:bg-destructive/10 rounded-[26px] h-12 text-[15px]"
                       >
                         <Trash2 className="h-4 w-4" strokeWidth={1.5} />
-                        Remove Default Break
+                        Clear Break
                       </Button>
                     )}
                   </div>
@@ -331,9 +331,9 @@ export default function DefaultsPage() {
       >
         <CenterMorphModalContent ariaLabel="Edit Hourly Rate" className="w-full max-w-sm bg-card p-6 border-border/50">
           <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-4 text-center">
-              <h2 className="text-base font-semibold leading-normal text-foreground">Default Hourly Rate</h2>
-              <p className="text-[13px] text-muted-foreground">Enter your standard pay rate per hour.</p>
+            <div className="flex flex-col gap-2 text-center">
+              <h2 className="text-base font-semibold leading-normal text-foreground">Set Default Rate</h2>
+              <p className="text-sm text-muted-foreground">Automatically fills the hourly rate on new shifts.</p>
             </div>
             
             <FieldGroup>
@@ -382,11 +382,10 @@ export default function DefaultsPage() {
       >
         <CenterMorphModalContent ariaLabel="Edit Break Duration" className="w-full max-w-sm bg-card p-6 border-border/50">
           <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-4 text-center">
-              <h2 className="text-base font-semibold leading-normal text-foreground">Default Break Duration</h2>
-              <p className="text-[13px] text-muted-foreground">Enter your standard unpaid break time.</p>
+            <div className="flex flex-col gap-2 text-center">
+              <h2 className="text-base font-semibold leading-normal text-foreground">Set Default Break</h2>
+              <p className="text-sm text-muted-foreground">Automatically fills the break time on new shifts.</p>
             </div>
-            
             <FieldGroup>
               <Field>
                 <FieldLabel>Break Duration (minutes)</FieldLabel>
@@ -422,9 +421,9 @@ export default function DefaultsPage() {
       <ConfirmModal
         open={removeRateConfirmOpen}
         onOpenChange={setRemoveRateConfirmOpen}
-        title="Remove default rate?"
-        description="Your default hourly rate will be reset to $0.00."
-        confirmText="Remove"
+        title="Clear default rate?"
+        description="New shifts will start with an empty rate ($0.00)."
+        confirmText="Clear"
         isLoading={isSaving}
         onConfirm={async () => {
           await handleRemoveHourlyRate()
@@ -436,9 +435,9 @@ export default function DefaultsPage() {
       <ConfirmModal
         open={removeBreakConfirmOpen}
         onOpenChange={setRemoveBreakConfirmOpen}
-        title="Remove default break?"
-        description="Your default break duration will be reset to 0 min."
-        confirmText="Remove"
+        title="Clear default break?"
+        description="New shifts will start with no break duration."
+        confirmText="Clear"
         isLoading={isSaving}
         onConfirm={async () => {
           await handleRemoveBreakDuration()

@@ -127,8 +127,18 @@ export async function deleteShift(id: string): Promise<void> {
 }
 
 export async function bulkCreateShifts(shifts: ShiftFormValues[]): Promise<Shift[]> {
-  if (!shifts || shifts.length === 0) {
+  if (!shifts || !Array.isArray(shifts) || shifts.length === 0) {
     return []
+  }
+
+  // Validate every shift against schema
+  const validatedShifts = []
+  for (const s of shifts) {
+    const parsed = shiftFormSchema.safeParse(s)
+    if (!parsed.success) {
+      throw new Error("Invalid shift data in bulk upload")
+    }
+    validatedShifts.push(parsed.data)
   }
 
   const supabase = await createClient()
@@ -138,7 +148,7 @@ export async function bulkCreateShifts(shifts: ShiftFormValues[]): Promise<Shift
     throw new Error("Unauthorized")
   }
 
-  const payload = shifts.map((s) => ({
+  const payload = validatedShifts.map((s) => ({
     user_id: user.id,
     workplace_name: s.workplace_name || "Workplace",
     shift_date: s.shift_date,

@@ -68,15 +68,16 @@ export function ForgotPasswordForm({
   }
 
   return (
-    <>
-      <BackButton href="/auth/login" className="absolute top-4 left-4 sm:top-6 sm:left-6" />
-      <div className={cn("flex flex-col gap-6 px-4 sm:px-0", className)} {...props}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <FieldGroup>
-            <div className="flex flex-col items-center gap-2 text-center">
-              <Logo size="3xl" className="mb-4 sm:mb-5" />
-              <h1 className="text-3xl font-bold">Reset Password</h1>
-            </div>
+    <div className={cn("flex flex-col gap-6 px-4 sm:px-0 w-full", className)} {...props}>
+      <div className="w-full flex items-center justify-start -mb-2">
+        <BackButton href="/auth/login" />
+      </div>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <FieldGroup>
+          <div className="flex flex-col items-center gap-2 text-center">
+            <Logo size="3xl" className="mb-4 sm:mb-5" />
+            <h1 className="text-3xl font-bold">Reset Password</h1>
+          </div>
             
             <Controller
               name="email"
@@ -110,7 +111,6 @@ export function ForgotPasswordForm({
             </Field>
           </FieldGroup>
         </form>
-    </div>
-    </>
+      </div>
   )
 }

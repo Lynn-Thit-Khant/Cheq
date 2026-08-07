@@ -45,4 +45,5 @@ graphify-out/
 
 # documentation
 architecture.md
-session.md
+.agents/design.md
+

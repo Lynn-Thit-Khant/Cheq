@@ -10,7 +10,7 @@ import {
   dateToString,
   formatDisplayDate,
 } from "@/lib/time-utils"
-import { Field, FieldLabel, FieldGroup } from "@/components/ui/field"
+import { Field, FieldLabel, FieldGroup, FieldError } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/motion/button/base"
 import { Calendar } from "@/components/ui/calendar"
@@ -46,6 +46,7 @@ export interface ExtractedShiftErrors {
   shift_date?: string
   start_time?: string
   end_time?: string
+  break_duration?: string
 }
 
 interface ExtractedShiftAccordionProps {
@@ -328,6 +329,9 @@ export function ExtractedShiftAccordion({
                                 </span>
                                 <ChevronDown className="size-4 text-muted-foreground/50 shrink-0" />
                               </button>
+                              {shiftErrors.end_time && (
+                                <FieldError errors={[{ message: shiftErrors.end_time }]} />
+                              )}
                             </Field>
                           </div>
 
@@ -344,34 +348,43 @@ export function ExtractedShiftAccordion({
                                   type="number"
                                   inputMode="decimal"
                                   step="0.01"
-                                  value={shift.hourly_rate ?? 0}
+                                  value={shift.hourly_rate ? shift.hourly_rate : ""}
                                   onChange={(e) =>
                                     onUpdateShift(index, {
                                       ...shift,
-                                      hourly_rate: parseFloat(e.target.value) || 0,
+                                      hourly_rate: e.target.value === "" ? 0 : parseFloat(e.target.value) || 0,
                                     })
                                   }
+                                  placeholder="0.00"
                                   className="h-12 bg-card rounded-full pl-8 pr-4 text-sm font-medium [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
                               </div>
                             </Field>
 
-                            <Field>
+                            <Field data-invalid={!!shiftErrors.break_duration}>
                               <FieldLabel htmlFor={`break-${index}`}>Break (min)</FieldLabel>
                               <Input
                                 id={`break-${index}`}
                                 type="number"
                                 inputMode="numeric"
                                 step="1"
-                                value={shift.break_duration ?? 0}
+                                value={shift.break_duration ? shift.break_duration : ""}
                                 onChange={(e) =>
                                   onUpdateShift(index, {
                                     ...shift,
-                                    break_duration: parseInt(e.target.value) || 0,
+                                    break_duration: e.target.value === "" ? 0 : parseInt(e.target.value) || 0,
                                   })
                                 }
-                                className="h-12 bg-card rounded-full px-4 text-sm font-medium [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                placeholder="30"
+                                className={cn(
+                                  "h-12 bg-card rounded-full px-4 text-sm font-medium [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                                  shiftErrors.break_duration && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]"
+                                )}
+                                aria-invalid={!!shiftErrors.break_duration}
                               />
+                              {shiftErrors.break_duration && (
+                                <FieldError errors={[{ message: shiftErrors.break_duration }]} />
+                              )}
                             </Field>
                           </div>
                         </FieldGroup>

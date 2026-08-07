@@ -67,16 +67,17 @@ export function AuthMFAForm() {
   }
 
   return (
-    <>
-      <BackButton href="/auth/login" className="absolute top-4 left-4 sm:top-6 sm:left-6" />
-      <div className="flex flex-col gap-6 w-full">
-        <div className="flex flex-col items-center gap-2 text-center">
-          <Logo size="3xl" className="mb-4 sm:mb-5" />
-          <h1 className="text-3xl font-bold">Multi-factor Auth</h1>
-          <p className="text-sm text-muted-foreground">
-            Enter the 6-digit code from your authenticator app.
-          </p>
-        </div>
+    <div className="flex flex-col gap-6 w-full">
+      <div className="w-full flex items-center justify-start -mb-2">
+        <BackButton href="/auth/login" />
+      </div>
+      <div className="flex flex-col items-center gap-2 text-center">
+        <Logo size="3xl" className="mb-4 sm:mb-5" />
+        <h1 className="text-3xl font-bold">Multi-factor Auth</h1>
+        <p className="text-sm text-muted-foreground">
+          Enter the 6-digit code from your authenticator app.
+        </p>
+      </div>
 
         <div className="flex justify-center w-full">
           <OTPInput
@@ -93,6 +94,5 @@ export function AuthMFAForm() {
           />
         </div>
       </div>
-    </>
   )
 }

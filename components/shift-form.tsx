@@ -111,8 +111,32 @@ export function ShiftForm({
   }, [endHour, endMin, endAmpm, timeFormat, form, endPicked])
 
   const handleFormSubmit = form.handleSubmit(async (data) => {
+    if (isSameTime || isBreakTooLong) return
     await onSubmit(data)
   })
+
+  // Watch form values for real-time validation
+  const startTimeVal = form.watch("start_time")
+  const endTimeVal = form.watch("end_time")
+  const breakDurationVal = form.watch("break_duration")
+
+  const isSameTime = Boolean(startPicked && endPicked && startTimeVal && endTimeVal && startTimeVal === endTimeVal)
+
+  let shiftSpanMinutes = 0
+  if (startTimeVal && endTimeVal && !isSameTime) {
+    const [sh, sm] = startTimeVal.split(":").map(Number)
+    const [eh, em] = endTimeVal.split(":").map(Number)
+    const sTotal = sh * 60 + (sm || 0)
+    let eTotal = eh * 60 + (em || 0)
+    if (eTotal < sTotal) eTotal += 24 * 60
+    shiftSpanMinutes = eTotal - sTotal
+  }
+
+  const isBreakTooLong = Boolean(
+    shiftSpanMinutes > 0 &&
+    typeof breakDurationVal === "number" &&
+    breakDurationVal >= shiftSpanMinutes
+  )
 
   // Display values
   const dateDisplay = selectedDate ? formatDisplayDate(dateToString(selectedDate)) : "Choose date"
@@ -283,7 +307,7 @@ export function ShiftForm({
               </Field>
 
               {/* End time */}
-              <Field>
+              <Field data-invalid={isSameTime || !!form.formState.errors.end_time}>
                 <FieldLabel>Ends</FieldLabel>
                 <button
                   type="button"
@@ -294,15 +318,16 @@ export function ShiftForm({
                   }}
                   className={cn(
                     "flex h-12 w-full items-center gap-2 rounded-full border border-border bg-card px-3.5 text-sm font-medium text-foreground transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none",
-                    activeTimeField === "end" && timePickerOpen && "border-ring ring-1 ring-ring"
+                    activeTimeField === "end" && timePickerOpen && "border-ring ring-1 ring-ring",
+                    (isSameTime || form.formState.errors.end_time) && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]"
                   )}
                 >
                   <Clock className="size-4 text-muted-foreground shrink-0" />
                   <span className="whitespace-nowrap text-sm font-medium">{endDisplay}</span>
                   <ChevronDown className="ml-auto size-4 text-muted-foreground/50 shrink-0" />
                 </button>
-                {form.formState.errors.end_time && (
-                  <FieldError errors={[form.formState.errors.end_time]} />
+                {(isSameTime || form.formState.errors.end_time) && (
+                  <FieldError errors={[{ message: isSameTime ? "End time cannot be the same as start time" : form.formState.errors.end_time?.message }]} />
                 )}
               </Field>
             </div>
@@ -325,7 +350,7 @@ export function ShiftForm({
                       inputMode="decimal"
                       min="0"
                       step="0.01"
-                      value={field.value ?? ''}
+                      value={field.value ? field.value : ''}
                       onChange={(e) => field.onChange(e.target.value === '' ? '' : parseFloat(e.target.value))}
                       placeholder="0.00"
                       className="h-12 bg-card pl-8 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -343,7 +368,7 @@ export function ShiftForm({
               name="break_duration"
               control={form.control}
               render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
+                <Field data-invalid={isBreakTooLong || fieldState.invalid}>
                   <FieldLabel htmlFor="break_duration">Break (min)</FieldLabel>
                   <Input
                     {...field}
@@ -352,14 +377,17 @@ export function ShiftForm({
                     inputMode="numeric"
                     min="0"
                     step="1"
-                    value={field.value ?? ''}
+                    value={field.value ? field.value : ''}
                     onChange={(e) => field.onChange(e.target.value === '' ? '' : parseInt(e.target.value))}
                     placeholder="30"
-                    className="h-12 bg-card [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    aria-invalid={fieldState.invalid}
+                    className={cn(
+                      "h-12 bg-card [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                      (isBreakTooLong || fieldState.invalid) && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]"
+                    )}
+                    aria-invalid={isBreakTooLong || fieldState.invalid}
                   />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
+                  {(isBreakTooLong || fieldState.invalid) && (
+                    <FieldError errors={[{ message: isBreakTooLong ? "Break must be shorter than shift length" : fieldState.error?.message }]} />
                   )}
                 </Field>
               )}
@@ -374,7 +402,7 @@ export function ShiftForm({
               Cancel
             </Button>
           </CenterMorphModalClose>
-          <Button type="submit" isLoading={isSaving} disabled={isSaving} className="h-11 rounded-full text-sm font-medium w-full cursor-pointer">
+          <Button type="submit" isLoading={isSaving} disabled={isSaving || isSameTime || isBreakTooLong} className="h-11 rounded-full text-sm font-medium w-full cursor-pointer">
             {isSaving ? "Saving" : "Save"}
           </Button>
         </div>

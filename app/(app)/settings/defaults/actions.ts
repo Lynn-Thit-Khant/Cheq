@@ -1,6 +1,14 @@
 "use server"
 
+import { z } from "zod"
 import { createClient } from "@/lib/server"
+
+const userPreferencesSchema = z.object({
+  time_format: z.enum(['12h', '24h']).optional(),
+  first_day_of_week: z.enum(['Monday', 'Sunday']).optional(),
+  default_hourly_rate: z.number().min(0, "Hourly rate must be 0 or above.").max(1000).optional(),
+  default_break_duration: z.number().int().min(0, "Break duration must be 0 or above.").max(1440).optional(),
+})
 
 export interface UserPreferences {
   time_format: '12h' | '24h'
@@ -38,6 +46,11 @@ export async function getUserPreferences(): Promise<UserPreferences> {
 }
 
 export async function updateUserPreferences(updates: Partial<UserPreferences>) {
+  const parsed = userPreferencesSchema.safeParse(updates)
+  if (!parsed.success) {
+    throw new Error("Invalid preferences data")
+  }
+
   const supabase = await createClient()
   
   const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -50,7 +63,7 @@ export async function updateUserPreferences(updates: Partial<UserPreferences>) {
     .from('user_preferences')
     .upsert({
       id: user.id,
-      ...updates,
+      ...parsed.data,
       updated_at: new Date().toISOString()
     })
 

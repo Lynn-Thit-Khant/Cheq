@@ -95,19 +95,20 @@ export function calculateShiftDurationHours(
   endTime: string,
   breakMinutes: number = 0
 ): number {
-  if (!startTime || !endTime) return 0
+  if (!startTime || !endTime || startTime === endTime) return 0
   const [sh, sm] = startTime.split(":").map(Number)
   const [eh, em] = endTime.split(":").map(Number)
 
   const startTotalMin = sh * 60 + (sm || 0)
   let endTotalMin = eh * 60 + (em || 0)
 
-  // Handle overnight shifts crossing midnight
-  if (endTotalMin <= startTotalMin) {
+  // Handle overnight shifts crossing midnight (strictly end < start)
+  if (endTotalMin < startTotalMin) {
     endTotalMin += 24 * 60
   }
 
-  const workedMinutes = Math.max(0, endTotalMin - startTotalMin - (breakMinutes || 0))
+  const shiftSpan = endTotalMin - startTotalMin
+  const workedMinutes = Math.max(0, shiftSpan - (breakMinutes || 0))
   return workedMinutes / 60
 }
 
