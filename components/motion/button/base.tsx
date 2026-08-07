@@ -100,6 +100,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <motion.button
         ref={ref}
         type="button"
+        suppressHydrationWarning
         whileTap={reduce || isLoading ? undefined : { scale: pressScale }}
         whileHover={reduce || !canHover || isLoading ? undefined : { scale: 1.02 }}
         disabled={isLoading || rest.disabled}
