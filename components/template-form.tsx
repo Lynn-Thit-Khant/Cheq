@@ -46,7 +46,6 @@ export function TemplateForm({
     defaultValues: {
       name: defaultValues?.name ?? "",
       workplace_name: defaultValues?.workplace_name ?? "",
-      workplace_location: defaultValues?.workplace_location ?? "",
       start_time: defaultValues?.start_time ?? "",
       end_time: defaultValues?.end_time ?? "",
       hourly_rate: defaultValues?.hourly_rate,
@@ -135,50 +134,27 @@ export function TemplateForm({
         />
 
         <FieldGroup>
-          {/* ── Workplace + Location (same row) ─────────── */}
-          <div className="grid grid-cols-2 gap-3">
-            <Controller
-              name="workplace_name"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="workplace_name">Workplace</FieldLabel>
-                  <Input
-                    {...field}
-                    id="workplace_name"
-                    type="text"
-                    placeholder="Cafe"
-                    className="h-12 bg-card"
-                    aria-invalid={fieldState.invalid}
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-
-            <Controller
-              name="workplace_location"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="workplace_location">Location</FieldLabel>
-                  <Input
-                    {...field}
-                    id="workplace_location"
-                    type="text"
-                    placeholder="Downtown"
-                    className="h-12 bg-card"
-                    aria-invalid={fieldState.invalid}
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-          </div>
+          {/* ── Workplace (Full width) ─────────── */}
+          <Controller
+            name="workplace_name"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="workplace_name">Workplace</FieldLabel>
+                <Input
+                  {...field}
+                  id="workplace_name"
+                  type="text"
+                  placeholder="Cafe"
+                  className="h-12 bg-card w-full"
+                  aria-invalid={fieldState.invalid}
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
 
 
           {/* ── Start + End time ────────────────────────── */}

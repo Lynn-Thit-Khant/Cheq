@@ -38,6 +38,7 @@ function checkRateLimit(key: string): { limited: boolean; retryAfterSeconds?: nu
 // Input validation helpers
 // ---------------------------------------------------------------------------
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const NAME_REGEX = /^[a-zA-Z\s]+$/
 const MAX_EMAIL_LENGTH = 254  // RFC 5321
 const MAX_PASSWORD_LENGTH = 128
 const MIN_PASSWORD_LENGTH = 8
@@ -50,8 +51,13 @@ function validateAuthInput(
   const rawEmail = formData.get('email')
   const rawPassword = formData.get('password')
 
-  if (type === 'signup' && (typeof rawName !== 'string' || !rawName.trim())) {
-    return { error: 'Name is required.' }
+  if (type === 'signup') {
+    if (typeof rawName !== 'string' || !rawName.trim()) {
+      return { error: 'Name is required.' }
+    }
+    if (!NAME_REGEX.test(rawName.trim())) {
+      return { error: 'Name can only contain letters and spaces.' }
+    }
   }
 
   const name = typeof rawName === 'string' ? rawName.trim() : undefined
@@ -293,6 +299,10 @@ export async function updateProfileName(formData: FormData) {
   }
 
   const name = rawName.trim()
+
+  if (!NAME_REGEX.test(name)) {
+    return { error: 'Name can only contain letters and spaces.' }
+  }
 
   if (name.length > 50) {
     return { error: 'Name is too long.' }

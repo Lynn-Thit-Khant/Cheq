@@ -113,9 +113,17 @@ export default function AccountPage() {
     router.refresh()
   }
 
+  const NAME_REGEX = /^[a-zA-Z\s]+$/
+  const [nameError, setNameError] = useState("")
+
   const handleSaveName = async () => {
+    setNameError("")
     if (!newName.trim() || newName === userName) {
       setNameModalOpen(false)
+      return
+    }
+    if (!NAME_REGEX.test(newName.trim())) {
+      setNameError("Name can only contain letters and spaces.")
       return
     }
     setIsSaving(true)
@@ -123,8 +131,8 @@ export default function AccountPage() {
     formData.append('name', newName)
     const res = await updateProfileName(formData)
     setIsSaving(false)
-    if ('error' in res) {
-
+    if ('error' in res && res.error) {
+      setNameError(res.error)
     } else {
       justSavedRef.current = true
       setNameModalOpen(false)
@@ -395,8 +403,12 @@ export default function AccountPage() {
 
     <CenterMorphModal open={nameModalOpen} onOpenChange={(open) => {
       setNameModalOpen(open)
-      if (open) setNewName(userName)
+      if (open) {
+        setNewName(userName)
+        setNameError("")
+      }
       if (!open) {
+        setNameError("")
         if (justSavedRef.current) {
           justSavedRef.current = false
         } else {
@@ -410,14 +422,21 @@ export default function AccountPage() {
             <h2 className="text-base font-semibold leading-normal text-foreground">Edit Name</h2>
           </div>
           <FieldGroup>
-            <Field>
+            <Field data-invalid={!!nameError}>
               <FieldLabel>Name</FieldLabel>
               <Input 
                 value={newName} 
-                onChange={(e) => setNewName(e.target.value)} 
+                onChange={(e) => {
+                  setNewName(e.target.value)
+                  if (nameError) setNameError("")
+                }} 
                 placeholder="Your name"
-                className="w-full bg-card rounded-full h-12 px-5"
+                className={cn("w-full bg-card rounded-full h-12 px-5", nameError && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]")}
+                aria-invalid={!!nameError}
               />
+              {nameError && (
+                <FieldError errors={[{ message: nameError }]} />
+              )}
             </Field>
           </FieldGroup>
           <div className="grid grid-cols-2 gap-3 pt-2 w-full">

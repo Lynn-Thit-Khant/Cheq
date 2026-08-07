@@ -51,7 +51,6 @@ export function ShiftForm({
     resolver: zodResolver(shiftFormSchema),
     defaultValues: {
       workplace_name: defaultValues?.workplace_name ?? "",
-      workplace_location: defaultValues?.workplace_location ?? "",
       shift_date: defaultValues?.shift_date ?? "",
       start_time: defaultValues?.start_time ?? "",
       end_time: defaultValues?.end_time ?? "",
@@ -135,50 +134,27 @@ export function ShiftForm({
         </div>
 
         <FieldGroup>
-          {/* ── Workplace + Location (same row) ─────────── */}
-          <div className="grid grid-cols-2 gap-3">
-            <Controller
-              name="workplace_name"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="workplace_name">Workplace</FieldLabel>
-                  <Input
-                    {...field}
-                    id="workplace_name"
-                    type="text"
-                    placeholder="Cafe"
-                    className="h-12 bg-card"
-                    aria-invalid={fieldState.invalid}
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-
-            <Controller
-              name="workplace_location"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="workplace_location">Location</FieldLabel>
-                  <Input
-                    {...field}
-                    id="workplace_location"
-                    type="text"
-                    placeholder="Downtown"
-                    className="h-12 bg-card"
-                    aria-invalid={fieldState.invalid}
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-          </div>
+          {/* ── Workplace (Full width) ─────────── */}
+          <Controller
+            name="workplace_name"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="workplace_name">Workplace</FieldLabel>
+                <Input
+                  {...field}
+                  id="workplace_name"
+                  type="text"
+                  placeholder="Cafe"
+                  className="h-12 bg-card w-full"
+                  aria-invalid={fieldState.invalid}
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
 
           {/* ── Shift date (calendar popover) ───────────── */}
           <Field data-invalid={!!form.formState.errors.shift_date}>

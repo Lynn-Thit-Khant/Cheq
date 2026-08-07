@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { motion, AnimatePresence } from "motion/react"
 import { List, Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, Clock, Check, Trash2, MapPin, Tag, Coffee, Building2, Sparkles, LayoutTemplate, Keyboard, FileText, Image } from "lucide-react"
 import { ConfirmModal } from "@/components/confirm-modal"
+import { SingleShiftDuplicateModal } from "@/components/single-shift-duplicate-modal"
 import { Tabs, TabsList, TabsTrigger } from "@/components/motion/tabs"
 import { AnimatedNumber } from "@/components/motion/animated-number"
 import {
@@ -176,7 +177,6 @@ function groupShiftsByWeek(
 function shiftToShiftFormValues(shift: Shift): ShiftFormValues {
   return {
     workplace_name: shift.workplace_name,
-    workplace_location: shift.workplace_location,
     shift_date: shift.shift_date,
     start_time: shift.start_time.slice(0, 5),
     end_time: shift.end_time.slice(0, 5),
@@ -212,6 +212,10 @@ export default function HomePage() {
   const [duplicateResolutionOpen, setDuplicateResolutionOpen] = useState(false)
   const [duplicateShiftsList, setDuplicateShiftsList] = useState<ExtractedShift[]>([])
   const [nonDuplicateShiftsList, setNonDuplicateShiftsList] = useState<ExtractedShift[]>([])
+  const [batchAction, setBatchAction] = useState<"all" | "skip" | null>(null)
+  const [pendingSingleShift, setPendingSingleShift] = useState<ShiftFormValues | null>(null)
+  const [conflictingShift, setConflictingShift] = useState<Shift | null>(null)
+  const [singleDuplicateModalOpen, setSingleDuplicateModalOpen] = useState(false)
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isLongPressRef = useRef(false)
 
@@ -339,10 +343,6 @@ export default function HomePage() {
         itemErrors.workplace_name = "Workplace is required"
         hasError = true
       }
-      if (!shift.workplace_location || !shift.workplace_location.trim()) {
-        itemErrors.workplace_location = "Location is required"
-        hasError = true
-      }
       if (!shift.shift_date || !shift.shift_date.trim()) {
         itemErrors.shift_date = "Date is required"
         hasError = true
@@ -368,7 +368,6 @@ export default function HomePage() {
 
     setExtractedShiftErrors({})
 
-    // Check for duplicate shifts against existing database schedule & within batch
     const duplicates: ExtractedShift[] = []
     const nonDuplicates: ExtractedShift[] = []
     const seenBatchKeys = new Set<string>()
@@ -399,11 +398,7 @@ export default function HomePage() {
       seenBatchKeys.add(key)
 
       if (existingMatch || isBatchDuplicate) {
-        const enrichedShift = {
-          ...extracted,
-          workplace_location: extracted.workplace_location || existingMatch?.workplace_location || "",
-        }
-        duplicates.push(enrichedShift)
+        duplicates.push(extracted)
       } else {
         nonDuplicates.push(extracted)
       }
@@ -431,7 +426,6 @@ export default function HomePage() {
       const created = await bulkCreateShifts(
         shiftsToSave.map((s) => ({
           workplace_name: s.workplace_name,
-          workplace_location: s.workplace_location,
           shift_date: s.shift_date,
           start_time: s.start_time,
           end_time: s.end_time,
@@ -446,18 +440,85 @@ export default function HomePage() {
       console.error("Failed to save extracted shifts:", err)
     } finally {
       setIsSaving(false)
+      setBatchAction(null)
     }
   }
 
   // ── CRUD Handlers ───────────────────────────────────────────
+  const parseTimeToMinutes = (t: string): number => {
+    if (!t) return 0
+    const [h, m] = t.split(":").map(Number)
+    return (h || 0) * 60 + (m || 0)
+  }
+
   const handleCreate = async (data: ShiftFormValues) => {
+    // Check for duplicate / overlapping shift on the exact date
+    const targetDate = data.shift_date
+    const startMin = parseTimeToMinutes(data.start_time)
+    const endMin = parseTimeToMinutes(data.end_time)
+
+    const conflict = shifts.find((s) => {
+      if (s.shift_date !== targetDate) return false
+      const sStart = parseTimeToMinutes(s.start_time)
+      const sEnd = parseTimeToMinutes(s.end_time)
+
+      const isExactMatch = s.start_time.slice(0, 5) === data.start_time.slice(0, 5) && s.end_time.slice(0, 5) === data.end_time.slice(0, 5)
+      const isOverlap = (startMin < sEnd && endMin > sStart)
+      return isExactMatch || isOverlap
+    })
+
+    if (conflict && !pendingSingleShift) {
+      setPendingSingleShift(data)
+      setConflictingShift(conflict)
+      setSingleDuplicateModalOpen(true)
+      return
+    }
+
     setIsSaving(true)
     try {
       const created = await createShift(data)
       setShifts((prev) => [created, ...prev])
+      setSingleDuplicateModalOpen(false)
+      setPendingSingleShift(null)
+      setConflictingShift(null)
       closeModal()
     } catch (err) {
       console.error("Failed to create shift:", err)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleReplaceSingleShift = async () => {
+    if (!pendingSingleShift || !conflictingShift) return
+    setIsSaving(true)
+    try {
+      await deleteShift(conflictingShift.id)
+      const created = await createShift(pendingSingleShift)
+      setShifts((prev) => [created, ...prev.filter((s) => s.id !== conflictingShift.id)])
+      setSingleDuplicateModalOpen(false)
+      setPendingSingleShift(null)
+      setConflictingShift(null)
+      closeModal()
+    } catch (err) {
+      console.error("Failed to replace shift:", err)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleKeepBothSingleShift = async () => {
+    if (!pendingSingleShift) return
+    setIsSaving(true)
+    try {
+      const created = await createShift(pendingSingleShift)
+      setShifts((prev) => [created, ...prev])
+      setSingleDuplicateModalOpen(false)
+      setPendingSingleShift(null)
+      setConflictingShift(null)
+      closeModal()
+    } catch (err) {
+      console.error("Failed to save both shifts:", err)
     } finally {
       setIsSaving(false)
     }
@@ -1034,7 +1095,7 @@ export default function HomePage() {
                     No shifts in {listMonthLabel}
                   </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    You haven&apos;t logged any shifts for this month yet.
+                    Nothing logged for this month yet.
                   </p>
                 </div>
 
@@ -1529,22 +1590,28 @@ export default function HomePage() {
               <Button
                 type="button"
                 variant="outline"
-                isLoading={isSaving}
+                isLoading={isSaving && batchAction === "all"}
                 disabled={isSaving}
-                onClick={() => executeBulkSave(extractedShifts)}
+                onClick={() => {
+                  setBatchAction("all")
+                  executeBulkSave(extractedShifts)
+                }}
                 className="h-11 rounded-full text-sm font-medium w-full border-border/60 cursor-pointer"
               >
-                Save Anyway
+                {isSaving && batchAction === "all" ? "Saving" : "Save Anyway"}
               </Button>
 
               <Button
                 type="button"
-                isLoading={isSaving}
+                isLoading={isSaving && batchAction === "skip"}
                 disabled={isSaving}
-                onClick={() => executeBulkSave(nonDuplicateShiftsList)}
+                onClick={() => {
+                  setBatchAction("skip")
+                  executeBulkSave(nonDuplicateShiftsList)
+                }}
                 className="h-11 rounded-full text-sm font-medium w-full cursor-pointer"
               >
-                Skip Duplicate
+                {isSaving && batchAction === "skip" ? "Skipping" : "Skip Duplicate"}
               </Button>
             </div>
           </div>
@@ -1691,7 +1758,6 @@ export default function HomePage() {
               selectedTemplate
                 ? {
                     workplace_name: selectedTemplate.workplace_name,
-                    workplace_location: selectedTemplate.workplace_location,
                     shift_date: createDefaultDate ? dateToString(createDefaultDate) : undefined,
                     start_time: selectedTemplate.start_time,
                     end_time: selectedTemplate.end_time,
@@ -1762,13 +1828,6 @@ export default function HomePage() {
 
               {/* Clean Single Details List */}
               <div className="flex flex-col">
-                <div className="flex items-center justify-between text-sm py-2.5 border-b border-border/40 gap-4">
-                  <span className="text-muted-foreground shrink-0">Location</span>
-                  <span className="text-foreground font-medium truncate max-w-[60%] text-right">
-                    {selectedShift.workplace_location}
-                  </span>
-                </div>
-
                 <div className="flex items-center justify-between text-sm py-2.5 border-b border-border/40">
                   <span className="text-muted-foreground">Time</span>
                   <span className="text-foreground font-medium">
@@ -1889,6 +1948,26 @@ export default function HomePage() {
         confirmText="Delete"
         isLoading={isDeletingBulk}
         onConfirm={handleBulkDelete}
+      />
+
+      {/* ── Single Shift Duplicate Conflict Modal ─────────── */}
+      <SingleShiftDuplicateModal
+        open={singleDuplicateModalOpen}
+        onOpenChange={(open) => {
+          setSingleDuplicateModalOpen(open)
+          if (!open) {
+            setPendingSingleShift(null)
+            setConflictingShift(null)
+          }
+        }}
+        conflictingShift={conflictingShift}
+        pendingShift={pendingSingleShift}
+        timeFormat={preferences.time_format}
+        defaultHourlyRate={preferences.default_hourly_rate}
+        defaultBreakDuration={preferences.default_break_duration}
+        isSaving={isSaving}
+        onReplace={handleReplaceSingleShift}
+        onKeepBoth={handleKeepBothSingleShift}
       />
     </>
   )

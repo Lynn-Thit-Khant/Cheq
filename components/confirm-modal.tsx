@@ -36,12 +36,12 @@ export function ConfirmModal({
   const displayLoadingText =
     loadingText ||
     (confirmText === "Delete"
-      ? "Deleting…"
+      ? "Deleting"
       : confirmText === "Sign Out"
-      ? "Signing out…"
+      ? "Signing out"
       : confirmText === "Remove"
-      ? "Removing…"
-      : `${confirmText}ing…`)
+      ? "Removing"
+      : `${confirmText}ing`)
 
   return (
     <CenterMorphModal open={open} onOpenChange={onOpenChange}>

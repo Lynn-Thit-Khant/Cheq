@@ -32,7 +32,6 @@ function templateToTemplateFormValues(t: ShiftTemplate): TemplateFormValues {
   return {
     name: t.name,
     workplace_name: t.workplace_name,
-    workplace_location: t.workplace_location,
     start_time: t.start_time.slice(0, 5), // HH:MM:SS → HH:MM
     end_time: t.end_time.slice(0, 5),
     hourly_rate: Number(t.hourly_rate),
@@ -464,7 +463,6 @@ export default function TemplatesPage() {
                 </h2>
                 <p className="text-[13px] text-muted-foreground truncate">
                   {selected.workplace_name}
-                  {selected.workplace_location ? ` • ${selected.workplace_location}` : ""}
                 </p>
               </div>
 

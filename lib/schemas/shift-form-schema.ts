@@ -6,7 +6,6 @@ import { z } from "zod"
 
 export const shiftFormSchema = z.object({
   workplace_name: z.string().min(1, "Workplace name is required."),
-  workplace_location: z.string().min(1, "Location is required."),
   shift_date: z.string().min(1, "Date is required."),
   start_time: z.string().min(1, "Start time is required."),
   end_time: z.string().min(1, "End time is required."),
@@ -19,7 +18,6 @@ export type ShiftFormValues = z.infer<typeof shiftFormSchema>
 export const templateFormSchema = z.object({
   name: z.string().min(1, "Template name is required."),
   workplace_name: z.string().min(1, "Workplace name is required."),
-  workplace_location: z.string().min(1, "Location is required."),
   start_time: z.string().min(1, "Start time is required."),
   end_time: z.string().min(1, "End time is required."),
   hourly_rate: z.number().min(0, "Rate must be 0 or above.").optional(),
@@ -32,7 +30,6 @@ export interface Shift {
   id: string
   user_id: string
   workplace_name: string
-  workplace_location: string
   shift_date: string      // YYYY-MM-DD
   start_time: string      // HH:MM:SS or HH:MM
   end_time: string        // HH:MM:SS or HH:MM
@@ -49,7 +46,6 @@ export interface ShiftTemplate {
   user_id: string
   name: string
   workplace_name: string
-  workplace_location: string
   start_time: string      // HH:MM:SS
   end_time: string        // HH:MM:SS
   hourly_rate: number

@@ -46,7 +46,6 @@ export async function createTemplate(values: TemplateFormValues): Promise<ShiftT
       user_id: user.id,
       name: parsed.data.name,
       workplace_name: parsed.data.workplace_name,
-      workplace_location: parsed.data.workplace_location,
       shift_date: "1970-01-01",
       start_time: parsed.data.start_time,
       end_time: parsed.data.end_time,
@@ -87,7 +86,6 @@ export async function updateTemplate(id: string, values: TemplateFormValues): Pr
     .update({
       name: parsed.data.name,
       workplace_name: parsed.data.workplace_name,
-      workplace_location: parsed.data.workplace_location,
       shift_date: "1970-01-01",
       start_time: parsed.data.start_time,
       end_time: parsed.data.end_time,

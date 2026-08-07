@@ -124,7 +124,7 @@ export function MFAEnrollModal({
               ) : (
                 <div className="size-52 flex flex-col items-center justify-center gap-3">
                   <Loader variant="ascii-braille" size={24} className="text-foreground" />
-                  <span className="text-sm text-muted-foreground font-mono animate-pulse">Loading QR...</span>
+                  <span className="text-sm text-muted-foreground font-mono animate-pulse">Loading QR</span>
                 </div>
               )}
             </div>

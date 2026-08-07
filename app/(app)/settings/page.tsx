@@ -38,7 +38,7 @@ export default function SettingsPage() {
           {userName || "Name"}
         </span>
         <span className="text-sm text-muted-foreground">
-          {userEmail || "Loading..."}
+          {userEmail || "Loading"}
         </span>
       </div>
 

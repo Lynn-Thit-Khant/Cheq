@@ -7,7 +7,6 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
 const extractedShiftSchema = z.object({
   workplace_name: z.string().default("Workplace"),
-  workplace_location: z.string().optional().default(""),
   shift_date: z.string(), // YYYY-MM-DD
   start_time: z.string(), // HH:mm
   end_time: z.string(),   // HH:mm
@@ -45,19 +44,17 @@ Current year is: ${currentYear}.
 
 PARSING RULES:
 1. WORKPLACE NAME: Apply header/title workplace name if present (e.g. "*Republic Bar*"). Strip markdown formatting. Default to "Workplace".
-2. WORKPLACE LOCATION: If location is NOT explicitly mentioned, set "workplace_location" to "". Do not invent locations.
-3. DATES (ISO "YYYY-MM-DD"): Convert dates (e.g. "15 Apr", "Wed 14/8") to "YYYY-MM-DD" using current year ${currentYear}. Resolve past dates to the upcoming year if applicable.
-4. TIMES (24-HOUR "HH:mm"): Convert times into 24-hour format "HH:mm" (e.g. "5pm" -> "17:00", "12am" -> "00:00", "1am" -> "01:00", "10pm" -> "22:00").
-5. HOURLY RATE: Default to ${userDefaults.default_hourly_rate || 20} if unstated.
-6. BREAK DURATION: Default to ${userDefaults.default_break_duration || 0} if unstated.
-7. IGNORE CHATTER: Discard non-shift chat lines.
+2. DATES (ISO "YYYY-MM-DD"): Convert dates (e.g. "15 Apr", "Wed 14/8") to "YYYY-MM-DD" using current year ${currentYear}. Resolve past dates to the upcoming year if applicable.
+3. TIMES (24-HOUR "HH:mm"): Convert times into 24-hour format "HH:mm" (e.g. "5pm" -> "17:00", "12am" -> "00:00", "1am" -> "01:00", "10pm" -> "22:00").
+4. HOURLY RATE: Default to ${userDefaults.default_hourly_rate || 20} if unstated.
+5. BREAK DURATION: Default to ${userDefaults.default_break_duration || 0} if unstated.
+6. IGNORE CHATTER: Discard non-shift chat lines.
 
 EXPECTED JSON FORMAT:
 {
   "shifts": [
     {
       "workplace_name": "Republic Bar",
-      "workplace_location": "",
       "shift_date": "${currentYear}-04-15",
       "start_time": "17:00",
       "end_time": "00:00",

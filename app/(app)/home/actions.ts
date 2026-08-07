@@ -44,7 +44,6 @@ export async function createShift(values: ShiftFormValues): Promise<Shift> {
     .insert({
       user_id: user.id,
       workplace_name: parsed.data.workplace_name,
-      workplace_location: parsed.data.workplace_location,
       shift_date: parsed.data.shift_date,
       start_time: parsed.data.start_time,
       end_time: parsed.data.end_time,
@@ -83,7 +82,6 @@ export async function updateShift(id: string, values: ShiftFormValues): Promise<
     .from("shifts")
     .update({
       workplace_name: parsed.data.workplace_name,
-      workplace_location: parsed.data.workplace_location,
       shift_date: parsed.data.shift_date,
       start_time: parsed.data.start_time,
       end_time: parsed.data.end_time,
@@ -104,7 +102,11 @@ export async function updateShift(id: string, values: ShiftFormValues): Promise<
   return data as Shift
 }
 
-export async function deleteShift(id: string): Promise<{ success: boolean }> {
+export async function deleteShift(id: string): Promise<void> {
+  if (!id || typeof id !== "string") {
+    throw new Error("Invalid shift ID")
+  }
+
   const supabase = await createClient()
 
   const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -122,8 +124,6 @@ export async function deleteShift(id: string): Promise<{ success: boolean }> {
     console.error("Error deleting shift:", error)
     throw new Error("Failed to delete shift")
   }
-
-  return { success: true }
 }
 
 export async function bulkCreateShifts(shifts: ShiftFormValues[]): Promise<Shift[]> {
@@ -141,7 +141,6 @@ export async function bulkCreateShifts(shifts: ShiftFormValues[]): Promise<Shift
   const payload = shifts.map((s) => ({
     user_id: user.id,
     workplace_name: s.workplace_name || "Workplace",
-    workplace_location: s.workplace_location || "",
     shift_date: s.shift_date,
     start_time: s.start_time,
     end_time: s.end_time,

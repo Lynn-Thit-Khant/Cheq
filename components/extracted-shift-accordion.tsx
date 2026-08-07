@@ -43,7 +43,6 @@ const AMPM = [
 
 export interface ExtractedShiftErrors {
   workplace_name?: string
-  workplace_location?: string
   shift_date?: string
   start_time?: string
   end_time?: string
@@ -249,69 +248,47 @@ export function ExtractedShiftAccordion({
                 >
                   <div className="overflow-hidden">
                     <div className="px-3 pb-5 pt-2 sm:px-5 flex flex-col gap-4">
-                        <FieldGroup>
-                          {/* Workplace & Location */}
-                          <div className="grid grid-cols-2 gap-3">
-                            <Field data-invalid={!!shiftErrors.workplace_name}>
-                              <FieldLabel>Workplace</FieldLabel>
-                              <Input
-                                type="text"
-                                value={shift.workplace_name}
-                                onChange={(e) =>
-                                  onUpdateShift(index, {
-                                    ...shift,
-                                    workplace_name: e.target.value,
-                                  })
-                                }
-                                placeholder="Cafe"
-                                className={cn(
-                                  "h-12 bg-card rounded-full px-4",
-                                  shiftErrors.workplace_name && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]"
-                                )}
-                                aria-invalid={!!shiftErrors.workplace_name}
-                              />
-                            </Field>
+                      <FieldGroup>
+                        {/* Workplace Name Field (Full width) */}
+                        <Field data-invalid={!!shiftErrors.workplace_name}>
+                          <FieldLabel>Workplace</FieldLabel>
+                          <Input
+                            type="text"
+                            value={shift.workplace_name}
+                            onChange={(e) =>
+                              onUpdateShift(index, {
+                                ...shift,
+                                workplace_name: e.target.value,
+                              })
+                            }
+                            placeholder="Cafe"
+                            className={cn(
+                              "h-12 bg-card rounded-full px-4 w-full",
+                              shiftErrors.workplace_name && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]"
+                            )}
+                            aria-invalid={!!shiftErrors.workplace_name}
+                          />
+                        </Field>
 
-                            <Field data-invalid={!!shiftErrors.workplace_location}>
-                              <FieldLabel>Location</FieldLabel>
-                              <Input
-                                type="text"
-                                value={shift.workplace_location || ""}
-                                onChange={(e) =>
-                                  onUpdateShift(index, {
-                                    ...shift,
-                                    workplace_location: e.target.value,
-                                  })
-                                }
-                                placeholder="Downtown"
-                                className={cn(
-                                  "h-12 bg-card rounded-full px-4",
-                                  shiftErrors.workplace_location && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]"
-                                )}
-                                aria-invalid={!!shiftErrors.workplace_location}
-                              />
-                            </Field>
-                          </div>
-
-                          {/* Date Field */}
-                          <Field data-invalid={!!shiftErrors.shift_date}>
-                            <FieldLabel>Date</FieldLabel>
-                            <button
-                              type="button"
-                              onClick={() => openDateModalFor(index)}
-                              className={cn(
-                                "flex h-12 w-full items-center gap-2.5 rounded-full border border-border bg-card px-4 text-sm font-medium transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none cursor-pointer",
-                                shift.shift_date ? "text-foreground" : "text-muted-foreground",
-                                shiftErrors.shift_date && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]"
-                              )}
-                            >
-                              <CalendarIcon className="size-4 text-muted-foreground shrink-0" />
-                              <span className="whitespace-nowrap text-sm font-medium">
-                                {dateDisplay}
-                              </span>
-                              <ChevronDown className="ml-auto size-4 text-muted-foreground/50 shrink-0" />
-                            </button>
-                          </Field>
+                        {/* Date Field */}
+                        <Field data-invalid={!!shiftErrors.shift_date}>
+                          <FieldLabel>Date</FieldLabel>
+                          <button
+                            type="button"
+                            onClick={() => openDateModalFor(index)}
+                            className={cn(
+                              "flex h-12 w-full items-center gap-2.5 rounded-full border border-border bg-card px-4 text-sm font-medium transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none cursor-pointer",
+                              shift.shift_date ? "text-foreground" : "text-muted-foreground",
+                              shiftErrors.shift_date && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]"
+                            )}
+                          >
+                            <CalendarIcon className="size-4 text-muted-foreground shrink-0" />
+                            <span className="whitespace-nowrap text-sm font-medium">
+                              {dateDisplay}
+                            </span>
+                            <ChevronDown className="ml-auto size-4 text-muted-foreground/50 shrink-0" />
+                          </button>
+                        </Field>
 
                           {/* Starts & Ends Time Pickers */}
                           <div className="grid grid-cols-2 gap-3">
