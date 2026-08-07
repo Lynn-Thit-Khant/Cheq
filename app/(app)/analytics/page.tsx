@@ -1059,7 +1059,7 @@ export function AnalyticsEarningsChart() {
                 }}
                 className="h-11 rounded-full text-sm font-medium w-full cursor-pointer"
               >
-                {isExporting ? "Downloading..." : "Download"}
+                {isExporting ? "Downloading" : "Download"}
               </Button>
             </div>
           </div>
