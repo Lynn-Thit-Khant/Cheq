@@ -222,11 +222,13 @@ function CalendarDayButton({
       )}
       {...props}
     >
-      {children}
+      <span className={cn("leading-none select-none", hasShift && "-translate-y-0.5")}>
+        {children}
+      </span>
       {hasShift && (
         <span
           className={cn(
-            "absolute bottom-1.5 size-1.5 rounded-full pointer-events-none transition-colors",
+            "absolute bottom-1 size-1 rounded-full pointer-events-none transition-colors",
             isSelected ? "bg-primary-foreground" : "bg-black dark:bg-white"
           )}
         />
