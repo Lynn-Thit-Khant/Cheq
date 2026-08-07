@@ -271,7 +271,7 @@ export function TemplateForm({
 
             <div className="grid grid-cols-2 gap-3">
               {/* Start time */}
-              <Field>
+              <Field data-invalid={!!form.formState.errors.start_time}>
                 <FieldLabel>Starts</FieldLabel>
                 <button
                   type="button"
@@ -282,7 +282,8 @@ export function TemplateForm({
                   }}
                   className={cn(
                     "flex h-12 w-full items-center gap-2 rounded-full border border-border bg-card px-3.5 text-sm font-medium text-foreground transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none",
-                    activeTimeField === "start" && timePickerOpen && "border-ring ring-1 ring-ring"
+                    activeTimeField === "start" && timePickerOpen && "border-ring ring-1 ring-ring",
+                    form.formState.errors.start_time && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]"
                   )}
                 >
                   <Clock className="size-4 text-muted-foreground shrink-0" />

@@ -189,7 +189,8 @@ export function ShiftForm({
                 onClick={() => setDateOpen(true)}
                 className={cn(
                   "flex h-12 w-full items-center gap-2.5 rounded-full border border-border bg-card px-4 text-sm font-medium transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none",
-                  selectedDate ? "text-foreground" : "text-muted-foreground"
+                  selectedDate ? "text-foreground" : "text-muted-foreground",
+                  form.formState.errors.shift_date && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]"
                 )}
               >
                 <CalendarIcon className="size-4 text-muted-foreground shrink-0" />
@@ -248,9 +249,7 @@ export function ShiftForm({
                     aria-label="Hour"
                   />
                   
-                  <div className="flex items-center justify-center w-4 text-xl font-medium text-foreground pb-1">
-                    :
-                  </div>
+                  <span className="text-muted-foreground font-semibold flex items-center select-none text-base">:</span>
 
                   <WheelPicker
                     options={MINUTES}
@@ -263,19 +262,16 @@ export function ShiftForm({
                     aria-label="Minute"
                   />
                   {timeFormat === "12h" && (
-                    <>
-                      <div className="w-2" />
-                      <WheelPicker
-                        options={AMPM}
-                        value={activeTimeField === "start" ? startAmpm : endAmpm}
-                        onValueChange={activeTimeField === "start" ? setStartAmpm : setEndAmpm}
-                        className="flex-1 border-0 bg-transparent rounded-full"
-                        visibleCount={5}
-                        itemHeight={38}
-                        sound
-                        aria-label="AM/PM"
-                      />
-                    </>
+                    <WheelPicker
+                      options={AMPM}
+                      value={activeTimeField === "start" ? startAmpm : endAmpm}
+                      onValueChange={activeTimeField === "start" ? setStartAmpm : setEndAmpm}
+                      className="flex-1 border-0 bg-transparent rounded-full"
+                      visibleCount={5}
+                      itemHeight={38}
+                      sound
+                      aria-label="AM or PM"
+                    />
                   )}
                 </div>
               </CenterMorphModalContent>
@@ -283,7 +279,7 @@ export function ShiftForm({
 
             <div className="grid grid-cols-2 gap-3">
               {/* Start time */}
-              <Field>
+              <Field data-invalid={!!form.formState.errors.start_time}>
                 <FieldLabel>Starts</FieldLabel>
                 <button
                   type="button"
@@ -294,7 +290,8 @@ export function ShiftForm({
                   }}
                   className={cn(
                     "flex h-12 w-full items-center gap-2 rounded-full border border-border bg-card px-3.5 text-sm font-medium text-foreground transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none",
-                    activeTimeField === "start" && timePickerOpen && "border-ring ring-1 ring-ring"
+                    activeTimeField === "start" && timePickerOpen && "border-ring ring-1 ring-ring",
+                    form.formState.errors.start_time && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]"
                   )}
                 >
                   <Clock className="size-4 text-muted-foreground shrink-0" />
