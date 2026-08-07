@@ -248,7 +248,7 @@ export function ExtractedShiftAccordion({
                   )}
                 >
                   <div className="overflow-hidden">
-                    <div className="px-4 pb-5 pt-2 sm:px-6 flex flex-col gap-4">
+                    <div className="px-3 pb-5 pt-2 sm:px-5 flex flex-col gap-4">
                         <FieldGroup>
                           {/* Workplace & Location */}
                           <div className="grid grid-cols-2 gap-3">
@@ -322,13 +322,13 @@ export function ExtractedShiftAccordion({
                                 type="button"
                                 onClick={() => openTimeModalFor(index, "start")}
                                 className={cn(
-                                  "flex h-12 w-full items-center gap-2 rounded-full border border-border bg-card px-3.5 text-sm font-medium transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none cursor-pointer",
+                                  "flex h-12 w-full items-center gap-1.5 rounded-full border border-border bg-card px-2.5 sm:px-3 text-sm font-medium transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none cursor-pointer",
                                   shift.start_time ? "text-foreground" : "text-muted-foreground",
                                   shiftErrors.start_time && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]"
                                 )}
                               >
                                 <Clock className="size-4 text-muted-foreground shrink-0" />
-                                <span className="whitespace-nowrap text-sm font-medium">
+                                <span className="whitespace-nowrap text-[13px] sm:text-sm font-medium tracking-tight">
                                   {displayStart}
                                 </span>
                                 <ChevronDown className="ml-auto size-4 text-muted-foreground/50 shrink-0" />
@@ -342,13 +342,13 @@ export function ExtractedShiftAccordion({
                                 type="button"
                                 onClick={() => openTimeModalFor(index, "end")}
                                 className={cn(
-                                  "flex h-12 w-full items-center gap-2 rounded-full border border-border bg-card px-3.5 text-sm font-medium transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none cursor-pointer",
+                                  "flex h-12 w-full items-center gap-1.5 rounded-full border border-border bg-card px-2.5 sm:px-3 text-sm font-medium transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none cursor-pointer",
                                   shift.end_time ? "text-foreground" : "text-muted-foreground",
                                   shiftErrors.end_time && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]"
                                 )}
                               >
                                 <Clock className="size-4 text-muted-foreground shrink-0" />
-                                <span className="whitespace-nowrap text-sm font-medium">
+                                <span className="whitespace-nowrap text-[13px] sm:text-sm font-medium tracking-tight">
                                   {displayEnd}
                                 </span>
                                 <ChevronDown className="ml-auto size-4 text-muted-foreground/50 shrink-0" />
