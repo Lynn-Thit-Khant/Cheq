@@ -85,12 +85,12 @@ function Calendar({
           defaultClassNames.caption_label
         ),
         month_grid: cn("w-full border-collapse", defaultClassNames.month_grid),
-        weekdays: cn("flex", defaultClassNames.weekdays),
+        weekdays: cn("flex justify-between gap-1 sm:gap-1.5", defaultClassNames.weekdays),
         weekday: cn(
           "flex-1 text-[0.8rem] font-normal text-muted-foreground select-none text-center",
           defaultClassNames.weekday
         ),
-        week: cn("mt-2 flex w-full", defaultClassNames.week),
+        week: cn("mt-1.5 flex w-full justify-between gap-1 sm:gap-1.5", defaultClassNames.week),
         week_number_header: cn(
           "w-(--cell-size) select-none",
           defaultClassNames.week_number_header
@@ -100,7 +100,7 @@ function Calendar({
           defaultClassNames.week_number
         ),
         day: cn(
-          "group/day relative size-10 sm:size-11 p-0 text-center select-none flex items-center justify-center",
+          "group/day relative size-9 sm:size-10 p-0 text-center select-none flex items-center justify-center",
           defaultClassNames.day
         ),
         range_start: cn(
@@ -205,7 +205,7 @@ function CalendarDayButton({
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
       className={cn(
-        "relative isolate z-10 flex aspect-square size-10 sm:size-11 w-10 sm:w-11 items-center justify-center border-0 leading-none text-[15px] sm:text-base font-medium rounded-full transition-colors cursor-pointer",
+        "relative isolate z-10 flex aspect-square size-9 sm:size-10 w-9 sm:w-10 items-center justify-center border-0 leading-none text-sm font-medium rounded-full transition-colors cursor-pointer",
         "group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-[2px] group-data-[focused=true]/day:ring-ring/50",
         // Today styling (when not selected)
         isToday && !isSelected && "bg-black/10 dark:bg-white/10 text-foreground font-semibold rounded-full",

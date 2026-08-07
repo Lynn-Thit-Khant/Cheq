@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { motion, AnimatePresence } from "motion/react"
 import { List, Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, Clock, Check, Trash2, MapPin, Tag, Coffee, Building2, Sparkles, LayoutTemplate, Keyboard, FileText, Image } from "lucide-react"
 import { ConfirmModal } from "@/components/confirm-modal"
-import { SingleShiftDuplicateModal } from "@/components/single-shift-duplicate-modal"
 import { Tabs, TabsList, TabsTrigger } from "@/components/motion/tabs"
 import { AnimatedNumber } from "@/components/motion/animated-number"
 import {
@@ -29,6 +28,8 @@ import { getTemplates, createTemplate } from "@/app/(app)/settings/templates/act
 import { getShifts, createShift, updateShift, deleteShift, bulkCreateShifts } from "@/app/(app)/home/actions"
 import { extractShiftsFromText, type ExtractedShift } from "./ai-actions"
 import { ExtractedShiftAccordion, type ExtractedShiftErrors } from "@/components/extracted-shift-accordion"
+import { detectShiftConflict, type ShiftConflictType } from "@/lib/shift-conflict-utils"
+import { ShiftConflictModal } from "@/components/shift-conflict-modal"
 import { cn } from "@/lib/utils"
 import {
   dateToString,
@@ -209,13 +210,10 @@ export default function HomePage() {
   const [isDeletingBulk, setIsDeletingBulk] = useState(false)
   const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false)
   const [singleDeleteConfirmOpen, setSingleDeleteConfirmOpen] = useState(false)
-  const [duplicateResolutionOpen, setDuplicateResolutionOpen] = useState(false)
-  const [duplicateShiftsList, setDuplicateShiftsList] = useState<ExtractedShift[]>([])
-  const [nonDuplicateShiftsList, setNonDuplicateShiftsList] = useState<ExtractedShift[]>([])
-  const [batchAction, setBatchAction] = useState<"all" | "skip" | null>(null)
-  const [pendingSingleShift, setPendingSingleShift] = useState<ShiftFormValues | null>(null)
+  const [conflictModalOpen, setConflictModalOpen] = useState(false)
+  const [conflictType, setConflictType] = useState<ShiftConflictType | null>(null)
   const [conflictingShift, setConflictingShift] = useState<Shift | null>(null)
-  const [singleDuplicateModalOpen, setSingleDuplicateModalOpen] = useState(false)
+  const [pendingShift, setPendingShift] = useState<ShiftFormValues | null>(null)
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isLongPressRef = useRef(false)
 
@@ -368,63 +366,10 @@ export default function HomePage() {
 
     setExtractedShiftErrors({})
 
-    const duplicates: ExtractedShift[] = []
-    const nonDuplicates: ExtractedShift[] = []
-    const seenBatchKeys = new Set<string>()
-
-    extractedShifts.forEach((extracted) => {
-      const extName = (extracted.workplace_name || "").trim().toLowerCase()
-      const extDate = extracted.shift_date
-      const extStart = (extracted.start_time || "").slice(0, 5)
-      const extEnd = (extracted.end_time || "").slice(0, 5)
-
-      const key = `${extName}|${extDate}|${extStart}|${extEnd}`
-
-      const existingMatch = shifts.find((s) => {
-        const existName = (s.workplace_name || "").trim().toLowerCase()
-        const existDate = s.shift_date
-        const existStart = (s.start_time || "").slice(0, 5)
-        const existEnd = (s.end_time || "").slice(0, 5)
-
-        return (
-          existName === extName &&
-          existDate === extDate &&
-          existStart === extStart &&
-          existEnd === extEnd
-        )
-      })
-
-      const isBatchDuplicate = seenBatchKeys.has(key)
-      seenBatchKeys.add(key)
-
-      if (existingMatch || isBatchDuplicate) {
-        duplicates.push(extracted)
-      } else {
-        nonDuplicates.push(extracted)
-      }
-    })
-
-    if (duplicates.length > 0) {
-      setDuplicateShiftsList(duplicates)
-      setNonDuplicateShiftsList(nonDuplicates)
-      setDuplicateResolutionOpen(true)
-      return
-    }
-
-    await executeBulkSave(extractedShifts)
-  }
-
-  const executeBulkSave = async (shiftsToSave: ExtractedShift[]) => {
-    if (shiftsToSave.length === 0) {
-      setDuplicateResolutionOpen(false)
-      closeModal()
-      return
-    }
-
     setIsSaving(true)
     try {
       const created = await bulkCreateShifts(
-        shiftsToSave.map((s) => ({
+        extractedShifts.map((s) => ({
           workplace_name: s.workplace_name,
           shift_date: s.shift_date,
           start_time: s.start_time,
@@ -434,43 +379,23 @@ export default function HomePage() {
         }))
       )
       setShifts((prev) => [...created, ...prev])
-      setDuplicateResolutionOpen(false)
       closeModal()
     } catch (err) {
       console.error("Failed to save extracted shifts:", err)
     } finally {
       setIsSaving(false)
-      setBatchAction(null)
     }
   }
 
-  // ── CRUD Handlers ───────────────────────────────────────────
-  const parseTimeToMinutes = (t: string): number => {
-    if (!t) return 0
-    const [h, m] = t.split(":").map(Number)
-    return (h || 0) * 60 + (m || 0)
-  }
-
   const handleCreate = async (data: ShiftFormValues) => {
-    // Check for duplicate / overlapping shift on the exact date
-    const targetDate = data.shift_date
-    const startMin = parseTimeToMinutes(data.start_time)
-    const endMin = parseTimeToMinutes(data.end_time)
+    // Detect collision against existing shifts
+    const conflictResult = detectShiftConflict(data, shifts)
 
-    const conflict = shifts.find((s) => {
-      if (s.shift_date !== targetDate) return false
-      const sStart = parseTimeToMinutes(s.start_time)
-      const sEnd = parseTimeToMinutes(s.end_time)
-
-      const isExactMatch = s.start_time.slice(0, 5) === data.start_time.slice(0, 5) && s.end_time.slice(0, 5) === data.end_time.slice(0, 5)
-      const isOverlap = (startMin < sEnd && endMin > sStart)
-      return isExactMatch || isOverlap
-    })
-
-    if (conflict && !pendingSingleShift) {
-      setPendingSingleShift(data)
-      setConflictingShift(conflict)
-      setSingleDuplicateModalOpen(true)
+    if (conflictResult.hasConflict) {
+      setPendingShift(data)
+      setConflictingShift(conflictResult.conflictingShift)
+      setConflictType(conflictResult.conflictType)
+      setConflictModalOpen(true)
       return
     }
 
@@ -478,9 +403,6 @@ export default function HomePage() {
     try {
       const created = await createShift(data)
       setShifts((prev) => [created, ...prev])
-      setSingleDuplicateModalOpen(false)
-      setPendingSingleShift(null)
-      setConflictingShift(null)
       closeModal()
     } catch (err) {
       console.error("Failed to create shift:", err)
@@ -489,16 +411,30 @@ export default function HomePage() {
     }
   }
 
-  const handleReplaceSingleShift = async () => {
-    if (!pendingSingleShift || !conflictingShift) return
+  const handleConflictPrimaryAction = async () => {
+    if (!pendingShift) return
+
+    if (conflictType === "exact_duplicate") {
+      // Primary CTA = Skip Duplicate -> Simply close modal and clear pending state
+      setConflictModalOpen(false)
+      setPendingShift(null)
+      setConflictingShift(null)
+      setConflictType(null)
+      closeModal()
+      return
+    }
+
+    // Primary CTA = Replace Shift -> Delete existing conflicting shift and save pending shift
+    if (!conflictingShift) return
     setIsSaving(true)
     try {
       await deleteShift(conflictingShift.id)
-      const created = await createShift(pendingSingleShift)
+      const created = await createShift(pendingShift)
       setShifts((prev) => [created, ...prev.filter((s) => s.id !== conflictingShift.id)])
-      setSingleDuplicateModalOpen(false)
-      setPendingSingleShift(null)
+      setConflictModalOpen(false)
+      setPendingShift(null)
       setConflictingShift(null)
+      setConflictType(null)
       closeModal()
     } catch (err) {
       console.error("Failed to replace shift:", err)
@@ -507,18 +443,21 @@ export default function HomePage() {
     }
   }
 
-  const handleKeepBothSingleShift = async () => {
-    if (!pendingSingleShift) return
+  const handleConflictSecondaryAction = async () => {
+    if (!pendingShift) return
+
+    // Secondary CTA = Keep Both -> Save pending shift as double shift / overlap
     setIsSaving(true)
     try {
-      const created = await createShift(pendingSingleShift)
+      const created = await createShift(pendingShift)
       setShifts((prev) => [created, ...prev])
-      setSingleDuplicateModalOpen(false)
-      setPendingSingleShift(null)
+      setConflictModalOpen(false)
+      setPendingShift(null)
       setConflictingShift(null)
+      setConflictType(null)
       closeModal()
     } catch (err) {
-      console.error("Failed to save both shifts:", err)
+      console.error("Failed to keep both shifts:", err)
     } finally {
       setIsSaving(false)
     }
@@ -1504,120 +1443,6 @@ export default function HomePage() {
         </CenterMorphModalContent>
       </CenterMorphModal>
 
-      {/* ── Duplicate Shift Conflict Resolution Modal (Option 3) ── */}
-      <CenterMorphModal
-        open={duplicateResolutionOpen}
-        onOpenChange={setDuplicateResolutionOpen}
-      >
-        <CenterMorphModalContent
-          ariaLabel="Duplicate Shift Detected"
-          dismissible={true}
-          className="w-full max-w-sm bg-card p-6 border-border/50"
-        >
-          <div className="flex flex-col gap-5">
-            {/* Header */}
-            <div className="flex flex-col gap-1 text-center">
-              <h2 className="text-base font-semibold leading-normal text-foreground">
-                Duplicate Shift{duplicateShiftsList.length > 1 ? "s" : ""} Detected
-              </h2>
-              <p className="text-[13px] text-muted-foreground leading-relaxed">
-                {duplicateShiftsList.length} shift{duplicateShiftsList.length > 1 ? "s" : ""} already exist{duplicateShiftsList.length === 1 ? "s" : ""} in your schedule:
-              </p>
-            </div>
-
-            {/* List of Duplicate Shifts (Matching Main Shift Card View) */}
-            <SettingsCard>
-              {duplicateShiftsList.map((shift, idx) => {
-                let weekday = "DAY"
-                let dayNumber = "1"
-                if (shift.shift_date) {
-                  const [y, m, d] = shift.shift_date.split("-").map(Number)
-                  const dateObj = new Date(y, m - 1, d)
-                  if (!isNaN(dateObj.getTime())) {
-                    weekday = dateObj.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase()
-                    dayNumber = String(dateObj.getDate())
-                  }
-                }
-
-                const startDisplay = formatDisplayTime(shift.start_time, preferences.time_format)
-                const endDisplay = formatDisplayTime(shift.end_time, preferences.time_format)
-                const income = calculateShiftIncome(
-                  shift.start_time,
-                  shift.end_time,
-                  shift.hourly_rate ?? preferences.default_hourly_rate ?? 0,
-                  shift.break_duration ?? preferences.default_break_duration ?? 0
-                )
-
-                return (
-                  <div key={idx}>
-                    {idx > 0 && <div className="h-[1px] bg-border/60 mx-4" />}
-                    <div className="flex h-[72px] w-full items-center justify-between px-4 sm:px-5 gap-3 select-none">
-                      {/* Left: Date Circle Badge + Workplace Name & Time */}
-                      <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                        <div className="flex size-12 shrink-0 flex-col items-center justify-center rounded-full bg-card/90 backdrop-blur-xl border border-border/60 text-center select-none shadow-sm">
-                          <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase leading-none">
-                            {weekday}
-                          </span>
-                          <span className="text-[15px] font-bold text-foreground leading-none mt-0.5">
-                            {dayNumber}
-                          </span>
-                        </div>
-
-                        <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                          <span className="text-[15px] font-medium text-foreground truncate">
-                            {shift.workplace_name}
-                          </span>
-                          <span className="text-[13px] text-muted-foreground truncate">
-                            {startDisplay} – {endDisplay}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Right: Income Amount */}
-                      <div className="flex items-center shrink-0">
-                        <span className="text-[15px] font-semibold text-foreground">
-                          {formatCurrency(income)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </SettingsCard>
-
-            {/* Action Buttons (Full-Width Side-by-Side) */}
-            <div className="grid grid-cols-2 gap-3 pt-2 w-full">
-              <Button
-                type="button"
-                variant="outline"
-                isLoading={isSaving && batchAction === "all"}
-                disabled={isSaving}
-                onClick={() => {
-                  setBatchAction("all")
-                  executeBulkSave(extractedShifts)
-                }}
-                className="h-11 rounded-full text-sm font-medium w-full border-border/60 cursor-pointer"
-              >
-                {isSaving && batchAction === "all" ? "Saving" : "Save Anyway"}
-              </Button>
-
-              <Button
-                type="button"
-                isLoading={isSaving && batchAction === "skip"}
-                disabled={isSaving}
-                onClick={() => {
-                  setBatchAction("skip")
-                  executeBulkSave(nonDuplicateShiftsList)
-                }}
-                className="h-11 rounded-full text-sm font-medium w-full cursor-pointer"
-              >
-                {isSaving && batchAction === "skip" ? "Skipping" : "Skip Duplicate"}
-              </Button>
-            </div>
-          </div>
-        </CenterMorphModalContent>
-      </CenterMorphModal>
-
       {/* ── Select Template Modal ──────────────────────────── */}
       <CenterMorphModal
         open={modalMode === "select-template"}
@@ -1950,24 +1775,26 @@ export default function HomePage() {
         onConfirm={handleBulkDelete}
       />
 
-      {/* ── Single Shift Duplicate Conflict Modal ─────────── */}
-      <SingleShiftDuplicateModal
-        open={singleDuplicateModalOpen}
+      {/* ── Shift Conflict Warning Modal ────────────────────── */}
+      <ShiftConflictModal
+        open={conflictModalOpen}
         onOpenChange={(open) => {
-          setSingleDuplicateModalOpen(open)
+          setConflictModalOpen(open)
           if (!open) {
-            setPendingSingleShift(null)
+            setPendingShift(null)
             setConflictingShift(null)
+            setConflictType(null)
           }
         }}
+        conflictType={conflictType}
         conflictingShift={conflictingShift}
-        pendingShift={pendingSingleShift}
+        pendingShift={pendingShift}
         timeFormat={preferences.time_format}
         defaultHourlyRate={preferences.default_hourly_rate}
         defaultBreakDuration={preferences.default_break_duration}
         isSaving={isSaving}
-        onReplace={handleReplaceSingleShift}
-        onKeepBoth={handleKeepBothSingleShift}
+        onPrimaryAction={handleConflictPrimaryAction}
+        onSecondaryAction={handleConflictSecondaryAction}
       />
     </>
   )
