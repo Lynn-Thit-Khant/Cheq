@@ -350,8 +350,16 @@ export function ShiftForm({
                       inputMode="decimal"
                       min="0"
                       step="0.01"
-                      value={field.value ? field.value : ''}
-                      onChange={(e) => field.onChange(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                      value={field.value !== undefined && field.value !== null ? field.value : ''}
+                      onChange={(e) => {
+                        const val = e.target.value
+                        if (val === '') {
+                          field.onChange('')
+                        } else {
+                          const num = parseFloat(val)
+                          field.onChange(isNaN(num) ? '' : num)
+                        }
+                      }}
                       placeholder="0.00"
                       className="h-12 bg-card pl-8 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       aria-invalid={fieldState.invalid}
@@ -377,11 +385,19 @@ export function ShiftForm({
                     inputMode="numeric"
                     min="0"
                     step="1"
-                    value={field.value ? field.value : ''}
-                    onChange={(e) => field.onChange(e.target.value === '' ? '' : parseInt(e.target.value))}
+                    value={field.value !== undefined && field.value !== null ? field.value : ''}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      if (val === '') {
+                        field.onChange('')
+                      } else {
+                        const num = parseInt(val, 10)
+                        field.onChange(isNaN(num) ? '' : num)
+                      }
+                    }}
                     placeholder="30"
                     className={cn(
-                      "h-12 bg-card [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
+                      "h-12 bg-card px-5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",
                       (isBreakTooLong || fieldState.invalid) && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]"
                     )}
                     aria-invalid={isBreakTooLong || fieldState.invalid}

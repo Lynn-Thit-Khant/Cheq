@@ -338,8 +338,16 @@ export function TemplateForm({
                       inputMode="decimal"
                       min="0"
                       step="0.01"
-                      value={field.value ? field.value : ''}
-                      onChange={(e) => field.onChange(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                      value={field.value !== undefined && field.value !== null ? field.value : ''}
+                      onChange={(e) => {
+                        const val = e.target.value
+                        if (val === '') {
+                          field.onChange('')
+                        } else {
+                          const num = parseFloat(val)
+                          field.onChange(isNaN(num) ? '' : num)
+                        }
+                      }}
                       placeholder="0.00"
                       className="h-12 bg-card pl-8 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       aria-invalid={fieldState.invalid}
@@ -365,8 +373,16 @@ export function TemplateForm({
                     inputMode="numeric"
                     min="0"
                     step="1"
-                    value={field.value ? field.value : ''}
-                    onChange={(e) => field.onChange(e.target.value === '' ? '' : parseInt(e.target.value))}
+                    value={field.value !== undefined && field.value !== null ? field.value : ''}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      if (val === '') {
+                        field.onChange('')
+                      } else {
+                        const num = parseInt(val, 10)
+                        field.onChange(isNaN(num) ? '' : num)
+                      }
+                    }}
                     placeholder="30"
                     className={cn(
                       "h-12 bg-card [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",

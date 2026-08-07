@@ -348,13 +348,14 @@ export function ExtractedShiftAccordion({
                                   type="number"
                                   inputMode="decimal"
                                   step="0.01"
-                                  value={shift.hourly_rate ? shift.hourly_rate : ""}
-                                  onChange={(e) =>
+                                  value={shift.hourly_rate !== undefined && shift.hourly_rate !== null ? shift.hourly_rate : ""}
+                                  onChange={(e) => {
+                                    const val = e.target.value
                                     onUpdateShift(index, {
                                       ...shift,
-                                      hourly_rate: e.target.value === "" ? 0 : parseFloat(e.target.value) || 0,
+                                      hourly_rate: val === "" ? ('' as unknown as number) : parseFloat(val) || 0,
                                     })
-                                  }
+                                  }}
                                   placeholder="0.00"
                                   className="h-12 bg-card rounded-full pl-8 pr-4 text-sm font-medium [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 />
@@ -368,13 +369,14 @@ export function ExtractedShiftAccordion({
                                 type="number"
                                 inputMode="numeric"
                                 step="1"
-                                value={shift.break_duration ? shift.break_duration : ""}
-                                onChange={(e) =>
+                                value={shift.break_duration !== undefined && shift.break_duration !== null ? shift.break_duration : ""}
+                                onChange={(e) => {
+                                  const val = e.target.value
                                   onUpdateShift(index, {
                                     ...shift,
-                                    break_duration: e.target.value === "" ? 0 : parseInt(e.target.value) || 0,
+                                    break_duration: val === "" ? ('' as unknown as number) : parseInt(val, 10) || 0,
                                   })
-                                }
+                                }}
                                 placeholder="30"
                                 className={cn(
                                   "h-12 bg-card rounded-full px-4 text-sm font-medium [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none",

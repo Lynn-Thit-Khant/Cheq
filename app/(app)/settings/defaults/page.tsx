@@ -344,8 +344,16 @@ export default function DefaultsPage() {
                   inputMode="decimal"
                   min="0"
                   step="0.01"
-                  value={tempHourlyRate || ''}
-                  onChange={(e) => setTempHourlyRate(parseFloat(e.target.value) || 0)}
+                  value={tempHourlyRate !== undefined && tempHourlyRate !== null ? tempHourlyRate : ''}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    if (val === '') {
+                      setTempHourlyRate('' as unknown as number)
+                    } else {
+                      const num = parseFloat(val)
+                      setTempHourlyRate(isNaN(num) ? ('' as unknown as number) : num)
+                    }
+                  }}
                   placeholder="0.00"
                   className="w-full bg-card rounded-full h-12 px-5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
@@ -358,7 +366,7 @@ export default function DefaultsPage() {
                   Cancel
                 </Button>
               </CenterMorphModalClose>
-              <Button onClick={handleSaveHourlyRate} isLoading={isSaving} disabled={isSaving || tempHourlyRate < 0} className="h-11 rounded-full text-sm font-medium w-full cursor-pointer">
+              <Button onClick={handleSaveHourlyRate} isLoading={isSaving} disabled={isSaving || (typeof tempHourlyRate === 'number' && tempHourlyRate < 0)} className="h-11 rounded-full text-sm font-medium w-full cursor-pointer">
                 {isSaving ? "Saving" : "Save"}
               </Button>
             </div>
@@ -395,8 +403,16 @@ export default function DefaultsPage() {
                   pattern="[0-9]*"
                   min="0"
                   step="1"
-                  value={tempBreakDuration || ''}
-                  onChange={(e) => setTempBreakDuration(parseInt(e.target.value) || 0)}
+                  value={tempBreakDuration !== undefined && tempBreakDuration !== null ? tempBreakDuration : ''}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    if (val === '') {
+                      setTempBreakDuration('' as unknown as number)
+                    } else {
+                      const num = parseInt(val, 10)
+                      setTempBreakDuration(isNaN(num) ? ('' as unknown as number) : num)
+                    }
+                  }}
                   placeholder="30"
                   className="w-full bg-card rounded-full h-12 px-5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
@@ -409,7 +425,7 @@ export default function DefaultsPage() {
                   Cancel
                 </Button>
               </CenterMorphModalClose>
-              <Button onClick={handleSaveBreakDuration} isLoading={isSaving} disabled={isSaving || tempBreakDuration < 0} className="h-11 rounded-full text-sm font-medium w-full cursor-pointer">
+              <Button onClick={handleSaveBreakDuration} isLoading={isSaving} disabled={isSaving || (typeof tempBreakDuration === 'number' && tempBreakDuration < 0)} className="h-11 rounded-full text-sm font-medium w-full cursor-pointer">
                 {isSaving ? "Saving" : "Save"}
               </Button>
             </div>
