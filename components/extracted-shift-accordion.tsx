@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Calendar as CalendarIcon, Clock, ChevronDown, Trash2 } from "lucide-react"
+import { Calendar as CalendarIcon, ChevronDown, Trash2 } from "lucide-react"
 import { motion, AnimatePresence } from "motion/react"
 import type { ExtractedShift } from "@/app/(app)/home/ai-actions"
 import { SettingsCard } from "@/components/settings-card"
@@ -299,16 +299,15 @@ export function ExtractedShiftAccordion({
                                 type="button"
                                 onClick={() => openTimeModalFor(index, "start")}
                                 className={cn(
-                                  "flex h-12 w-full items-center gap-1.5 rounded-full border border-border bg-card px-2.5 sm:px-3 text-sm font-medium transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none cursor-pointer",
+                                  "flex h-12 w-full items-center justify-between gap-2 rounded-full border border-border bg-card px-4 text-sm font-medium transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none cursor-pointer",
                                   shift.start_time ? "text-foreground" : "text-muted-foreground",
                                   shiftErrors.start_time && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]"
                                 )}
                               >
-                                <Clock className="size-4 text-muted-foreground shrink-0" />
-                                <span className="whitespace-nowrap text-[13px] sm:text-sm font-medium tracking-tight">
+                                <span className="whitespace-nowrap text-sm font-medium">
                                   {displayStart}
                                 </span>
-                                <ChevronDown className="ml-auto size-4 text-muted-foreground/50 shrink-0" />
+                                <ChevronDown className="size-4 text-muted-foreground/50 shrink-0" />
                               </button>
                             </Field>
 
@@ -319,16 +318,15 @@ export function ExtractedShiftAccordion({
                                 type="button"
                                 onClick={() => openTimeModalFor(index, "end")}
                                 className={cn(
-                                  "flex h-12 w-full items-center gap-1.5 rounded-full border border-border bg-card px-2.5 sm:px-3 text-sm font-medium transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none cursor-pointer",
+                                  "flex h-12 w-full items-center justify-between gap-2 rounded-full border border-border bg-card px-4 text-sm font-medium transition-colors hover:border-ring focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring outline-none cursor-pointer",
                                   shift.end_time ? "text-foreground" : "text-muted-foreground",
                                   shiftErrors.end_time && "border-destructive ring-1 ring-destructive/40 bg-destructive/[0.03]"
                                 )}
                               >
-                                <Clock className="size-4 text-muted-foreground shrink-0" />
-                                <span className="whitespace-nowrap text-[13px] sm:text-sm font-medium tracking-tight">
+                                <span className="whitespace-nowrap text-sm font-medium">
                                   {displayEnd}
                                 </span>
-                                <ChevronDown className="ml-auto size-4 text-muted-foreground/50 shrink-0" />
+                                <ChevronDown className="size-4 text-muted-foreground/50 shrink-0" />
                               </button>
                             </Field>
                           </div>

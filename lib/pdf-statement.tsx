@@ -210,14 +210,14 @@ const styles = StyleSheet.create({
     paddingRight: 4,
   },
   // Column Widths (Sum = 100%)
-  colNo: { width: "5%", textAlign: "center" },
-  colDate: { width: "15%" },
-  colWorkplace: { width: "25%" },
-  colTime: { width: "19%" },
-  colBreak: { width: "8%", textAlign: "center" },
+  colNo: { width: "4%", textAlign: "center" },
+  colDate: { width: "14%" },
+  colWorkplace: { width: "23%" },
+  colTime: { width: "18%" },
+  colBreak: { width: "7%", textAlign: "center" },
   colNetHours: { width: "9%", textAlign: "right" },
-  colRate: { width: "9%", textAlign: "right" },
-  colTotal: { width: "10%", textAlign: "right" },
+  colRate: { width: "10%", textAlign: "right" },
+  colTotal: { width: "15%", textAlign: "right" },
   // Total Row (Bigger Typography per requirement)
   totalRow: {
     flexDirection: "row",
@@ -414,7 +414,7 @@ export function StatementPDF({
 
           {/* Table Totals Row */}
           <View style={styles.totalRow}>
-            <Text style={[styles.totalCellBold, { width: "90%" }, styles.colBorder]}>
+            <Text style={[styles.totalCellBold, { width: "85%" }, styles.colBorder]}>
               TOTAL
             </Text>
             <Text style={[styles.totalCellBold, styles.colTotal]}>

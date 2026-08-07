@@ -312,7 +312,7 @@ export default function TemplatesPage() {
                 No templates yet
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Save your regular shifts as templates so you can add them with a single tap.
+                Save your regular shifts as templates.
               </p>
             </div>
 
