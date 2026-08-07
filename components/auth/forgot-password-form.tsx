@@ -26,17 +26,22 @@ const formSchema = z.object({
   email: z.string().min(1, "Email is required.").email("Please enter a valid email address."),
 })
 
+interface ForgotPasswordFormProps extends React.ComponentProps<"div"> {
+  defaultEmail?: string
+}
+
 export function ForgotPasswordForm({
+  defaultEmail = "",
   className,
   ...props
-}: React.ComponentProps<"div">) {
+}: ForgotPasswordFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
+      email: defaultEmail,
     },
   })
 
