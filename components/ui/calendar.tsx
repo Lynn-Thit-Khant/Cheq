@@ -205,7 +205,7 @@ function CalendarDayButton({
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
       className={cn(
-        "relative isolate z-10 flex aspect-square size-9 sm:size-10 w-9 sm:w-10 items-center justify-center border-0 leading-none text-[15px] font-medium rounded-full transition-colors cursor-pointer",
+        "relative isolate z-10 flex aspect-square size-10 sm:size-11 w-10 sm:w-11 items-center justify-center border-0 leading-none text-[15px] font-medium rounded-full transition-colors cursor-pointer",
         "group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:border-ring group-data-[focused=true]/day:ring-[2px] group-data-[focused=true]/day:ring-ring/50",
         // Today styling (when not selected)
         isToday && !isSelected && "bg-black/10 dark:bg-white/10 text-foreground font-semibold rounded-full",
@@ -222,13 +222,11 @@ function CalendarDayButton({
       )}
       {...props}
     >
-      <span className={cn("leading-none select-none", hasShift && "-translate-y-0.5")}>
-        {children}
-      </span>
+      {children}
       {hasShift && (
         <span
           className={cn(
-            "absolute bottom-1 size-1 rounded-full pointer-events-none transition-colors",
+            "absolute bottom-1.5 size-1.5 rounded-full pointer-events-none transition-colors",
             isSelected ? "bg-primary-foreground" : "bg-black dark:bg-white"
           )}
         />
