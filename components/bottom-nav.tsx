@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { Dock, DockItem } from "@/components/motion/dock"
 import { Home, TrendingUp, Settings, Sparkles } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export function BottomNav() {
   const pathname = usePathname()
@@ -18,6 +19,9 @@ export function BottomNav() {
 
   const [activeHref, setActiveHref] = useState(pathname)
   const [prevPathname, setPrevPathname] = useState(pathname)
+  // Track which tab's label pill is visible (tap-triggered)
+  const [pressedHref, setPressedHref] = useState<string | null>(null)
+  const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     tabs.forEach((tab) => {
@@ -31,9 +35,14 @@ export function BottomNav() {
   }
 
   const handleTabClick = (href: string) => {
+    // Show the pill label on tap and dismiss after 1.5 s
+    if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current)
+    setPressedHref(href)
+    dismissTimerRef.current = setTimeout(() => setPressedHref(null), 600)
+
     if (href === activeHref) return
-    setActiveHref(href)     // pill glides immediately
-    router.push(href)       // page navigates in the background
+    setActiveHref(href)
+    router.push(href)
   }
 
   return (
@@ -42,6 +51,7 @@ export function BottomNav() {
         <Dock size={48}>
           {tabs.map((tab) => {
             const isActive = activeHref === tab.href
+            const isPressed = pressedHref === tab.href
             return (
               <DockItem
                 key={tab.name}
@@ -51,7 +61,15 @@ export function BottomNav() {
                 className="group"
               >
                 <tab.icon className="size-5" />
-                <span className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 scale-95 transition-all duration-200 ease-out group-hover:opacity-100 group-hover:scale-100 pointer-events-none rounded-full border border-border/60 bg-card/90 backdrop-blur-xl px-3 py-1 text-xs font-medium text-foreground shadow-lg whitespace-nowrap z-30">
+                {/* Label pill — tap-triggered only, instant show/hide */}
+                <span
+                  className={cn(
+                    "absolute -top-10 left-1/2 -translate-x-1/2 pointer-events-none",
+                    "rounded-full border border-border/60 bg-card/90 backdrop-blur-xl",
+                    "px-3 py-1 text-xs font-medium text-foreground shadow-lg whitespace-nowrap z-30",
+                    isPressed ? "opacity-100" : "opacity-0"
+                  )}
+                >
                   {tab.name}
                 </span>
               </DockItem>
