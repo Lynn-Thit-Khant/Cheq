@@ -1,6 +1,6 @@
 import type { Shift, ShiftFormValues } from "@/lib/schemas/shift-form-schema"
 
-export type ShiftConflictType = "exact_duplicate" | "time_overlap" | "double_booking"
+export type ShiftConflictType = "exact_duplicate" | "pay_break_update" | "double_booking" | "time_overlap"
 
 export interface ShiftConflictResult {
   hasConflict: boolean
@@ -22,7 +22,8 @@ export function parseTimeToMinutes(t: string): number {
 /**
  * Checks an incoming shift payload against existing logged shifts on the same date.
  * Categorizes collisions into:
- * - exact_duplicate: Same date, same start & end time, same workplace.
+ * - exact_duplicate: Same date, same start & end time, same workplace, same rate & break.
+ * - pay_break_update: Same date, same start & end time, same workplace, different rate or break.
  * - double_booking: Same date, same start & end time, different workplace.
  * - time_overlap: Same date, overlapping time window (start_A < end_B && end_A > start_B).
  */
@@ -68,10 +69,21 @@ export function detectShiftConflict(
 
     if (isExactTime) {
       if (existingWorkplace === incomingWorkplace) {
-        return {
-          hasConflict: true,
-          conflictType: "exact_duplicate",
-          conflictingShift: existing,
+        const isSameRate = Number(incoming.hourly_rate ?? 0) === Number(existing.hourly_rate ?? 0)
+        const isSameBreak = Number(incoming.break_duration ?? 0) === Number(existing.break_duration ?? 0)
+
+        if (isSameRate && isSameBreak) {
+          return {
+            hasConflict: true,
+            conflictType: "exact_duplicate",
+            conflictingShift: existing,
+          }
+        } else {
+          return {
+            hasConflict: true,
+            conflictType: "pay_break_update",
+            conflictingShift: existing,
+          }
         }
       } else {
         return {

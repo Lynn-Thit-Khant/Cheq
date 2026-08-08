@@ -72,7 +72,7 @@ export function DockItem({
   const sharedStyle = { width: size, height: size };
   const sharedClass = cn(
     "relative flex shrink-0 items-center justify-center rounded-full transition-colors duration-200",
-    active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+    active ? "text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-foreground/[0.05]",
     className,
   );
 

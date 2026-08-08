@@ -82,25 +82,20 @@ export function ShiftConflictModal({
   // Configure copy and labels according to conflict type
   let title = "Duplicate Shift Detected"
   let subtitle = "An identical shift is already in your schedule."
-  let primaryLabel = "Skip Duplicate"
-  let primaryLoadingLabel = "Skipping"
-  let secondaryLabel = "Keep Both"
-  let secondaryLoadingLabel = "Keeping"
+  let primaryLabel = "Replace"
+  let primaryLoadingLabel = "Replacing"
+  let secondaryLabel = "Edit"
+  let secondaryLoadingLabel = "Editing"
 
-  if (conflictType === "time_overlap") {
+  if (conflictType === "pay_break_update") {
+    title = "Shift Already Exists"
+    subtitle = "A shift for these hours already exists with a different rate or break."
+  } else if (conflictType === "time_overlap") {
     title = "Time Overlap Detected"
-    subtitle = "This shift overlaps with an existing shift."
-    primaryLabel = "Replace Shift"
-    primaryLoadingLabel = "Replacing"
-    secondaryLabel = "Keep Both"
-    secondaryLoadingLabel = "Keeping"
+    subtitle = `This shift overlaps with your ${conflictingShift.workplace_name} shift (${startDisplay} – ${endDisplay}).`
   } else if (conflictType === "double_booking") {
     title = "Time Slot Already Taken"
-    subtitle = "You already have a shift at another workplace."
-    primaryLabel = "Replace Shift"
-    primaryLoadingLabel = "Replacing"
-    secondaryLabel = "Keep Both"
-    secondaryLoadingLabel = "Keeping"
+    subtitle = `You already have a shift at ${conflictingShift.workplace_name} for these hours.`
   }
 
   return (
@@ -166,12 +161,11 @@ export function ShiftConflictModal({
             <Button
               type="button"
               variant="outline"
-              isLoading={isSaving && activeAction === "secondary"}
               disabled={isSaving}
               onClick={handleSecondaryClick}
               className="h-11 rounded-full text-sm font-medium w-full border-border/60 cursor-pointer"
             >
-              {isSaving && activeAction === "secondary" ? secondaryLoadingLabel : secondaryLabel}
+              {secondaryLabel}
             </Button>
 
             <Button

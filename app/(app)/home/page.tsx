@@ -211,6 +211,7 @@ export default function HomePage() {
   const [conflictType, setConflictType] = useState<ShiftConflictType | null>(null)
   const [conflictingShift, setConflictingShift] = useState<Shift | null>(null)
   const [pendingShift, setPendingShift] = useState<ShiftFormValues | null>(null)
+  const [editConflictTargetShiftId, setEditConflictTargetShiftId] = useState<string | null>(null)
   const [batchConflictQueue, setBatchConflictQueue] = useState<
     Array<{
       extractedShift: ShiftFormValues
@@ -490,6 +491,7 @@ export default function HomePage() {
       setBatchConflictQueue([])
       setBatchResolutions([])
       setBatchNonConflictingShifts([])
+      setEditConflictTargetShiftId(null)
       setPendingShift(data)
       setConflictingShift(conflictResult.conflictingShift)
       setConflictType(conflictResult.conflictType)
@@ -513,96 +515,56 @@ export default function HomePage() {
     if (!pendingShift) return
     setIsSaving(true)
 
-    // Smooth tactile feedback so the user visibly sees 'Skipping' / 'Replacing'
-    await new Promise((r) => setTimeout(r, 350))
+    // Smooth tactile feedback so the user visibly sees 'Replacing'
+    await new Promise((r) => setTimeout(r, 200))
 
-    // Check if we are in batch conflict resolution mode
-    if (batchConflictQueue.length > 0) {
-      const currentItem = batchConflictQueue[batchQueueIndex]
-      const resolution = {
-        shiftToSave: currentItem.conflictType === "exact_duplicate" ? null : currentItem.extractedShift,
-        shiftToDeleteId:
-          currentItem.conflictType === "exact_duplicate"
-            ? null
-            : currentItem.conflictingShift.id.startsWith("temp-")
-            ? null
-            : currentItem.conflictingShift.id,
-      }
-
-      const nextResolutions = [...batchResolutions, resolution]
-      const nextIndex = batchQueueIndex + 1
-
-      if (nextIndex < batchConflictQueue.length) {
-        setBatchResolutions(nextResolutions)
-        setBatchQueueIndex(nextIndex)
-        setPendingShift(batchConflictQueue[nextIndex].extractedShift)
-        setConflictingShift(batchConflictQueue[nextIndex].conflictingShift)
-        setConflictType(batchConflictQueue[nextIndex].conflictType)
+    // ── Edit Shift Mode Conflict ──────────────────────────────
+    if (editConflictTargetShiftId) {
+      if (!conflictingShift) {
         setIsSaving(false)
         return
       }
 
-      // All batch conflicts resolved! Commit batch to Supabase
       try {
-        const deleteIds = nextResolutions
-          .map((r) => r.shiftToDeleteId)
-          .filter((id): id is string => Boolean(id))
-
-        if (deleteIds.length > 0) {
-          await Promise.all(deleteIds.map((id) => deleteShift(id)))
-        }
-
-        const approvedBatch = nextResolutions
-          .map((r) => r.shiftToSave)
-          .filter((s): s is ShiftFormValues => Boolean(s))
-
-        const allToCreate = [...batchNonConflictingShifts, ...approvedBatch]
-        if (allToCreate.length > 0) {
-          const created = await bulkCreateShifts(allToCreate)
-          setShifts((prev) => [
-            ...created,
-            ...prev.filter((s) => !deleteIds.includes(s.id)),
-          ])
-        } else if (deleteIds.length > 0) {
-          setShifts((prev) => prev.filter((s) => !deleteIds.includes(s.id)))
-        }
-
+        // Delete the conflicting shift and update the target shift
+        await deleteShift(conflictingShift.id)
+        const updated = await updateShift(editConflictTargetShiftId, pendingShift)
+        setShifts((prev) => [
+          updated,
+          ...prev.filter((s) => s.id !== conflictingShift.id && s.id !== editConflictTargetShiftId),
+        ])
         setConflictModalOpen(false)
-        setBatchConflictQueue([])
-        setBatchResolutions([])
-        setBatchNonConflictingShifts([])
         setPendingShift(null)
         setConflictingShift(null)
         setConflictType(null)
+        setEditConflictTargetShiftId(null)
         closeModal()
       } catch (err) {
-        console.error("Failed to commit batch conflict resolutions:", err)
+        console.error("Failed to replace shift in edit mode:", err)
       } finally {
         setIsSaving(false)
       }
       return
     }
 
-    // Single shift manual conflict flow
-    if (conflictType === "exact_duplicate") {
-      setConflictModalOpen(false)
-      setPendingShift(null)
-      setConflictingShift(null)
-      setConflictType(null)
-      setIsSaving(false)
-      closeModal()
-      return
-    }
-
+    // ── Manual & Template Add Conflict ────────────────────────
     if (!conflictingShift) {
       setIsSaving(false)
       return
     }
 
     try {
-      await deleteShift(conflictingShift.id)
-      const created = await createShift(pendingShift)
-      setShifts((prev) => [created, ...prev.filter((s) => s.id !== conflictingShift.id)])
+      if (conflictType === "pay_break_update") {
+        // Update the existing shift with the new rate and break
+        const updated = await updateShift(conflictingShift.id, pendingShift)
+        setShifts((prev) => prev.map((s) => (s.id === conflictingShift.id ? updated : s)))
+      } else {
+        // Delete old conflicting shift and create new shift
+        await deleteShift(conflictingShift.id)
+        const created = await createShift(pendingShift)
+        setShifts((prev) => [created, ...prev.filter((s) => s.id !== conflictingShift.id)])
+      }
+
       setConflictModalOpen(false)
       setPendingShift(null)
       setConflictingShift(null)
@@ -615,87 +577,13 @@ export default function HomePage() {
     }
   }
 
-  const handleConflictSecondaryAction = async () => {
-    if (!pendingShift) return
-    setIsSaving(true)
-
-    // Smooth tactile feedback so the user visibly sees 'Keeping'
-    await new Promise((r) => setTimeout(r, 350))
-
-    // Check if we are in batch conflict resolution mode
-    if (batchConflictQueue.length > 0) {
-      const currentItem = batchConflictQueue[batchQueueIndex]
-      const resolution = {
-        shiftToSave: currentItem.extractedShift,
-        shiftToDeleteId: null, // Keep both, so do not delete existing
-      }
-
-      const nextResolutions = [...batchResolutions, resolution]
-      const nextIndex = batchQueueIndex + 1
-
-      if (nextIndex < batchConflictQueue.length) {
-        setBatchResolutions(nextResolutions)
-        setBatchQueueIndex(nextIndex)
-        setPendingShift(batchConflictQueue[nextIndex].extractedShift)
-        setConflictingShift(batchConflictQueue[nextIndex].conflictingShift)
-        setConflictType(batchConflictQueue[nextIndex].conflictType)
-        setIsSaving(false)
-        return
-      }
-
-      // All batch conflicts resolved! Commit batch to Supabase
-      try {
-        const deleteIds = nextResolutions
-          .map((r) => r.shiftToDeleteId)
-          .filter((id): id is string => Boolean(id))
-
-        if (deleteIds.length > 0) {
-          await Promise.all(deleteIds.map((id) => deleteShift(id)))
-        }
-
-        const approvedBatch = nextResolutions
-          .map((r) => r.shiftToSave)
-          .filter((s): s is ShiftFormValues => Boolean(s))
-
-        const allToCreate = [...batchNonConflictingShifts, ...approvedBatch]
-        if (allToCreate.length > 0) {
-          const created = await bulkCreateShifts(allToCreate)
-          setShifts((prev) => [
-            ...created,
-            ...prev.filter((s) => !deleteIds.includes(s.id)),
-          ])
-        }
-
-        setConflictModalOpen(false)
-        setBatchConflictQueue([])
-        setBatchResolutions([])
-        setBatchNonConflictingShifts([])
-        setPendingShift(null)
-        setConflictingShift(null)
-        setConflictType(null)
-        closeModal()
-      } catch (err) {
-        console.error("Failed to commit batch conflict resolutions:", err)
-      } finally {
-        setIsSaving(false)
-      }
-      return
-    }
-
-    // Single shift manual conflict flow
-    try {
-      const created = await createShift(pendingShift)
-      setShifts((prev) => [created, ...prev])
-      setConflictModalOpen(false)
-      setPendingShift(null)
-      setConflictingShift(null)
-      setConflictType(null)
-      closeModal()
-    } catch (err) {
-      console.error("Failed to keep both shifts:", err)
-    } finally {
-      setIsSaving(false)
-    }
+  const handleConflictSecondaryAction = () => {
+    // Dismiss conflict alert immediately while keeping the underlying form open with all user inputs intact
+    setConflictModalOpen(false)
+    setPendingShift(null)
+    setConflictingShift(null)
+    setConflictType(null)
+    setEditConflictTargetShiftId(null)
   }
 
   const handleCreateTemplate = async (data: TemplateFormValues) => {
@@ -713,6 +601,22 @@ export default function HomePage() {
 
   const handleUpdate = async (data: ShiftFormValues) => {
     if (!selectedShift) return
+
+    // Detect collision against other existing shifts (excluding the shift being edited)
+    const conflictResult = detectShiftConflict(data, shifts, selectedShift.id)
+
+    if (conflictResult.hasConflict) {
+      setBatchConflictQueue([])
+      setBatchResolutions([])
+      setBatchNonConflictingShifts([])
+      setEditConflictTargetShiftId(selectedShift.id)
+      setPendingShift(data)
+      setConflictingShift(conflictResult.conflictingShift)
+      setConflictType(conflictResult.conflictType)
+      setConflictModalOpen(true)
+      return
+    }
+
     setIsSaving(true)
     try {
       const updated = await updateShift(selectedShift.id, data)
